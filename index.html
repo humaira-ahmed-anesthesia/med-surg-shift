@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Med-Surg Shift</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+/* Cozy single-theme world: mint ward walls, cream linens, butter-yellow glow for "do this next". Layout: portrait phone, patient center-left, roster on the right (from the sketch). */
+:root{
+  --bg:#dff0ea;
+  --wall:#eaf6f2;
+  --surface:#fffdf7;
+  --ink:#2f3d47;
+  --muted:#6d7d86;
+  --line:#cfe3dc;
+  --accent:#2f9c92;
+  --glow:#ffcf5c;
+  --good:#5bbf88;
+  --warn:#f1b04a;
+  --bad:#ee7466;
+  --display:"Fredoka","Nunito",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);-webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+[hidden]{display:none!important}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{position:relative;height:100%;max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:10px;padding:10px 12px 14px;user-select:none}
+
+/* header */
+.top{display:flex;align-items:center;gap:10px}
+.clock{font-family:var(--display);font-weight:600;font-size:20px;background:var(--surface);border-radius:14px;padding:6px 12px;font-variant-numeric:tabular-nums;box-shadow:0 2px 0 var(--line)}
+.unit{flex:1;min-width:0;font-size:13px;font-weight:700;color:var(--muted);line-height:1.2}
+.unit b{display:block;color:var(--ink);font-family:var(--display);font-weight:600;font-size:15px}
+.score{font-family:var(--display);font-weight:600;font-size:18px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.score small{font-family:var(--body);font-size:12px;color:var(--muted);font-weight:700}
+.pause{width:38px;height:38px;border-radius:12px;background:var(--surface);box-shadow:0 2px 0 var(--line);display:grid;place-items:center}
+.pause svg{width:16px;height:16px}
+
+/* stage */
+.stage{flex:1;min-height:0;display:grid;grid-template-columns:1fr 104px;gap:10px}
+.room{position:relative;min-height:0;background:var(--wall);border-radius:22px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 0 0 0 2px var(--line);overflow:hidden}
+.who{display:flex;align-items:baseline;gap:8px}
+.who .nm{font-family:var(--display);font-weight:600;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .rm{font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap}
+.bar{height:16px;border-radius:99px;background:#fff;box-shadow:inset 0 0 0 2px var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:50%;border-radius:99px;background:var(--good);transition:background-color .3s}
+.bar.warn i{background:var(--warn)}
+.bar.bad i{background:var(--bad)}
+.hp{display:flex;align-items:center;gap:8px}
+.hp .bar{flex:1}
+.hp span{font-size:12px;font-weight:800;color:var(--muted);width:34px;text-align:right;font-variant-numeric:tabular-nums}
+
+.order{background:var(--surface);border-radius:16px;padding:10px 10px 10px;box-shadow:0 2px 0 var(--line)}
+.order h2{margin:0;font-family:var(--display);font-weight:600;font-size:16px;line-height:1.15;text-wrap:balance}
+.order p{margin:2px 0 8px;font-size:12.5px;color:var(--muted);font-weight:700;line-height:1.3}
+.order.calm h2{color:var(--accent)}
+.order.calm p{margin-bottom:0}
+.order.urgent{box-shadow:0 0 0 2px var(--bad),0 2px 0 var(--line)}
+.order.urgent h2{color:#c9483b}
+.steps{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:flex;align-items:center;gap:5px;padding:4px 8px 4px 5px;border-radius:99px;background:#f1f6f4;font-size:12px;font-weight:800;color:var(--muted);line-height:1.15}
+.chip .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none}
+.chip .ic svg{width:16px;height:16px}
+.chip.done{text-decoration:line-through;opacity:.55}
+.chip.now{background:#fff3cf;color:var(--ink);box-shadow:0 0 0 2px var(--glow)}
+
+.bedwrap{position:relative;flex:1;min-height:120px;display:grid;place-items:end center}
+.bedwrap svg.pt{width:100%;max-width:250px;height:auto;max-height:100%;overflow:visible}
+.toast{position:absolute;left:50%;top:0;transform:translate(-50%,-6px);background:var(--ink);color:#fff;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:12px;width:max-content;max-width:94%;text-align:center;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:3}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.alarm{background:#c9483b}
+.toast.good{background:var(--accent)}
+.float{position:absolute;left:50%;top:40%;font-family:var(--display);font-weight:600;font-size:22px;color:var(--accent);pointer-events:none;animation:up 1s ease-out forwards;z-index:2;text-shadow:0 2px 0 #fff}
+.float.minus{color:var(--bad)}
+@keyframes up{from{opacity:1;transform:translate(-50%,0)}to{opacity:0;transform:translate(-50%,-50px)}}
+
+/* roster */
+.list{display:flex;flex-direction:column;gap:8px;min-height:0}
+.pt-card{position:relative;text-align:left;background:var(--surface);border-radius:16px;padding:8px 8px 9px;display:flex;flex-direction:column;gap:5px;box-shadow:0 2px 0 var(--line);transition:transform .15s}
+.pt-card:active{transform:scale(.97)}
+.pt-card.cur{box-shadow:0 0 0 3px var(--accent),0 2px 0 var(--line)}
+.pt-card .row{display:flex;align-items:center;gap:6px}
+.pt-card .av{width:34px;height:34px;flex:none;border-radius:50%;background:var(--wall);overflow:hidden}
+.pt-card .av svg{width:100%;height:100%}
+.pt-card .rn{font-size:11px;font-weight:800;color:var(--muted);line-height:1.1}
+.pt-card .rn b{display:block;color:var(--ink);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:52px}
+.pt-card .bar{height:9px}
+.pt-card .need{position:absolute;top:-6px;right:-6px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;box-shadow:0 0 0 2px var(--surface)}
+.pt-card .need svg{width:16px;height:16px}
+.pt-card .need:empty{display:none}
+.pt-card .state{font-size:10.5px;font-weight:800;color:var(--muted);line-height:1.1}
+.pt-card.alarm{animation:alarm .7s ease-in-out infinite}
+@keyframes alarm{0%,100%{box-shadow:0 0 0 3px var(--bad),0 2px 0 var(--line);background:var(--surface)}50%{box-shadow:0 0 0 3px var(--bad),0 2px 0 var(--line);background:#ffe3df}}
+.pt-card.cur.alarm{animation:alarmcur .7s ease-in-out infinite}
+@keyframes alarmcur{0%,100%{background:var(--surface)}50%{background:#ffe3df}}
+
+/* tray */
+.tray{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;background:var(--surface);border-radius:20px;padding:9px;box-shadow:0 2px 0 var(--line)}
+.tool{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0 5px;border-radius:14px;background:var(--tint);transition:transform .1s}
+.tool:active{transform:scale(.92)}
+.tool .ic{width:34px;height:34px;display:grid;place-items:center;color:var(--tc)}
+.tool .ic svg{width:28px;height:28px}
+.tool span{font-size:11px;font-weight:800;color:var(--ink);line-height:1}
+.tool.next{box-shadow:0 0 0 3px var(--glow);animation:glow 1s ease-in-out infinite}
+@keyframes glow{0%,100%{box-shadow:0 0 0 3px var(--glow),0 0 0 0 rgba(255,207,92,.7)}50%{box-shadow:0 0 0 3px var(--glow),0 0 0 9px rgba(255,207,92,0)}}
+.tool.shake{animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+/* help */
+.help{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.hbtn{border-radius:16px;padding:9px 10px;text-align:left;display:flex;align-items:center;gap:9px;background:var(--surface);box-shadow:0 2px 0 var(--line);transition:opacity .2s,transform .1s}
+.hbtn:active{transform:scale(.97)}
+.hbtn[disabled]{opacity:.5;cursor:default}
+.hbtn .hi{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;flex:none}
+.hbtn .hi svg{width:20px;height:20px}
+.hbtn b{display:block;font-size:13px;line-height:1.15}
+.hbtn small{display:block;font-size:11px;font-weight:700;color:var(--muted);line-height:1.2}
+#charge .hi{background:#e3eefb;color:#4f7fc4}
+#rr .hi{background:#ffe3df;color:#d4503f}
+#rr.ready,#charge.ready{box-shadow:0 0 0 3px var(--bad),0 2px 0 var(--line);animation:rrpulse 1s infinite}
+@keyframes rrpulse{50%{background:#fff0ee}}
+
+/* overlay */
+.overlay{position:absolute;inset:0;display:grid;place-items:center;padding:20px;background:rgba(47,61,71,.35);z-index:10}
+.overlay[hidden]{display:none}
+.card{background:var(--surface);border-radius:26px;padding:22px 20px 20px;max-width:360px;width:100%;box-shadow:0 10px 30px rgba(47,61,71,.25)}
+.card h1{margin:0 0 4px;font-family:var(--display);font-weight:600;font-size:26px;text-wrap:balance}
+.card .sub{margin:0 0 14px;color:var(--muted);font-weight:700;font-size:14px}
+.card ul{margin:0 0 16px;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+.card li{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;line-height:1.35;font-weight:600}
+.card li .n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--wall);color:var(--accent);font-weight:800;font-size:12px;display:grid;place-items:center}
+.go{width:100%;padding:13px;border-radius:16px;background:var(--accent);color:#fff;font-family:var(--display);font-weight:600;font-size:18px;box-shadow:0 3px 0 #237a72}
+.go:active{transform:translateY(2px);box-shadow:0 1px 0 #237a72}
+.stars{display:flex;justify-content:center;gap:8px;margin:6px 0 12px}
+.stars svg{width:46px;height:46px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.stat{background:var(--wall);border-radius:14px;padding:8px 10px}
+.stat b{display:block;font-family:var(--display);font-weight:600;font-size:20px;font-variant-numeric:tabular-nums}
+.stat:last-child:nth-child(odd){grid-column:span 2}
+.stat span{font-size:11.5px;font-weight:800;color:var(--muted)}
+.fine{font-size:11px;color:var(--muted);font-weight:600;margin:10px 0 0;text-align:center;line-height:1.35}
+.toggle{display:block;margin:10px auto 0;font-size:12.5px;font-weight:800;color:var(--muted);text-decoration:underline}
+
+/* chart button + results */
+.who .chartbtn{margin-left:auto;flex:none;display:flex;align-items:center;gap:4px;padding:4px 9px 4px 7px;border-radius:10px;background:var(--surface);font-size:12px;font-weight:800;color:var(--accent);box-shadow:0 2px 0 var(--line)}
+.who .chartbtn svg{width:16px;height:16px}
+.results{position:absolute;left:0;right:0;top:0;display:flex;flex-direction:column;align-items:center;gap:6px;z-index:3;pointer-events:none}
+.res{display:flex;align-items:flex-start;gap:8px;max-width:96%;background:var(--surface);border-radius:14px;padding:8px 10px;font-size:12.5px;font-weight:700;line-height:1.3;box-shadow:0 4px 14px rgba(47,61,71,.16);animation:resIn .25s ease-out}
+.res .ic{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none}
+.res .ic svg{width:16px;height:16px}
+.res.out{opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s}
+@keyframes resIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
+.flag{color:#c9483b;font-weight:800}
+.toast{top:auto;bottom:0;transform:translate(-50%,6px)}
+.toast.show{transform:translate(-50%,0)}
+.tool span.lb{max-width:100%;padding:0 2px;text-align:center;overflow-wrap:anywhere}
+.tool.next span.lb{color:#8a5a00}
+.orbtn{margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:14px;background:#4a63c9;color:#fff;font-family:var(--display);font-weight:600;font-size:16px;box-shadow:0 3px 0 #33479a;animation:glow 1s ease-in-out infinite}
+.orbtn svg{width:22px;height:22px}
+/* chart */
+.chart h1{font-size:22px}
+.chart dl{margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px}
+.chart dt{font-weight:800;color:var(--muted)}
+.chart dd{margin:0;font-weight:700}
+.chart dd.allergy{color:#c9483b}
+.chart h3{margin:0 0 6px;font-family:var(--display);font-weight:600;font-size:15px}
+.chart .log{max-height:180px;overflow:auto;margin:0 0 14px;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+.chart .log li{font-size:12.5px;font-weight:600;line-height:1.35;display:flex;gap:8px}
+.chart .log time{flex:none;font-weight:800;color:var(--muted);font-variant-numeric:tabular-nums}
+.chart .empty{font-size:12.5px;color:var(--muted);font-weight:600;margin:0 0 14px}
+
+@media (max-width:360px){
+  .stage{grid-template-columns:1fr 92px}
+  .tool span{font-size:10px}
+  .tool .ic svg{width:24px;height:24px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="top">
+    <div class="clock" id="clock">07:00</div>
+    <div class="unit"><b>4 West</b>Med-Surg day shift</div>
+    <div class="score"><span id="score">0</span> <small>pts</small></div>
+    <button class="pause" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 16 16"><rect x="3" y="2" width="3.5" height="12" rx="1.5" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" rx="1.5" fill="currentColor"/></svg></button>
+  </header>
+
+  <main class="stage">
+    <section class="room" aria-live="polite">
+      <div>
+        <div class="who"><span class="nm" id="ptName">Patient</span>
+          <button class="chartbtn" id="chartBtn" aria-label="Open patient chart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 6.5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M8 12h8M8 15.5h5"/></svg>Chart</button></div>
+        <div class="hp"><div class="bar" id="ptBar"><i></i></div><span id="ptPct">70%</span></div>
+      </div>
+      <div class="order" id="order"></div>
+      <div class="bedwrap" id="bedwrap">
+        <div class="results" id="results"></div>
+        <div class="toast" id="toast"></div>
+        <div id="ptArt"></div>
+      </div>
+    </section>
+    <aside class="list" id="list" aria-label="Your patients"></aside>
+  </main>
+
+  <div class="tray" id="tray" aria-label="Interventions"></div>
+
+  <div class="help">
+    <button class="hbtn" id="charge">
+      <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.5-6 8-6s7 2 8 6"/><path d="M9.5 5.5h5"/></svg></span>
+      <span><b>Call charge</b><small id="chargeSub">Helps one step · −20 pts</small></span>
+    </button>
+    <button class="hbtn" id="rr">
+      <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span>
+      <span><b>Rapid response <span id="rrCount">×2</span></b><small id="rrSub">Unlocks in the red</small></span>
+    </button>
+  </div>
+
+  <div class="overlay" id="overlay"></div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- content ---------- */
+const TOOLS = {
+  iv:    {name:"IV",     tint:"#e2f0fb", c:"#3f86c8"},
+  blood: {name:"Blood",  tint:"#fde3e6", c:"#d0485a"},
+  labs:  {name:"Labs",   tint:"#ece6fa", c:"#7c62c4"},
+  wound: {name:"Wound",  tint:"#fdebdc", c:"#d27a3c"},
+  meds:  {name:"Meds",   tint:"#e0f4e6", c:"#3a9d62"},
+  o2:    {name:"O₂",     tint:"#ddf3f6", c:"#2a97a6"},
+  esc:   {name:"RRT",    tint:"#ffe3df", c:"#d4503f"},
+  or:    {name:"OR",     tint:"#e3e8fb", c:"#4a63c9"}
+};
+const ORDER = ["iv","blood","labs","wound","meds","o2"];
+
+const ICON = {
+  or:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="14" height="5" rx="2"/><path d="M6 14v4M14 14v4M17 11.5h4M19 9.5l2 2-2 2"/><circle cx="6.5" cy="6" r="2"/></svg>',
+  esc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>',
+  iv:'<svg viewBox="0 0 24 24"><path d="M8 2.5h8a2 2 0 0 1 2 2V12a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V4.5a2 2 0 0 1 2-2z" fill="currentColor" opacity=".18"/><path d="M8 2.5h8a2 2 0 0 1 2 2V12a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V4.5a2 2 0 0 1 2-2zM12 16v3.5M12 21.5v.01M9.5 6.5h5M9.5 9.5h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  blood:'<svg viewBox="0 0 24 24"><path d="M8 2.5h8a2 2 0 0 1 2 2V12a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V4.5a2 2 0 0 1 2-2z" fill="currentColor"/><path d="M12 6.2c1.4 1.8 2.2 2.9 2.2 4a2.2 2.2 0 0 1-4.4 0c0-1.1.8-2.2 2.2-4z" fill="#fff"/><path d="M12 16v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
+  labs:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 3h6M15 5h5"/><path d="M6 3v13.5a2 2 0 0 0 4 0V3M16 5v12a1.75 1.75 0 0 0 3.5 0V5"/><path d="M6.6 12h2.8v4.5a1.4 1.4 0 0 1-2.8 0z" fill="currentColor" stroke="none"/><path d="M16.6 13h2.3v4a1.15 1.15 0 0 1-2.3 0z" fill="currentColor" stroke="none" opacity=".6"/></svg>',
+  wound:'<svg viewBox="0 0 24 24"><g transform="rotate(-40 12 12)"><rect x="2.5" y="8.3" width="19" height="7.4" rx="3.7" fill="currentColor" opacity=".25" stroke="currentColor" stroke-width="1.7"/><rect x="8.8" y="8.3" width="6.4" height="7.4" fill="currentColor" opacity=".55"/><circle cx="5.6" cy="12" r=".9" fill="currentColor"/><circle cx="18.4" cy="12" r=".9" fill="currentColor"/></g></svg>',
+  meds:'<svg viewBox="0 0 24 24"><g transform="rotate(-40 12 12)"><path d="M12 8.3H7.7a3.7 3.7 0 0 0 0 7.4H12z" fill="currentColor"/><rect x="4" y="8.3" width="16" height="7.4" rx="3.7" fill="none" stroke="currentColor" stroke-width="1.7"/></g><circle cx="17.5" cy="18" r="2.6" fill="currentColor" opacity=".35"/></svg>',
+  o2:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" opacity=".16" stroke="currentColor" stroke-width="1.8"/><text x="11" y="15.6" text-anchor="middle" font-size="9.5" font-weight="800" font-family="Nunito,system-ui,sans-serif" fill="currentColor">O</text><text x="16.2" y="17.2" text-anchor="middle" font-size="5.5" font-weight="800" font-family="Nunito,system-ui,sans-serif" fill="currentColor">2</text></svg>'
+};
+
+/* A step: tool, chip label, short button label, what happened (result popup). alt = swap used for a penicillin allergy. */
+const S = (k,l,b,fx,alt) => ({k,l,b,fx,alt});
+
+/* Admitting problems: set the patient's diagnosis. r = health drain (%/s). */
+const FIRST = [
+  {t:"Post-op pain", d:"Day 1 after knee replacement. Pain 8/10.", dx:"Right knee replacement, post-op day 1", surg:true,
+   s:[S("iv","Check the IV","Flush","IV flushes well. No swelling."), S("meds","Give IV pain med","Dilaudid","Hydromorphone (Dilaudid) 0.5 mg IV given. Pain down to 4/10.")], r:1.3},
+  {t:"Low hemoglobin", d:"Pale and dizzy after hip surgery.", dx:"Left hip fracture repair, post-op day 2", surg:true,
+   s:[S("labs","Type & screen","T&S","Hemoglobin 6.8 g/dL (low). Type & screen sent to blood bank."), S("iv","Large-bore IV","18g IV","18-gauge IV placed in the left arm."), S("blood","Hang 1 unit PRBCs","PRBCs","Two-nurse check done. 1 unit PRBCs running with normal saline.")], r:1.5},
+  {t:"Pneumonia", d:"Coughing and feverish. SpO₂ 90% on room air.", dx:"Community-acquired pneumonia",
+   s:[S("o2","Start oxygen","NC 2 L","2 L nasal cannula on. SpO₂ up to 94%."), S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn before antibiotics. WBC 16.2 (high)."), S("meds","Start antibiotics","Rocephin","Ceftriaxone (Rocephin) 1 g IV started.")], r:1.6},
+  {t:"Dressing change", d:"Abdominal incision is due for care.", dx:"Bowel resection, post-op day 3", surg:true,
+   s:[S("wound","Change dressing","Dressing","Incision clean and dry, edges together. New dressing on.")], r:0.9},
+  {t:"Dehydration", d:"Vomiting since last night. Dry lips.", dx:"Gastroenteritis with dehydration",
+   s:[S("labs","Draw a BMP","BMP","Sodium 147 (high), BUN 32 (high). Very dry."), S("iv","Start IV fluids","LR bolus","1 L lactated Ringer's bolus running."), S("meds","Anti-nausea med","Zofran","Ondansetron (Zofran) 4 mg IV given.")], r:1.4},
+  {t:"Cellulitis", d:"Red, warm, swollen left leg.", dx:"Cellulitis of the left leg",
+   s:[S("wound","Mark the redness","Marker","Edge of the redness outlined so the team can track it."), S("meds","IV antibiotics","Cefazolin","Cefazolin 2 g IV started.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin IV started instead."})], r:1.2},
+  {t:"Severe low blood sugar", d:"Drowsy, sweaty and hard to wake.", dx:"Diabetic foot ulcer", pmh:"Type 1 diabetes (on insulin)",
+   s:[S("labs","Fingerstick glucose","FSBG","Glucose 42 mg/dL (critically low)."), S("meds","Give IV dextrose","D50","Too drowsy to swallow, so dextrose 50% 25 g IV push given. Awake and talking now.")], r:1.9},
+  {t:"Infected incision", d:"Redness and cloudy drainage at the incision.", dx:"Appendectomy, post-op day 4", surg:true,
+   s:[S("wound","Swab & clean wound","Culture","Wound culture sent. Wound cleaned and packed."), S("meds","Antibiotics","Cefazolin","Cefazolin 2 g IV given.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin IV given instead."})], r:1.2},
+  {t:"Low potassium", d:"Peeing a lot after diuretics. Leg cramps.", dx:"Heart failure flare", pmh:"Heart failure",
+   s:[S("labs","Draw a BMP","BMP","Potassium 3.1 mEq/L (low)."), S("meds","Replace potassium","KCl","Potassium chloride 20 mEq by mouth given.")], r:1.1}
+];
+/* Things that come up later in a stay, for any patient. */
+const FOLLOW = [
+  {t:"Pain", d:"Pain 7/10. Grimacing in bed.", s:[S("meds","Give pain med","Oxycodone","Oxycodone 5 mg by mouth given. Pain down to 3/10.")], r:1.1},
+  {t:"Lost IV", d:"IV came out during the gown change.", s:[S("iv","Place a new IV","20g IV","20-gauge IV placed. Flushes well."), S("meds","Restart IV meds","Restart","Scheduled IV medication restarted on time.")], r:1.1},
+  {t:"Nausea", d:"Queasy. Can't keep breakfast down.", s:[S("meds","Anti-nausea med","Zofran","Ondansetron (Zofran) 4 mg IV given.")], r:1.0},
+  {t:"Pressure injury", d:"Red spot on the tailbone that doesn't blanch.", s:[S("wound","Clean & protect skin","Barrier","Stage 1 pressure injury. Barrier cream on, turned to the left side.")], r:0.8},
+  {t:"Low blood sugar", d:"Shaky and sweaty, but awake.", pmh:"Type 2 diabetes (on insulin)",
+   s:[S("labs","Fingerstick glucose","FSBG","Glucose 58 mg/dL (low)."), S("meds","Give oral glucose","Glucose","Awake and can swallow, so 15 g oral glucose given. Recheck in 15 minutes.")], r:1.6},
+  {t:"Morning labs", d:"CBC due this morning.", s:[S("labs","Draw a CBC","CBC","Hemoglobin 10.8, WBC 8.1. All stable.")], r:0.7}
+];
+/* Sudden drops. surg = only for surgical patients. */
+const URGENT = [
+  {t:"Desatting!", d:"SpO₂ dropped to 86% after walking to the bathroom.",
+   s:[S("o2","Apply oxygen","NC 4 L","4 L nasal cannula on. SpO₂ back up to 93%."), S("labs","Blood gas","ABG","ABG: pH 7.38, PaO₂ 66 (low). Improving on oxygen.")], r:2.4},
+  {t:"Bleeding!", d:"Blood is soaking through the surgical dressing.", surg:true,
+   s:[S("wound","Pressure dressing","Pressure","Firm pressure held and dressing reinforced. Surgeon paged."), S("labs","Stat CBC","CBC","Hemoglobin 7.1 g/dL (dropped from 9.4)."), S("blood","Hang blood","PRBCs","Two-nurse check done. 1 unit PRBCs running.")], r:2.6},
+  {t:"New fever!", d:"Temp 39.2 °C with shaking chills.",
+   s:[S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn. Lactate 2.6 (high)."), S("meds","Fever med","Tylenol","Acetaminophen (Tylenol) 650 mg by mouth given.")], r:2.2},
+  {t:"Too sleepy to breathe!", d:"Hard to wake after pain meds. Breathing 6 times a minute.",
+   s:[S("o2","Apply oxygen","NC 4 L","4 L nasal cannula on. SpO₂ 85%, pupils pinpoint."), S("meds","Reverse the opioid","Narcan","Naloxone (Narcan) 0.4 mg IV given. Awake and breathing 14/min.")], r:2.6},
+  {t:"Racing heart!", d:"Palpitations. Heart rate 148 and irregular.",
+   s:[S("labs","Stat EKG & labs","EKG","EKG: atrial fibrillation, rate 148 (high). Magnesium 1.6 (low)."), S("meds","Slow the heart rate","Dilt","Diltiazem 10 mg IV push given. Heart rate down to 96.")], r:2.3},
+  {t:"Hives during antibiotic!", d:"Itchy red welts spreading up the arm.",
+   s:[S("iv","Stop the infusion","Stop","Antibiotic stopped and line flushed with saline."), S("meds","Antihistamine","Benadryl","Diphenhydramine (Benadryl) 25 mg IV given. Hives fading. Allergy added to chart.")], r:2.0},
+  {t:"Possible sepsis!", d:"BP 84/46, heart rate 122, confused.",
+   s:[S("labs","Lactate & cultures","Lactate","Lactate 4.1 (high). Blood cultures drawn."), S("iv","IV fluid bolus","LR bolus","Lactated Ringer's bolus running wide open. BP up to 102/60."), S("meds","Broad antibiotics","Zosyn","Piperacillin-tazobactam (Zosyn) IV started within the hour.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin and aztreonam started instead."})], r:2.7},
+  {t:"Wound popped open!", d:"Felt a pop while coughing. The incision has split open.", surg:true,
+   s:[S("wound","Cover the wound","NS gauze","Sterile saline-soaked gauze over the wound. Knees bent to ease tension. Surgeon paged."), S("labs","Pre-op labs","T&S","CBC and type & screen sent. Hemoglobin 9.9."), S("iv","IV fluids, NPO","IV fluids","Nothing by mouth. Maintenance IV fluids running."), S("or","Rush to surgery","","")], r:2.6},
+  {t:"Bleeding from infection!", d:"The infected wound is oozing bright red blood.", surg:true,
+   s:[S("wound","Hold pressure","Pressure","Firm pressure held with gauze. Surgeon paged stat."), S("labs","Stat CBC & T&S","CBC","Hemoglobin 7.4 g/dL (low). Type & screen sent."), S("blood","Hang blood","PRBCs","Two-nurse check done. 1 unit PRBCs running."), S("or","Rush to surgery","","")], r:2.8}
+];
+/* A patient who will need the ICU no matter what. Good care = escalated in time. */
+const COPD = {t:"COPD flare", d:"Wheezing and short of breath. SpO₂ 86%.", dx:"COPD flare with pneumonia", pmh:"COPD (home oxygen 2 L)",
+   s:[S("o2","Start oxygen","NC 2 L","2 L nasal cannula. SpO₂ 89%. Goal for COPD is 88–92%."), S("meds","Breathing treatment","DuoNeb","Albuterol-ipratropium (DuoNeb) nebulizer given."), S("meds","IV steroids","Steroid","Methylprednisolone (Solu-Medrol) 40 mg IV given.")], r:1.7};
+const DOOM1 = {t:"Breathing harder!", d:"SpO₂ 85%. Using neck muscles to breathe.",
+   s:[S("o2","Venturi mask","Venturi","Venturi mask at 35%. SpO₂ only 87%."), S("labs","Blood gas","ABG","ABG: pH 7.29 (low), PaCO₂ 58 (high). Tiring out.")], r:2.5};
+const DOOM2 = {t:"Still desatting!", d:"SpO₂ 83%. Drowsy and confused.",
+   s:[S("o2","Start BiPAP","BiPAP","Respiratory therapy starts BiPAP. SpO₂ 88%, still working hard."), S("labs","Repeat blood gas","ABG","ABG: pH 7.22 (low), PaCO₂ 68 (high). Needs ICU-level care."), S("esc","Escalate: call rapid response or charge","","")], r:2.9};
+
+const NAMES = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Begay","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park"];
+const PMH = ["Hypertension","High cholesterol","Asthma","Hypothyroidism","Atrial fibrillation","Chronic kidney disease, stage 3","Depression","GERD","Osteoarthritis","Sleep apnea"];
+const ALLERGIES = [["No known allergies",10],["Penicillin (anaphylaxis)",3],["Sulfa drugs (rash)",2],["Morphine (itching)",2],["Latex (rash)",1],["Codeine (nausea)",1]];
+const SKIN = ["#f6d5bd","#eab896","#cf9068","#9b6443","#f2c8a6","#b07452","#7a4a33"];
+const HAIR = ["#3b2a20","#7a4b2a","#cfc8bf","#1f1a17","#d9a35b","#ebe6df","#5b3a29"];
+const GOWN = ["#bfe3de","#c9d8f3","#f4d3de","#d6ebc2","#f6e3b3","#dcd3f2"];
+const ROOMS = [412,414,416];
+const SHIFT = 180; // real seconds for a 12-hour shift
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const rand = (a,b) => a + Math.random()*(b-a);
+const pick = a => a[Math.floor(Math.random()*a.length)];
+const wpick = a => { let n = Math.random()*a.reduce((s,x)=>s+x[1],0); for(const x of a){ if((n-=x[1])<0) return x[0]; } return a[0][0]; };
+const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const tier = h => h>=60 ? "" : h>=30 ? "warn" : "bad";
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const flagify = s => esc(s).replace(/\((critically low|low|high|dropped[^)]*)\)/g, '<span class="flag">($1)</span>');
+function clockStr(){ const mins = Math.floor((Math.min(G.t,SHIFT)/SHIFT)*720), hh = 7 + Math.floor(mins/60), mm = mins%60; return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0"); }
+
+/* ---------- sound ---------- */
+let ac = null, soundOn = true;
+function beep(f, d=0.09, type="sine", v=0.05, delay=0){
+  if(!soundOn || !ac) return;
+  try{
+    const t = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+    o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+d+0.02);
+  }catch(e){}
+}
+const sfx = {
+  tap(){ beep(660,0.07,"sine",0.05); },
+  done(){ beep(784,0.1,"sine",0.05); beep(988,0.12,"sine",0.05,0.09); beep(1319,0.16,"sine",0.04,0.18); },
+  wrong(){ beep(220,0.12,"triangle",0.05); },
+  alarm(){ beep(880,0.12,"square",0.025); beep(880,0.12,"square",0.025,0.2); },
+  home(){ [523,659,784,1047].forEach((f,i)=>beep(f,0.14,"sine",0.04,i*0.08)); },
+  ping(){ beep(1046,0.08,"sine",0.03); }
+};
+
+/* ---------- state ---------- */
+let G, dirty = true;
+function inst(def, p){
+  const pcn = p.allergy.startsWith("Penicillin");
+  return {def, urgent:/!$/.test(def.t), escalate:!!def.escalate, step:0,
+          steps: def.s.map(st => (st.alt && pcn) ? {...st, b:st.alt.b, fx:st.alt.fx} : st)};
+}
+function admit(i, initial){
+  if(!G.namePool.length) G.namePool = shuffle(NAMES.slice());
+  const doomed = !initial && !G.beds.some(b=>b && b.doomed) && (G.doomSeen===0 ? G.t>35 : Math.random()<0.15);
+  const p = {
+    name: G.namePool.shift(),
+    age: Math.floor(doomed ? rand(68,86) : rand(29,89)),
+    kg: Math.floor(rand(52,112)),
+    look: {skin:pick(SKIN), hair:pick(HAIR), gown:pick(GOWN), style:Math.floor(Math.random()*3)},
+    allergy: wpick(ALLERGIES),
+    code: Math.random()<0.85 ? "Full code" : "DNR (do not resuscitate)",
+    health: initial ? rand(64,80) : rand(58,74),
+    active:null, state:"resting", timer:1.5, flash:0, out:null, log:[], doomed
+  };
+  let defs;
+  if(doomed){ G.doomSeen++; defs = [COPD, DOOM1, DOOM2]; }
+  else{
+    const first = pick(FIRST);
+    const n = initial ? 1 : (Math.random()<0.55 ? 1 : 2);
+    defs = [first, ...shuffle(FOLLOW.slice()).slice(0,n)];
+  }
+  p.dx = defs[0].dx; p.surg = !!defs[0].surg;
+  const hist = new Set(shuffle(PMH.slice()).slice(0, 1 + Math.floor(Math.random()*2)));
+  defs.forEach(d => { if(d.pmh) hist.add(d.pmh); });
+  p.pmh = [...hist];
+  p.queue = defs.map(d => inst(d,p));
+  if(initial){ p.active = p.queue.shift(); p.state = "needs"; }
+  return p;
+}
+function newGame(){
+  G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:2, chargeCd:0, doomSeen:0,
+       discharged:0, transfers:0, escalated:0, surgery:0, helps:0, rrUsed:0, nextEvent:rand(24,32), beds:[], namePool:shuffle(NAMES.slice())};
+  for(let i=0;i<3;i++) G.beds.push(admit(i,true));
+  dirty = true;
+}
+const cur = () => G.beds[G.current];
+const roomOf = p => ROOMS[G.beds.indexOf(p)];
+const logIt = (p, text) => p.log.push([clockStr(), text]);
+
+/* ---------- game logic ---------- */
+function update(dt){
+  G.t += dt;
+  if(G.t >= SHIFT){ endShift(); return; }
+  const ramp = 1 + 0.5*(G.t/SHIFT);
+  G.chargeCd = Math.max(0, G.chargeCd - dt);
+
+  G.beds.forEach((p,i)=>{
+    p.flash = Math.max(0, p.flash - dt);
+    if(p.state === "needs"){
+      p.health -= p.active.def.r * ramp * dt;
+      if(p.health <= 0) transfer(p);
+    } else if(p.state === "resting"){
+      p.health = Math.min(100, p.health + 3*dt);
+      p.timer -= dt;
+      if(p.timer <= 0){
+        if(p.queue.length){
+          p.active = p.queue.shift(); p.state = "needs";
+          if(p.active.urgent) alarmFor(p);
+          else if(i!==G.current) sfx.ping();
+          dirty = true;
+        } else discharge(p);
+      }
+    } else if(p.state === "leaving"){
+      p.timer -= dt;
+      if(p.timer <= 0){ p.state = "empty"; p.timer = 3; dirty = true; }
+    } else if(p.state === "empty"){
+      p.timer -= dt;
+      if(p.timer <= 0){ G.beds[i] = admit(i,false); dirty = true; }
+    }
+  });
+
+  G.nextEvent -= dt;
+  if(G.nextEvent <= 0){
+    G.nextEvent = rand(20,30) / ramp;
+    const opts = G.beds.filter(p => (p.state==="needs" || p.state==="resting") && !p.doomed && !(p.active && p.active.urgent));
+    if(opts.length) suddenDrop(pick(opts));
+  }
+}
+function alarmFor(p){
+  p.health = Math.max(12, p.health - 25);
+  p.flash = 4; sfx.alarm();
+  toast(`Rm ${roomOf(p)}: ${p.name}, ${p.active.def.t.replace("!","").toLowerCase()}`, "alarm");
+  logIt(p, p.active.def.t.replace("!","") + ". " + p.active.def.d);
+}
+function suddenDrop(p){
+  const def = pick(URGENT.filter(u => !u.surg || p.surg));
+  if(p.active) p.queue.unshift(p.active);
+  p.active = inst(def, p); p.state = "needs";
+  p.health = Math.max(12, p.health - 5);
+  alarmFor(p);
+  dirty = true;
+}
+
+function advance(p, by){
+  const st = p.active.steps[p.active.step];
+  logIt(p, st.fx + (by==="charge" ? " (charge nurse)" : ""));
+  if(p === cur()) showResult(st);
+  p.active.step++;
+  p.health = Math.min(100, p.health + 5);
+  if(by==="you") G.score += 10;
+  if(p.active.step >= p.active.steps.length) complete(p, by);
+  dirty = true;
+}
+function complete(p, via){
+  p.health = Math.min(100, p.health + 25);
+  const pts = via==="rr" ? 40 : via==="charge" ? 60 : 100 + Math.round(p.health/4);
+  G.score += pts;
+  if(p === cur()) floatText("+"+pts);
+  p.active = null; p.state = "resting";
+  p.timer = p.queue.length ? (p.queue[0].urgent ? rand(3,5) : rand(5,8)) : 2.5;
+  sfx.done(); dirty = true;
+}
+function escalate(p, via){
+  const fx = via==="charge" ? "Charge nurse called the ICU. Bed assigned, transferring now." : "Rapid response team (ICU nurses) at the bedside. Transferring to the ICU for closer monitoring.";
+  G.score += via==="charge" ? 150 : 200; G.escalated++;
+  logIt(p, fx);
+  if(p === cur()) showResult({k:"esc", fx});
+  p.state = "leaving"; p.out = "esc"; p.timer = 3.4; p.active = null; p.queue = [];
+  if(p === cur()) floatText(via==="charge" ? "+150" : "+200");
+  sfx.done();
+  toast(`${p.name} needs the ICU. You escalated in time.`, "good");
+  dirty = true;
+}
+function sendToOR(){
+  const p = cur();
+  if(!G.running || G.paused || p.state!=="needs" || p.active.steps[p.active.step].k!=="or") return;
+  const fx = "Surgeon at the bedside. Consent signed, off to the OR.";
+  logIt(p, fx); showResult({k:"or", fx});
+  G.score += 200; G.surgery++;
+  p.state = "leaving"; p.out = "or"; p.timer = 3.4; p.active = null; p.queue = [];
+  floatText("+200"); sfx.done();
+  toast(`${p.name} is headed to surgery. Great catch.`, "good");
+  dirty = true;
+}
+function discharge(p){
+  G.score += 150; G.discharged++;
+  p.state = "leaving"; p.out = "home"; p.timer = 2.2;
+  sfx.home();
+  if(p === cur()) floatText("+150");
+  toast(`${p.name} is going home!`, "good");
+  if(G.discharged % 3 === 0){ G.rr++; setTimeout(()=>toast("You earned a rapid response!", "good"), 1300); }
+  dirty = true;
+}
+function transfer(p){
+  p.health = 0; G.transfers++;
+  G.score = Math.max(0, G.score - 150);
+  p.state = "leaving"; p.out = "icu"; p.timer = 2.6; p.active = null; p.queue = [];
+  if(p === cur()) floatText("−150", true);
+  toast(`${p.name} was moved to the ICU for closer care.`, "alarm");
+  dirty = true;
+}
+
+function tapTool(key, btn){
+  if(!G.running || G.paused || G.over) return;
+  const p = cur();
+  if(p.state !== "needs"){
+    toast(p.state==="resting" ? `${p.name} is resting. Check your other patients.` : "No patient in this room right now.");
+    return;
+  }
+  const want = p.active.steps[p.active.step].k;
+  if(want === "or"){ sfx.wrong(); toast("Tap “Rush to surgery” in the order card."); return; }
+  if(want === "esc"){ sfx.wrong(); toast("This patient needs the ICU. Call the rapid response team or charge."); return; }
+  if(key === want){ sfx.tap(); advance(p, "you"); }
+  else{
+    sfx.wrong();
+    G.score = Math.max(0, G.score - 5);
+    btn.classList.remove("shake"); void btn.offsetWidth; btn.classList.add("shake");
+    toast("Not that one. Tap the glowing button.");
+  }
+}
+function callCharge(){
+  const p = cur();
+  if(!G.running || G.paused || G.chargeCd>0 || p.state!=="needs") return;
+  if(p.active.steps[p.active.step].k === "or"){ sendToOR(); return; }
+  G.score = Math.max(0, G.score - 20); G.helps++; G.chargeCd = 10;
+  if(p.active.steps[p.active.step].k === "esc"){ escalate(p, "charge"); return; }
+  floatText("−20", true);
+  advance(p, "charge");
+}
+function callRR(){
+  const p = cur();
+  if(p.state==="needs" && p.active.steps[p.active.step].k==="or") return;
+  if(G.running && !G.paused && p.state==="needs" && p.active.steps[p.active.step].k==="esc"){ G.rrUsed++; escalate(p, "rr"); return; }
+  if(!G.running || G.paused || !(G.rr>0 && p.state==="needs" && p.health<30)) return;
+  G.rr--; G.rrUsed++;
+  p.health = Math.max(p.health, 50);
+  logIt(p, "Rapid response team at the bedside: " + p.active.steps.slice(p.active.step).map(s=>s.fx).join(" "));
+  toast(`Rapid response team took over ${p.name}'s care.`, "good");
+  complete(p, "rr");
+}
+
+/* ---------- art ---------- */
+function moodOf(p){
+  if(p.state==="leaving") return p.out==="home" ? "joy" : "gone";
+  if(p.state==="empty") return "empty";
+  const h = p.health;
+  return h>=70 ? "happy" : h>=45 ? "ok" : h>=25 ? "sad" : "bad";
+}
+function headParts(p, mood, sleeping){
+  const L = p.look;
+  let hair = "";
+  if(L.style===0) hair = `<path d="M65 74 Q63 36 100 34 Q137 36 135 74 Q128 52 100 51 Q72 52 65 74Z" fill="${L.hair}"/>`;
+  else if(L.style===1) hair = `<circle cx="100" cy="33" r="12" fill="${L.hair}"/><path d="M65 74 Q63 38 100 37 Q137 38 135 74 Q126 54 100 53 Q74 54 65 74Z" fill="${L.hair}"/>`;
+  else hair = `<g fill="${L.hair}"><circle cx="72" cy="58" r="9"/><circle cx="82" cy="46" r="10"/><circle cx="96" cy="41" r="10"/><circle cx="110" cy="42" r="10"/><circle cx="123" cy="48" r="10"/><circle cx="130" cy="60" r="8.5"/></g>`;
+  const ink = "#3a2e2a";
+  let eyes;
+  if(sleeping || mood==="joy") eyes = `<path d="M84 74 q5 -6 10 0 M106 74 q5 -6 10 0" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  else if(mood==="bad") eyes = `<circle cx="89" cy="74" r="3" fill="${ink}"/><circle cx="111" cy="74" r="3" fill="${ink}"/><path d="M82 66 L94 69 M118 66 L106 69" stroke="${ink}" stroke-width="2.4" stroke-linecap="round"/>`;
+  else eyes = `<circle cx="89" cy="74" r="3.4" fill="${ink}"/><circle cx="111" cy="74" r="3.4" fill="${ink}"/><circle cx="90.2" cy="72.8" r="1" fill="#fff"/><circle cx="112.2" cy="72.8" r="1" fill="#fff"/>`;
+  const mouths = {
+    joy:  `<path d="M88 85 Q100 100 112 85Z" fill="${ink}"/><path d="M93 91 Q100 96 107 91" fill="#f08a8a"/>`,
+    happy:`<path d="M89 86 Q100 95 111 86" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+    ok:   `<path d="M92 89 Q100 91 108 89" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+    sad:  `<path d="M90 92 Q100 85 110 92" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`,
+    bad:  `<path d="M91 93 Q100 84 109 93" stroke="${ink}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
+  };
+  const cheeks = (mood==="sad"||mood==="bad") ? `<g fill="#9ccbe8" opacity=".35"><ellipse cx="80" cy="84" rx="6" ry="4"/><ellipse cx="120" cy="84" rx="6" ry="4"/></g>`
+                                               : `<g fill="#f39a9a" opacity=".45"><ellipse cx="80" cy="84" rx="6" ry="4"/><ellipse cx="120" cy="84" rx="6" ry="4"/></g>`;
+  const sweat = mood==="bad" ? `<path d="M134 56 q5 8 0 11 q-5 -3 0 -11z" fill="#8fd0f2"/>` : "";
+  return `<circle cx="100" cy="76" r="35" fill="${L.skin}"/>${hair}${cheeks}${eyes}${mouths[mood]||mouths.ok}${sweat}`;
+}
+/* Front view from the foot of the bed: head of bed raised, patient sitting up with arms resting on the blanket. */
+function bedSVG(p){
+  const mood = moodOf(p);
+  const back = `<rect x="34" y="30" width="132" height="120" rx="22" fill="#cfe7e1"/>
+    <rect x="46" y="40" width="108" height="76" rx="26" fill="#f6fafb" stroke="#dde9ee" stroke-width="2"/>`;
+  const front = `<rect x="16" y="150" width="168" height="24" rx="11" fill="#ffffff" stroke="#cfe3dc" stroke-width="2"/>
+    <rect x="12" y="120" width="10" height="50" rx="5" fill="#9fcfc6"/><rect x="178" y="120" width="10" height="50" rx="5" fill="#9fcfc6"/>
+    <rect x="34" y="172" width="9" height="12" rx="4" fill="#b8d8d1"/><rect x="157" y="172" width="9" height="12" rx="4" fill="#b8d8d1"/>`;
+  if(mood==="empty" || mood==="gone"){
+    const label = mood==="gone" ? (p.out==="or" ? "Off to surgery" : "Moving to the ICU") : "Cleaning the room";
+    return `<svg class="pt" viewBox="0 0 200 186" role="img" aria-label="${label}">${back}
+      <path d="M22 140 Q100 130 178 140 L178 154 L22 154Z" fill="#eef4f2"/>${front}
+      <text x="100" y="84" text-anchor="middle" font-family="Fredoka,Nunito,sans-serif" font-size="13" font-weight="600" fill="#6d7d86">${label}</text></svg>`;
+  }
+  const L = p.look, sleeping = p.state==="resting" && p.health>=60;
+  const heart = mood==="joy" ? `<path d="M156 30 c-6 -8 -18 -2 -12 8 l12 12 l12 -12 c6 -10 -6 -16 -12 -8z" fill="#f07b8a"/>` : "";
+  const zz = sleeping ? `<text x="142" y="40" font-family="Fredoka,sans-serif" font-size="15" font-weight="600" fill="#7fb6ad">z<tspan font-size="11" dy="-7">z</tspan></text>` : "";
+  const onO2 = p.active && p.active.steps.some((s,k)=>s.k==="o2" && k<p.active.step);
+  const o2 = onO2 ? `<path d="M90 92 Q100 96 110 92 M90 92 Q70 98 68 116 M110 92 Q130 98 132 116" stroke="#8fd3de" stroke-width="2.6" fill="none" stroke-linecap="round"/>` : "";
+  const onIV = p.active && p.active.steps.some((s,k)=>(s.k==="iv"||s.k==="blood") && k<p.active.step);
+  const iv = onIV ? `<rect x="170" y="14" width="4" height="120" rx="2" fill="#b8c8cc"/><path d="M160 22h22v24a6 6 0 0 1-6 6h-10a6 6 0 0 1-6-6z" fill="${p.active.steps.some((s,k)=>s.k==="blood"&&k<p.active.step)?"#e57584":"#cfe6f7"}" stroke="#9fb9c6" stroke-width="1.5"/><path d="M171 52 Q170 110 140 138" stroke="#b8c8cc" stroke-width="2" fill="none"/>` : "";
+  return `<svg class="pt" viewBox="0 0 200 186" role="img" aria-label="${esc(p.name)}, feeling ${mood}">${iv}${back}
+    <path d="M52 152 Q50 110 100 104 Q150 110 148 152Z" fill="${L.gown}"/>
+    <path d="M86 106 Q100 116 114 106" stroke="#ffffff" stroke-width="3" fill="none" opacity=".7" stroke-linecap="round"/>
+    <g fill="${L.gown}" opacity=".85"><circle cx="70" cy="112" r="3"/><circle cx="128" cy="124" r="3"/><circle cx="96" cy="132" r="3"/></g>
+    ${headParts(p,mood,sleeping)}${o2}
+    <path d="M22 140 Q100 128 178 140 L178 154 L22 154Z" fill="#ffffff"/>
+    <path d="M22 140 Q100 128 178 140" stroke="#e4eef0" stroke-width="3" fill="none"/>
+    <ellipse cx="62" cy="138" rx="15" ry="9" fill="${L.gown}"/><ellipse cx="138" cy="138" rx="15" ry="9" fill="${L.gown}"/>
+    <ellipse cx="74" cy="142" rx="9" ry="7" fill="${L.skin}"/><ellipse cx="126" cy="142" rx="9" ry="7" fill="${L.skin}"/>
+    ${front}${heart}${zz}</svg>`;
+}
+function miniSVG(p){
+  const mood = moodOf(p);
+  if(mood==="empty"||mood==="gone") return `<svg viewBox="62 38 76 76"><circle cx="100" cy="76" r="30" fill="#eef4f2"/></svg>`;
+  return `<svg viewBox="62 38 76 76">${headParts(p,mood,p.state==="resting"&&p.health>=60)}</svg>`;
+}
+
+/* ---------- UI ---------- */
+const trayEl = $("#tray"), listEl = $("#list");
+const toolBtns = {};
+ORDER.forEach(k=>{
+  const t = TOOLS[k];
+  const b = document.createElement("button");
+  b.className = "tool"; b.id = "tool-"+k;
+  b.style.setProperty("--tint", t.tint); b.style.setProperty("--tc", t.c);
+  b.innerHTML = `<span class="ic">${ICON[k]}</span><span class="lb">${t.name}</span>`;
+  b.lb = b.querySelector(".lb");
+  b.addEventListener("click", ()=>tapTool(k,b));
+  trayEl.appendChild(b); toolBtns[k] = b;
+});
+const cards = [];
+ROOMS.forEach((r,i)=>{
+  const c = document.createElement("button");
+  c.className = "pt-card"; c.id = "bed-"+i;
+  c.innerHTML = `<span class="need"></span><span class="row"><span class="av"></span><span class="rn">Rm ${r}<b></b></span></span><span class="bar"><i></i></span><span class="state"></span>`;
+  c.addEventListener("click", ()=>{ if(G.current!==i){ G.current = i; dirty = true; clearResults(); sfx.tap(); } });
+  listEl.appendChild(c);
+  cards.push({el:c, av:c.querySelector(".av"), nm:c.querySelector(".rn b"), bar:c.querySelector(".bar"), fill:c.querySelector(".bar i"), need:c.querySelector(".need"), st:c.querySelector(".state"), key:""});
+});
+$("#charge").addEventListener("click", callCharge);
+$("#rr").addEventListener("click", callRR);
+$("#pauseBtn").addEventListener("click", ()=>{ if(G.running && !G.over){ G.paused = true; showPause(); } });
+$("#chartBtn").addEventListener("click", showChart);
+
+let artKey = "";
+function renderAll(){
+  const p = cur();
+  $("#ptName").textContent = p.state==="empty" ? "Empty bed" : p.name;
+  $("#chartBtn").hidden = p.state==="empty";
+  const o = $("#order");
+  o.className = "order";
+  if(p.state==="needs"){
+    const a = p.active;
+    if(a.urgent) o.classList.add("urgent");
+    o.innerHTML = `<h2>${esc(a.def.t)}</h2><p>${esc(a.def.d)}</p><div class="steps">${
+      a.steps.map((st,i)=>st.k==="or"?"":`<span class="chip ${i<a.step?"done":i===a.step?"now":""}"><span class="ic" style="background:${TOOLS[st.k].tint};color:${TOOLS[st.k].c}">${ICON[st.k]}</span>${esc(st.l)}</span>`).join("")
+    }</div>${a.steps[a.step].k==="or" ? `<button class="orbtn" id="orBtn">${ICON.or} Rush to surgery</button>` : ""}`;
+    const ob = $("#orBtn"); if(ob) ob.addEventListener("click", sendToOR);
+  } else {
+    o.classList.add("calm");
+    let h, d;
+    if(p.state==="resting"){ h = p.queue.length ? "Resting comfortably" : "Ready for discharge"; d = p.queue.length ? "Go check on your other patients." : "Paperwork is almost done."; }
+    else if(p.state==="leaving"){
+      h = p.out==="home" ? "Going home!" : p.out==="or" ? "Off to the OR" : p.out==="esc" ? "Moving to the ICU" : "Transferred to ICU";
+      d = p.out==="home" ? "Great care today." : p.out==="or" ? "The surgical team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : "They'll get closer monitoring there.";
+    }
+    else { h = "Room being cleaned"; d = "A new admission is on the way."; }
+    o.innerHTML = `<h2>${h}</h2><p>${d}</p>`;
+  }
+  G.beds.forEach((b,i)=>{
+    const c = cards[i];
+    c.el.classList.toggle("cur", i===G.current);
+    c.nm.textContent = b.state==="empty" ? "Empty" : b.name.replace(/^(Mrs?\.|Ms\.)\s*/,"");
+    const nk = b.state==="needs" ? b.active.steps[b.active.step].k : "";
+    c.need.innerHTML = nk ? ICON[nk] : "";
+    c.need.style.background = nk ? TOOLS[nk].tint : ""; c.need.style.color = nk ? TOOLS[nk].c : "";
+    c.st.textContent = b.state==="needs" ? b.active.def.t.replace("!","") : b.state==="resting" ? (b.queue.length?"Resting":"Discharge soon") : b.state==="leaving" ? (b.out==="home"?"Going home":b.out==="or"?"To OR":"To ICU") : "New admit soon";
+  });
+  ORDER.forEach(k=>{ toolBtns[k].classList.remove("next"); toolBtns[k].lb.textContent = TOOLS[k].name; toolBtns[k].setAttribute("aria-label", TOOLS[k].name); });
+  if(p.state==="needs"){
+    const st = p.active.steps[p.active.step], b = toolBtns[st.k];
+    if(b){ b.classList.add("next"); b.lb.textContent = st.b; b.setAttribute("aria-label", `${TOOLS[st.k].name}: ${st.l}`); }
+  }
+}
+function updateLive(){
+  const p = cur();
+  const h = clamp(p.health,0,100);
+  const bar = $("#ptBar");
+  bar.firstElementChild.style.width = (p.state==="empty"?0:h)+"%";
+  bar.className = "bar " + tier(h);
+  $("#ptPct").textContent = p.state==="empty" ? "" : Math.round(h)+"%";
+  const ak = G.current+"|"+p.name+"|"+p.state+"|"+moodOf(p)+"|"+(p.state==="resting"&&p.health>=60)+"|"+(p.active?p.active.def.t+p.active.step:"");
+  if(ak!==artKey){ artKey = ak; $("#ptArt").innerHTML = bedSVG(p); }
+  G.beds.forEach((b,i)=>{
+    const c = cards[i], bh = clamp(b.health,0,100);
+    c.fill.style.width = (b.state==="empty"?0:bh)+"%";
+    c.bar.className = "bar " + tier(bh);
+    c.el.classList.toggle("alarm", b.state==="needs" && (b.flash>0 || bh<30));
+    const k = b.name+"|"+b.state+"|"+moodOf(b);
+    if(k!==c.key){ c.key = k; c.av.innerHTML = miniSVG(b); }
+  });
+  $("#clock").textContent = clockStr();
+  $("#score").textContent = G.score;
+  const escNow = p.state==="needs" && p.active.steps[p.active.step].k==="esc";
+  const ch = $("#charge");
+  ch.disabled = !(G.chargeCd<=0 && p.state==="needs");
+  ch.classList.toggle("ready", escNow && G.chargeCd<=0);
+  $("#chargeSub").textContent = G.chargeCd>0 ? `Dana is busy · ${Math.ceil(G.chargeCd)}s` : escNow ? "Calls the ICU for a bed · −20 pts" : "Helps one step · −20 pts";
+  const rr = $("#rr"), ready = escNow || (G.rr>0 && p.state==="needs" && p.health<30);
+  rr.disabled = !ready; rr.classList.toggle("ready", ready);
+  $("#rrCount").textContent = "×"+G.rr;
+  $("#rrSub").textContent = escNow ? "ICU nurses can transfer. Free" : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
+}
+
+let toastT = 0;
+function toast(msg, kind){
+  const t = $("#toast");
+  t.textContent = msg; t.className = "toast show " + (kind||"");
+  clearTimeout(toastT); toastT = setTimeout(()=>t.className="toast", 2400);
+}
+function showResult(st){
+  const box = $("#results");
+  while(box.children.length >= 2) box.firstElementChild.remove();
+  const r = document.createElement("div");
+  r.className = "res";
+  r.innerHTML = `<span class="ic" style="background:${TOOLS[st.k].tint};color:${TOOLS[st.k].c}">${ICON[st.k]}</span><span>${flagify(st.fx)}</span>`;
+  box.appendChild(r);
+  setTimeout(()=>r.classList.add("out"), 3000);
+  setTimeout(()=>r.remove(), 3350);
+}
+function clearResults(){ $("#results").innerHTML = ""; }
+function floatText(txt, minus){
+  const f = document.createElement("span");
+  f.className = "float" + (minus?" minus":""); f.textContent = txt;
+  $("#bedwrap").appendChild(f); setTimeout(()=>f.remove(), 1000);
+}
+
+/* ---------- overlays ---------- */
+const ov = $("#overlay");
+let best = 0;
+try{ best = +localStorage.getItem("medsurg-best") || 0; }catch(e){}
+function showStart(){
+  ov.hidden = false;
+  ov.innerHTML = `<div class="card">
+    <h1>Med-Surg Day Shift</h1>
+    <p class="sub">4 West · 3 patients · 07:00 to 19:00</p>
+    <ul>
+      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. The next intervention <b>glows</b> and shows exactly what to give. Tap it.</span></li>
+      <li><span class="n">2</span><span>Health bars drain while patients wait. Tap a patient on the right to go to their room. Tap <b>Chart</b> to read their history and allergies.</span></li>
+      <li><span class="n">3</span><span>Watch for sudden drops. When someone hits the red, a <b>rapid response</b> can finish their care for you.</span></li>
+      <li><span class="n">4</span><span>Some patients will need the ICU no matter what. When it's time, call the <b>rapid response</b> team (ICU nurses) or <b>charge</b> to get them moved before they crash.</span></li>
+    </ul>
+    <button class="go" id="startBtn">Start shift</button>
+    ${best?`<p class="fine">Best shift so far: ${best} pts</p>`:""}
+    <p class="fine">A game, not clinical guidance. Time runs fast: one shift is about 3 minutes.</p>
+  </div>`;
+  $("#startBtn").addEventListener("click", start);
+}
+function showPause(){
+  ov.hidden = false;
+  ov.innerHTML = `<div class="card"><h1>Paused</h1><p class="sub">Your patients will wait.</p>
+    <button class="go" id="resumeBtn">Back to the floor</button>
+    <button class="toggle" id="soundBtn">${soundOn?"Turn sound off":"Turn sound on"}</button></div>`;
+  $("#resumeBtn").addEventListener("click", ()=>{ G.paused = false; ov.hidden = true; });
+  $("#soundBtn").addEventListener("click", e=>{ soundOn = !soundOn; e.target.textContent = soundOn?"Turn sound off":"Turn sound on"; });
+}
+function showChart(){
+  const p = cur();
+  if(p.state==="empty") return;
+  const wasRunning = G.running && !G.paused && !G.over;
+  if(G.running) G.paused = true;
+  const now = p.state==="needs" ? `${p.active.def.t.replace("!","")}: ${p.active.def.d}` : null;
+  ov.hidden = false;
+  ov.innerHTML = `<div class="card chart" role="dialog" aria-label="Chart for ${esc(p.name)}">
+    <h1>${esc(p.name)}</h1><p class="sub">Rm ${roomOf(p)} · ${p.age} years · ${p.kg} kg</p>
+    <dl>
+      <dt>Admitted for</dt><dd>${esc(p.dx)}</dd>
+      <dt>History</dt><dd>${p.pmh.map(esc).join(", ")}</dd>
+      <dt>Allergies</dt><dd class="${p.allergy.startsWith("No ")?"":"allergy"}">${esc(p.allergy)}</dd>
+      <dt>Code status</dt><dd>${esc(p.code)}</dd>
+      ${now?`<dt>Right now</dt><dd>${esc(now)}</dd>`:""}
+    </dl>
+    <h3>This shift</h3>
+    ${p.log.length ? `<ul class="log">${p.log.slice().reverse().map(([t,x])=>`<li><time>${t}</time><span>${flagify(x)}</span></li>`).join("")}</ul>` : `<p class="empty">Nothing charted yet.</p>`}
+    <button class="go" id="closeChart">${wasRunning?"Back to the floor":"Close chart"}</button>
+  </div>`;
+  $("#closeChart").addEventListener("click", ()=>{
+    if(wasRunning){ G.paused = false; ov.hidden = true; }
+    else if(G.over){ ov.hidden = true; endShift(true); }
+    else if(!G.running){ showStart(); }
+    else { showPause(); }
+  });
+}
+const STAR = on => `<svg viewBox="0 0 24 24"><path d="M12 2.8l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.6l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="${on?"#ffcf5c":"#e6eeeb"}" stroke="${on?"#e8a92a":"#cfe3dc"}" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
+let lastReport = null;
+function endShift(reshow){
+  if(!reshow){
+    G.over = true; G.running = false;
+    const s1 = G.discharged >= 3, s2 = s1 && G.score >= 1500, s3 = s2 && G.score >= 2400 && G.transfers === 0;
+    const isBest = G.score > best;
+    if(isBest){ best = G.score; try{ localStorage.setItem("medsurg-best", String(best)); }catch(e){} }
+    lastReport = {s1,s2,s3,isBest};
+  }
+  const {s1,s2,s3,isBest} = lastReport;
+  const msg = s3 ? "Flawless shift. Your patients adore you." : s2 ? "Solid shift. Everyone's in good hands." : s1 ? "You made it through. Go eat something." : "Tough shift. They happen to everyone.";
+  ov.hidden = false;
+  ov.innerHTML = `<div class="card"><h1>Shift report</h1><p class="sub">${msg}</p>
+    <div class="stars">${STAR(s1)}${STAR(s2)}${STAR(s3)}</div>
+    <div class="stats">
+      <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
+      <div class="stat"><b>${G.discharged}</b><span>Sent home</span></div>
+      <div class="stat"><b>${G.escalated}</b><span>Escalated to ICU in time</span></div>
+      <div class="stat"><b>${G.transfers}</b><span>Moved to ICU too late</span></div>
+      <div class="stat"><b>${G.surgery}</b><span>Rushed to surgery</span></div>
+      <div class="stat"><b>${G.helps}</b><span>Times you called charge</span></div>
+      <div class="stat"><b>${G.rrUsed}</b><span>Rapid responses called</span></div>
+    </div>
+    <button class="go" id="againBtn">Work another shift</button>
+    <p class="fine">★ 3 patients home · ★★ 1,500 pts · ★★★ 2,400 pts and nobody moved to ICU too late</p></div>`;
+  $("#againBtn").addEventListener("click", ()=>{ newGame(); clearResults(); start(); });
+}
+function start(){
+  try{ if(!ac) ac = new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); }catch(e){ ac = null; }
+  G.running = true; G.paused = false; ov.hidden = true; dirty = true;
+}
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden && G.running && !G.paused && !G.over){ G.paused = true; showPause(); } });
+
+/* ---------- loop ---------- */
+let last = 0;
+function frame(ts){
+  const dt = last ? Math.min(0.1, (ts-last)/1000) : 0; last = ts;
+  if(G.running && !G.paused && !G.over) update(dt);
+  if(dirty){ renderAll(); dirty = false; }
+  updateLive();
+  requestAnimationFrame(frame);
+}
+newGame(); showStart(); renderAll(); updateLive();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
