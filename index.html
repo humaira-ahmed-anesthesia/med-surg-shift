@@ -231,6 +231,31 @@ button.chip.now:active{transform:scale(.96)}
 .chip .tapit{margin-left:4px;font-size:10px;font-weight:800;color:#8a5a00;background:#ffe39a;border-radius:99px;padding:1px 6px}
 .fd.task.info{box-shadow:none;background:rgba(255,255,255,.7)}
 .fd.task.info.here{box-shadow:0 0 0 2px var(--glow)}
+/* code mode */
+.codebar{display:none;grid-column:1 / 3;grid-row:1 / 3;flex-direction:column;justify-content:center;gap:4px;padding:4px 8px}
+.vitals.code .vc{display:none}
+.vitals.code .codebar{display:flex}
+.vitals.code .vitbtn{grid-column:3;grid-row:1 / 3}
+.codebar .rh{font-family:var(--display);font-weight:600;font-size:20px;line-height:1.1;color:#ff9d8f}
+.codebar .rh.rosc{color:#8ff0b8}
+.codebar .cprt{font-size:12.5px;font-weight:800;color:#a7c9c3;font-variant-numeric:tabular-nums}
+.codebar .cprt.on{color:#fff1a8}
+.codebar .ff{align-self:flex-start;font-size:11.5px;font-weight:800;color:var(--ink);background:#fff1a8;border-radius:99px;padding:4px 10px}
+.codebar .ff[hidden]{display:none}
+.tray{grid-template-columns:repeat(var(--n,6),1fr)}
+.tray.many{gap:5px;padding:7px}
+.tray.many .tool .ic svg{width:23px;height:23px}
+.tray.many .tool span.lb{font-size:9.5px;white-space:nowrap;overflow-wrap:normal}
+.app.solo .stage{grid-template-columns:1fr}
+.app.solo .list{display:none}
+.chip.more{opacity:.7}
+.coach{background:#24484a;color:#eafaf6;border-radius:14px;padding:10px 12px;font-size:13px;font-weight:700;line-height:1.4;box-shadow:0 3px 0 #173332}
+.coach b{color:#fff1a8}
+.coach .cstep{display:block;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#a7c9c3;margin-bottom:2px}
+.coach button{margin-top:8px;background:#fff1a8;color:var(--ink);border-radius:99px;padding:6px 14px;font-weight:800;font-size:13px}
+.howto{margin-top:12px;background:var(--wall);border-radius:14px;padding:10px 12px}
+.howto summary{font-family:var(--display);font-weight:600;font-size:15px;cursor:pointer}
+.howto ul{margin:10px 0 2px}
 /* chart */
 .chart h1{font-size:22px}
 .chart dl{margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px}
@@ -274,7 +299,8 @@ button.chip.now:active{transform:scale(.96)}
           <div class="vc sp" id="vSp"><small>SpO₂</small><b>--</b></div>
           <div class="vc rr" id="vRR"><small>RR</small><b>--</b></div>
           <div class="vc tp" id="vT"><small>Temp °C</small><b>--</b></div>
-          <button class="vitbtn" id="vitBtn" aria-label="Take vitals now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Vitals<small id="vitAt"></small></button>
+          <div class="codebar" id="codebar"><span class="rh" id="rhythm">--</span><span class="cprt" id="cprT">CPR paused</span><button class="ff" id="ffBtn" aria-label="Fast-forward the CPR cycle">⏩ Fast-forward 2 min</button></div>
+          <button class="vitbtn" id="vitBtn" aria-label="Take vitals now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg><span id="vitLbl">Vitals</span><small id="vitAt"></small></button>
         </div>
       </div>
       <div class="order" id="order"></div>
@@ -319,6 +345,8 @@ const TOOLS = {
   meds:  {name:"Meds",   tint:"#e0f4e6", c:"#3a9d62"},
   o2:    {name:"O₂",     tint:"#ddf3f6", c:"#2a97a6"},
   assess:{name:"Assess", tint:"#fff0d6", c:"#a8700f"},
+  cpr:   {name:"CPR",    tint:"#ffe0ea", c:"#c43c62"},
+  shock: {name:"Shock",  tint:"#fff4c2", c:"#a87d00"},
   vitals:{name:"Vitals", tint:"#dff3ee", c:"#24484a"},
   esc:   {name:"RRT",    tint:"#ffe3df", c:"#d4503f"},
   go:    {name:"Go",     tint:"#e3e8fb", c:"#4a63c9"}
@@ -327,6 +355,8 @@ const ORDER = ["assess","iv","labs","meds","wound","o2"];
 const btnFor = k => k==="blood" ? "meds" : k;
 
 const ICON = {
+  cpr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7-4.4-7-9.5A3.8 3.8 0 0 1 12 8.5 3.8 3.8 0 0 1 19 11c0 5.1-7 9.5-7 9.5z" fill="currentColor" fill-opacity=".2"/><path d="M7.5 3.5 9 6.5M16.5 3.5 15 6.5M12 2.5V6"/></svg>',
+  shock:'<svg viewBox="0 0 24 24"><path d="M13.5 2 5 13.5h6L10 22l9-12.5h-6.2z" fill="currentColor" fill-opacity=".3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>',
   assess:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3H4v5a4.5 4.5 0 0 0 9 0V3h-1"/><path d="M8.5 12.5V15a5 5 0 0 0 10 0v-2"/><circle cx="18.5" cy="11" r="2.2" fill="currentColor" fill-opacity=".2"/></svg>',
   vitals:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="3"/><path d="M6 11h3l1.5-3 3 6 1.5-3H18M9 21h6"/></svg>',
   esc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>',
@@ -342,7 +372,8 @@ const ICON = {
 /* Where a patient can be rushed. */
 const DEST = {
   or:   {btn:"Rush to surgery",  out:"Off to surgery",      fx:"Surgeon at the bedside. Consent signed, off to the OR.", toast:"is headed to surgery. Great catch."},
-  ct:   {btn:"Rush to CT",       out:"Off to CT",           fx:"CT shows no bleeding, so the stroke team gives a clot-buster and takes them to the neuro ICU.", toast:"is off to CT with the stroke team."},
+  ct:   {btn:"Rush to CT",       out:"Off to CT",           fx:"CT shows no bleeding. The stroke team takes it from here for clot-busting or clot retrieval.", toast:"is off to CT with the stroke team."},
+  icu:  {btn:"Take to the ICU",  out:"Off to the ICU",      fx:"ROSC! The ICU team takes over post-arrest care.", toast:"has a pulse and is headed to the ICU. Great code!"},
   cath: {btn:"Rush to cath lab", out:"Off to the cath lab", fx:"The cath lab team takes over to open the blocked artery.", toast:"is off to the cath lab. Time is muscle."}
 };
 
@@ -441,8 +472,80 @@ const COPD3 = {t:"Still desatting!", d:"Drowsy and confused.", v:{spo2:83,rr:32,
 const GIB2 = {t:"Vomiting blood!", d:"Bright red blood. Lightheaded and pale.", v:{hr:126,sbp:82,dbp:48},
    s:[VIT(), S("blood","Hang 2 units fast","2 units","Two-nurse check done. 2 units PRBCs running on a pressure bag."), S("labs","Repeat CBC","CBC","Hemoglobin 6.1 g/dL (critically low). Still bleeding."), S("esc","Escalate: call rapid response or charge","","")], r:2.9};
 
+/* ---------- codes and rapid response calls ---------- */
+const C = (k,l,b,fx,x) => ({k,l,b,fx,...(x||{})});
+const VT_ARREST = {t:"Code blue!", d:"Found unresponsive by the tech. Not breathing.", code:true, rh:"Unknown: pads not on yet", r:2.4, s:[
+  C("assess","Check pulse & breathing","Assess","No pulse. Not breathing. Call for help!"),
+  C("esc","Call a code blue","","Code blue called. The team is coming with the crash cart."),
+  C("cpr","Start CPR","CPR","Compressions started: hard and fast, 100 to 120 a minute.",{cpr:1}),
+  C("o2","Bag-mask breaths","BVM","Bag-mask ventilation: 2 breaths every 30 compressions.",{during:1}),
+  C("vitals","Pads on, rhythm check","","Ventricular tachycardia with no pulse (abnormal). Shockable!",{rh:"Pulseless VT"}),
+  C("shock","Shock","200 J","Everyone clear! Shocked at 200 joules. Straight back on the chest."),
+  C("cpr","Resume CPR","CPR","CPR resumed for 2 minutes.",{cpr:1}),
+  C("iv","IV access","IV","18-gauge IV placed during compressions.",{during:1}),
+  C("vitals","Rhythm check","","Still pulseless VT (abnormal). Shockable."),
+  C("shock","Shock again","200 J","Second shock at 200 joules. Back on the chest."),
+  C("cpr","Resume CPR","CPR","CPR resumed.",{cpr:1}),
+  C("meds","Epinephrine 1 mg","Epi","Epinephrine 1 mg IV push with a flush. Repeat every 3 to 5 minutes.",{during:1}),
+  C("vitals","Rhythm check","","Still pulseless VT (abnormal)."),
+  C("shock","Shock again","200 J","Third shock at 200 joules."),
+  C("cpr","Resume CPR","CPR","CPR resumed.",{cpr:1}),
+  C("meds","Amiodarone 300 mg","Amio","Amiodarone 300 mg IV push.",{during:1}),
+  C("vitals","Rhythm & pulse check","","Organized rhythm with a strong pulse. ROSC! BP 96/58.",{rh:"Sinus tach · ROSC"}),
+  C("labs","12-lead EKG & labs","EKG","12-lead shows no STEMI. Potassium 3.0 (low), magnesium 1.5 (low)."),
+  C("go","Take to the ICU","icu","")]};
+const ASYSTOLE = {t:"Code blue!", d:"Unresponsive at lunch. Missed dialysis yesterday.", code:true, rh:"Unknown: pads not on yet", r:2.4, s:[
+  C("assess","Check pulse & breathing","Assess","No pulse. Only gasping breaths, which don't count as breathing."),
+  C("esc","Call a code blue","","Code blue called. Crash cart on the way."),
+  C("cpr","Start CPR","CPR","Compressions started.",{cpr:1}),
+  C("o2","Bag-mask breaths","BVM","Bag-mask breaths, 30 compressions to 2 breaths.",{during:1}),
+  C("vitals","Pads on, rhythm check","","Flat line. Leads checked and gain turned up: still asystole (abnormal). Not shockable.",{rh:"Asystole"}),
+  C("cpr","Resume CPR","CPR","CPR continues. Never shock asystole.",{cpr:1}),
+  C("iv","IO access","IO","No IV, so an IO line went into the shin.",{during:1}),
+  C("meds","Epinephrine 1 mg","Epi","Epinephrine 1 mg IO push as soon as possible.",{during:1}),
+  C("labs","Look for the cause","H's & T's","Potassium 7.6 (critically high) from missed dialysis. That's a cause we can fix.",{during:1}),
+  C("meds","Calcium chloride","CaCl","Calcium chloride 1 g IO push to protect the heart.",{during:1}),
+  C("meds","Sodium bicarbonate","Bicarb","Sodium bicarbonate 50 mEq IO push.",{during:1}),
+  C("vitals","Rhythm check","","Organized rhythm but no pulse: PEA (abnormal). Still not shockable.",{rh:"PEA"}),
+  C("cpr","Resume CPR","CPR","CPR resumed.",{cpr:1}),
+  C("meds","Epinephrine 1 mg","Epi","Second epinephrine 1 mg, 4 minutes after the first.",{during:1}),
+  C("meds","Insulin & dextrose","Insulin","Insulin 10 units IO with dextrose 50% to push potassium into the cells.",{during:1}),
+  C("vitals","Rhythm & pulse check","","Sinus rhythm with a pulse. ROSC! Nephrology called for emergency dialysis.",{rh:"Sinus · ROSC"}),
+  C("go","Take to the ICU","icu","")]};
+const RRT_STROKE = {t:"Rapid response: stroke!", d:"Right side went weak at 14:10. Normal at 13:50.", v:{sbp:192,dbp:101,hr:96}, r:2.4, s:[
+  VIT(),
+  C("assess","Neuro check","Assess","Right face droop, right arm and leg weak, can't find words. NIH Stroke Scale 12 (abnormal)."),
+  C("labs","Fingerstick glucose","FSBG","Glucose 128. Not a low blood sugar, so treat it as a stroke."),
+  C("esc","Call a stroke alert","","Stroke alert called. Stroke team and CT notified."),
+  C("labs","Stat labs & EKG","Labs","Labs sent. EKG: atrial fibrillation, rate 96."),
+  C("go","Rush to CT","ct","")]};
+const MTP = {t:"Hemorrhage!", d:"Blood pouring from the abdominal drain. BP 72/38.", v:{sbp:72,dbp:38,hr:142,spo2:94}, r:3.0, s:[
+  C("assess","Assess","Assess","Pale, cold and confused. The drain bag is filling with bright red blood."),
+  C("wound","Hold pressure","Pressure","Firm pressure on the incision. Transplant surgeon paged stat."),
+  C("iv","Two large-bore IVs","2× 16g","Two 16-gauge IVs placed. Rapid infuser set up."),
+  C("labs","Stat labs & T&S","Stat labs","Hemoglobin 5.8 (critically low). INR 2.6 (high). Platelets 42 (low). Fibrinogen 110 (low)."),
+  C("esc","Activate massive transfusion","","Massive transfusion protocol activated. Blood bank is sending coolers."),
+  C("blood","2 units whole blood","Whole blood","2 units of low-titer O whole blood through the rapid infuser. BP 78/42."),
+  C("blood","4 units PRBCs","4 PRBCs","4 units PRBCs. Running total: 6 red cell units. BP 82/46."),
+  C("blood","4 units plasma","4 FFP","4 units fresh frozen plasma to help him clot."),
+  C("blood","Platelets","Platelets","1 apheresis pack of platelets."),
+  C("meds","Calcium chloride","CaCl","Calcium chloride 1 g. The citrate in all that blood drops calcium."),
+  C("blood","6 more units PRBCs","6 PRBCs","6 more units PRBCs. Running total: 12 red cell units. BP 90/52."),
+  C("blood","4 more units plasma","4 FFP","4 more units of plasma, keeping the ratio close to 1:1:1."),
+  C("blood","Cryoprecipitate","Cryo","10 units of cryo for the low fibrinogen."),
+  C("labs","Repeat labs","Labs","Hemoglobin 7.4, INR 1.6, ionized calcium 1.05 (low). Still bleeding from the drain."),
+  C("go","Rush to surgery","or","")]};
+const CALLS = [
+  {name:"Mr. Abernathy", age:67, loc:520, dx:"Pneumonia, hospital day 3", pmh:["Coronary artery disease","Heart failure","Hypertension"], defs:[VT_ARREST]},
+  {name:"Mr. Kim", age:72, loc:304, dx:"Pneumonia, hospital day 2", pmh:["Atrial fibrillation","Hypertension"], defs:[RRT_STROKE]},
+  {name:"Mrs. Delgado", age:58, loc:618, dx:"Infected dialysis fistula", pmh:["End-stage kidney disease (dialysis Mon/Wed/Fri)","Type 2 diabetes (on insulin)","Hypertension"], defs:[ASYSTOLE]},
+  {name:"Mr. Varga", age:54, loc:711, dx:"Liver transplant, post-op day 2", pmh:["Cirrhosis from hepatitis C","Type 2 diabetes"], surg:true, defs:[MTP]}
+];
+
 /* ---------- levels ---------- */
 const LEVELS = [
+  {n:0, tag:"T", mode:"tutorial", name:"Tutorial: first day on 4 West", blurb:"A slow, guided shift. Learn the tools, the monitor and how to handle an emergency.",
+   first:[P.dsg,P.pna,P.cell], follow:[], urgent:[], drain:0.12, ev:[999,999], stars:[0,0]},
   {n:1, name:"Day shift on 4 West", blurb:"Learn the ropes. Pain, wounds, blood and a COPD flare who needs the ICU.",
    first:[P.kneepain,P.hgb,P.pna,P.dsg,P.dehyd,P.cell,P.hypo,P.inc,P.lowk], follow:[F.pain,F.lostiv,F.nausea,F.pressure,F.lowsugar,F.am,F.k,F.ca,F.dizzy,F.sob],
    urgent:[U.desat,U.bleed,U.fever,U.sleepy,U.hives,U.dehisc], doom:[COPD,COPD2,COPD3], drain:1, ev:[20,30], stars:[1500,2400]},
@@ -451,7 +554,9 @@ const LEVELS = [
    urgent:[U.afib,U.sepsis,U.rxn,U.bpdrop,U.infbleed,U.desat,U.hives,U.hyperk], doom:[P.gib,GIB2], drain:1.12, ev:[17,26], stars:[1600,2600]},
   {n:3, name:"Short-staffed Saturday", blurb:"Anything goes. Strokes to CT, chest pain to the cath lab, and patients who won't wake up.",
    first:[P.hf,P.gib,P.pna,P.hypo,P.cell,P.inc,P.lowmg,P.hgb,P.kneepain], follow:[F.pain,F.lostiv,F.mg,F.phos,F.ca,F.lowsugar,F.nausea,F.dizzy,F.sob],
-   urgent:[U.stroke,U.stemi,U.unresp,U.bpdrop,U.rxn,U.sleepy,U.afib,U.sepsis,U.dehisc,U.hyperk], doom:[COPD,COPD2,COPD3], drain:1.22, ev:[15,23], stars:[1700,2800]}
+   urgent:[U.stroke,U.stemi,U.unresp,U.bpdrop,U.rxn,U.sleepy,U.afib,U.sepsis,U.dehisc,U.hyperk], doom:[COPD,COPD2,COPD3], drain:1.22, ev:[15,23], stars:[1700,2800]},
+  {n:4, tag:"RR", mode:"rrt", name:"Rapid Response Nurse", blurb:"One patient at a time across the hospital: a VT code, a stroke, an asystole code and a massive hemorrhage.",
+   calls:CALLS, tools:["assess","cpr","shock","meds","o2","labs","iv","wound"], drain:1, ev:[999,999], stars:[1000,1250]}
 ];
 
 const NAMES = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Begay","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
@@ -463,11 +568,14 @@ const GOWN = ["#bfe3de","#c9d8f3","#f4d3de","#d6ebc2","#f6e3b3","#dcd3f2"];
 const ROOMS = [412,414,416];
 const SHIFT = 180; // real seconds for a 12-hour shift
 const VITAL_EVERY = 7; // monitor auto-refresh, real seconds
+const CPR_FOR = 14; // one 2-minute CPR cycle, in game seconds
 const SLOW_FOR = 15, SLOW_RATE = 0.45; // snail: real seconds, game speed
 const HOME_MEDS = {"Hypertension":"Lisinopril 10 mg daily","High cholesterol":"Atorvastatin 40 mg nightly","Asthma":"Albuterol inhaler as needed",
   "Hypothyroidism":"Levothyroxine 75 mcg daily","Atrial fibrillation":"Apixaban 5 mg twice daily, metoprolol 25 mg twice daily","Depression":"Sertraline 50 mg daily",
   "GERD":"Omeprazole 20 mg daily","Osteoarthritis":"Acetaminophen 650 mg as needed","Sleep apnea":"CPAP at night","Type 1 diabetes (on insulin)":"Insulin glargine at night, insulin lispro with meals",
   "Type 2 diabetes (on insulin)":"Metformin 1,000 mg twice daily, insulin glargine at night","Heart failure":"Furosemide 40 mg daily, carvedilol 12.5 mg twice daily",
+  "Coronary artery disease":"Aspirin 81 mg daily, atorvastatin 80 mg nightly","Type 2 diabetes":"Metformin 500 mg twice daily",
+  "End-stage kidney disease (dialysis Mon/Wed/Fri)":"Sevelamer with meals, dialysis Mon/Wed/Fri","Cirrhosis from hepatitis C":"Tacrolimus and mycophenolate (new transplant medicines)",
   "COPD (home oxygen 2 L)":"Tiotropium inhaler daily, albuterol as needed, home oxygen 2 L","Alcohol use disorder":"Thiamine 100 mg daily, folic acid 1 mg daily"};
 const LUNGY = /pneumonia|COPD|heart failure|fluid/i;
 
@@ -481,7 +589,12 @@ const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const tier = h => h>=60 ? "" : h>=30 ? "warn" : "bad";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const flagify = s => esc(s).replace(/\((critically low|low|high|abnormal|dropped[^)]*)\)/g, '<span class="flag">($1)</span>');
-function clockStr(){ const mins = Math.floor((Math.min(G.t,SHIFT)/SHIFT)*720), hh = 7 + Math.floor(mins/60), mm = mins%60; return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0"); }
+function clockStr(){
+  const rrt = LV && LV.mode==="rrt";
+  const mins = rrt ? Math.floor(G.t/7) : Math.floor((Math.min(G.t,SHIFT)/SHIFT)*720); // RRT: 7 s = 1 min, so a 14 s CPR cycle is 2 min
+  const hh = (rrt ? 14 : 7) + Math.floor(mins/60), mm = mins%60;
+  return String(hh%24).padStart(2,"0")+":"+String(mm).padStart(2,"0");
+}
 const listJoin = a => a.length<2 ? a.join("") : a.slice(0,-1).join(", ") + " and " + a[a.length-1];
 const curStep = p => p.state==="needs" ? p.active.steps[p.active.step] : null;
 
@@ -535,18 +648,19 @@ const sfx = {
 };
 
 /* ---------- state ---------- */
-let G, LV = LEVELS[0], dirty = true;
+let G, LV, dirty = true;
 function inst(def, p){
   const pcn = p.allergy.startsWith("Penicillin");
   return {def, urgent:/!$/.test(def.t), step:0,
           steps: def.s.map(st => (st.alt && pcn) ? {...st, b:st.alt.b, fx:st.alt.fx} : st)};
 }
-function admit(i, initial){
+function admit(i, initial, o){
+  o = o || {};
   if(!G.namePool.length) G.namePool = shuffle(NAMES.slice());
-  const doomed = !initial && !G.beds.some(b=>b && b.doomed) && (G.doomSeen===0 ? G.t>35 : Math.random()<0.12);
+  const doomed = !o.defs && LV.mode==="floor" && !initial && !G.beds.some(b=>b && b.doomed) && (G.doomSeen===0 ? G.t>35 : Math.random()<0.12);
   const p = {
-    name: G.namePool.shift(),
-    age: Math.floor(doomed ? rand(62,86) : rand(29,89)),
+    name: o.name || G.namePool.shift(),
+    age: o.age || Math.floor(doomed ? rand(62,86) : rand(29,89)),
     kg: Math.floor(rand(52,112)),
     look: {skin:pick(SKIN), hair:pick(HAIR), gown:pick(GOWN), style:Math.floor(Math.random()*3)},
     allergy: wpick(ALLERGIES),
@@ -555,51 +669,108 @@ function admit(i, initial){
     active:null, state:"resting", timer:1.5, flash:0, out:null, log:[], doomed, base:baseVitals(), gotBlood:false, got:{}, assessed:false, admittedAt:G.t
   };
   let defs;
-  if(doomed){ G.doomSeen++; defs = LV.doom.slice(); }
+  if(o.defs) defs = o.defs.slice();
+  else if(doomed){ G.doomSeen++; defs = LV.doom.slice(); }
   else{
     const first = pick(LV.first);
     const n = initial ? 1 : (Math.random()<0.55 ? 1 : 2);
     defs = [first, ...shuffle(LV.follow.slice()).slice(0,n)];
   }
-  p.dx = defs[0].dx; p.surg = !!defs[0].surg; p.hpi = defs[0].d;
+  p.dx = o.dx || defs[0].dx; p.surg = !!(o.surg || defs[0].surg); p.hpi = defs[0].d; p.loc = o.loc || null;
   p.sex = /^Mr\./.test(p.name) ? "man" : "woman";
   const hist = new Set(shuffle(PMH.slice()).slice(0, 1 + Math.floor(Math.random()*2)));
   defs.forEach(d => { if(d.pmh) hist.add(d.pmh); });
-  p.pmh = [...hist];
+  p.pmh = o.pmh ? o.pmh.slice() : [...hist];
   const copd = p.pmh.some(x=>/COPD/.test(x)), etoh = p.pmh.some(x=>/Alcohol/.test(x));
   p.social = [pick(["Lives with spouse","Lives alone","Lives with daughter","Lives with partner and two cats"]),
     copd ? "Former smoker, 40 pack-years" : pick(["Never smoker","Never smoker","Former smoker, quit 10 years ago"]),
     etoh ? "Drinks 6 to 8 beers a day" : pick(["Drinks socially","No alcohol"])].join(". ") + ".";
   p.queue = defs.map(d => inst(d,p));
   if(initial){ p.active = p.queue.shift(); p.state = "needs"; }
+  if(LV.mode==="rrt") p.assessed = true;
   takeVitals(p); p.vitTimer = rand(1,VITAL_EVERY);
   G.all.push(p);
   return p;
 }
 function newGame(){
-  G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:2, chargeCd:0, doomSeen:0,
+  G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:2, chargeCd:0, doomSeen:0, cpr:0, ff:0, badShocks:0, callIdx:0, callsDone:0, coach:0, coachAck:-1,
        discharged:0, transfers:0, escalated:0, rushed:0, helps:0, rrUsed:0, slows:1, slowLeft:0, saves:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], all:[], feed:[], namePool:shuffle(NAMES.slice())};
-  for(let i=0;i<3;i++) G.beds.push(admit(i,true));
-  $("#unitName").textContent = `4 West · Level ${LV.n}`;
-  $("#unitSub").textContent = LV.name;
+  buildTray(LV.tools || ORDER);
+  $("#app").classList.toggle("solo", LV.mode==="rrt");
+  if(LV.mode==="rrt"){ G.beds.push(admitCall(0)); }
+  else if(LV.mode==="tutorial"){
+    G.beds.push(admit(0,true,{defs:[P.hgb,F.am]}), admit(1,true,{defs:[F.sob,F.pain]}), admit(2,true,{defs:[P.cell,F.nausea]}));
+    COACH[0].setup && COACH[0].setup();
+  }
+  else for(let i=0;i<3;i++) G.beds.push(admit(i,true));
+  $("#unitName").textContent = LV.mode==="rrt" ? "Rapid Response" : LV.mode==="tutorial" ? "4 West · Tutorial" : `4 West · Level ${LV.n}`;
+  $("#unitSub").textContent = LV.mode==="rrt" ? `Call 1 of ${LV.calls.length}` : LV.name;
   dirty = true;
 }
+function admitCall(idx){
+  const c = LV.calls[idx];
+  const p = admit(0, true, c);
+  p.health = 55;
+  $("#unitSub").textContent = `Call ${idx+1} of ${LV.calls.length}`;
+  setTimeout(()=>{ if(G.running && p===G.beds[0]) { sfx.alarm(); toast(`Rapid response to Room ${c.loc}!`, "alarm"); } }, 50);
+  logIt(p, p.active.def.t.replace("!","") + " " + p.active.def.d);
+  return p;
+}
+/* ---------- tutorial coach ---------- */
+const COACH = [
+  {txt:"Welcome to 4 West! Room 412 has <b>low hemoglobin</b>. Her care is a recipe, and the glowing step is what to do next. <b>Tap the glowing tool</b> at the bottom.", setup:()=>{ G.current = 0; }, done:()=>G.beds[0].state!=="needs" || G.beds[0].active.step>=1},
+  {txt:"Nice! Every result pops into the feed. Keep following the glow until her recipe is done. Blood is given with the <b>Meds</b> button.", done:()=>G.beds[0].state!=="needs"},
+  {txt:"Every patient needs an assessment once a shift. The orange ring means not yet. <b>Tap Assess.</b>", done:()=>G.beds[0].assessed},
+  {txt:"This is the monitor. Red numbers mean trouble. <b>Tap Vitals</b> to recheck anytime.", done:()=>G.tutVitals},
+  {txt:"Your other patients are on the right. <b>Tap Room 414.</b>", done:()=>G.current===1},
+  {txt:"He's short of breath. <b>Assess first</b>, then treat. Follow the glow.", done:()=>G.beds[1].state!=="needs"},
+  {txt:"Emergency! A patient is <b>flashing red</b>. Go to their room and follow the steps.", setup:()=>{
+      const live = b => b.state==="needs" || b.state==="resting";
+      G.tutBed = [2,1,0].find(i => i!==G.current && live(G.beds[i]));
+      if(G.tutBed===undefined) G.tutBed = [2,1,0].find(i => live(G.beds[i]));
+      if(G.tutBed!==undefined) forceUrgent(G.beds[G.tutBed], U.desat);
+    }, done:()=>{ const b = G.beds[G.tutBed]; return G.tutBed===undefined || !b || !(b.active && b.active.urgent); }},
+  {txt:"Tap the <b>H&amp;P</b> folder to read a patient's history. The game pauses while it's open.", done:()=>G.tutChart},
+  {txt:"Swamped? <b>Call charge</b> does one step for 20 points. <b>Rapid response</b> unlocks when someone is in the red. The <b>snail</b> slows time for 15 seconds.", btn:"Got it", done:()=>G.coachAck===8},
+  {txt:"That's the basics. You're ready for your first shift!", btn:"Finish tutorial", done:()=>G.coachAck===9}
+];
+function checkCoach(){
+  if(LV.mode!=="tutorial" || G.over) return;
+  const c = COACH[G.coach];
+  if(!c || !c.done()) return;
+  G.coach++; dirty = true; sfx.ping();
+  if(G.coach >= COACH.length){ finishTutorial(); return; }
+  const n = COACH[G.coach]; if(n.setup) n.setup();
+}
+function finishTutorial(){
+  G.over = true; G.running = false;
+  saved[0] = {stars:3, best:Math.max((saved[0]||{}).best||0, G.score)}; save();
+  ov.hidden = false;
+  ov.innerHTML = `<div class="card"><h1>Tutorial complete</h1><p class="sub">You know the tools, the monitor, the feed and how to handle an emergency.</p>
+    <div class="stars">${starsRow(3)}</div>
+    <button class="go" id="nextBtn">Start Level 1: ${esc(LEVELS[1].name)}</button>
+    <button class="toggle" id="listBtn">All shifts</button></div>`;
+  $("#nextBtn").addEventListener("click", ()=>startLevel(1));
+  $("#listBtn").addEventListener("click", showStart);
+}
 const cur = () => G.beds[G.current];
-const roomOf = p => ROOMS[G.beds.indexOf(p)];
+const roomOf = p => p.loc || ROOMS[G.beds.indexOf(p)];
 const logIt = (p, text) => p.log.push([clockStr(), text]);
 
 /* ---------- game logic ---------- */
 function update(dt){
   G.t += dt;
-  if(G.t >= SHIFT){ endShift(); return; }
-  const ramp = LV.drain * (1 + 0.5*(G.t/SHIFT));
+  if(LV.mode==="floor" && G.t >= SHIFT){ endShift(); return; }
+  const ramp = LV.mode==="floor" ? LV.drain * (1 + 0.5*(G.t/SHIFT)) : LV.drain;
   G.chargeCd = Math.max(0, G.chargeCd - dt);
+  if(G.cpr>0){ G.cpr = Math.max(0, G.cpr - dt); if(G.cpr===0){ toast("Two minutes of CPR done. Time for a rhythm check.", "alarm"); sfx.ping(); dirty = true; } }
 
   G.beds.forEach((p,i)=>{
     p.flash = Math.max(0, p.flash - dt);
     if(p.state!=="empty" && p.state!=="leaving"){ p.vitTimer -= dt; if(p.vitTimer<=0) takeVitals(p); }
     if(p.state === "needs"){
-      p.health -= p.active.def.r * ramp * dt;
+      if(p.active.def.code && G.cpr>0) p.health = Math.min(70, p.health + 1.5*dt); // good CPR keeps them perfused
+      else p.health -= p.active.def.r * ramp * dt;
       if(p.health <= 0) transfer(p);
     } else if(p.state === "resting"){
       p.health = Math.min(100, p.health + 3*dt);
@@ -618,10 +789,18 @@ function update(dt){
       if(p.timer <= 0){ p.state = "empty"; p.timer = 3; dirty = true; }
     } else if(p.state === "empty"){
       p.timer -= dt;
-      if(p.timer <= 0){ G.beds[i] = admit(i,false); dirty = true; }
+      if(p.timer <= 0){
+        if(LV.mode==="rrt"){
+          G.callsDone++;
+          if(G.callIdx+1 < LV.calls.length){ G.callIdx++; G.beds[0] = admitCall(G.callIdx); }
+          else { endShift(); return; }
+        } else G.beds[i] = admit(i,false);
+        dirty = true;
+      }
     }
   });
 
+  if(LV.mode!=="floor") return;
   G.nextEvent -= dt;
   if(G.nextEvent <= 0){
     G.nextEvent = rand(LV.ev[0],LV.ev[1]) / (1 + 0.5*(G.t/SHIFT));
@@ -638,7 +817,9 @@ function alarmFor(p){
 function suddenDrop(p){
   const pool = LV.urgent.filter(u => (!u.surg || p.surg) && (!u.blood || p.gotBlood) && (!u.needs || p.got[u.needs]));
   if(!pool.length) return;
-  const def = pick(pool);
+  forceUrgent(p, pick(pool));
+}
+function forceUrgent(p, def){
   if(def.leaves) p.queue = [];
   else if(p.active) p.queue.unshift(p.active);
   p.active = inst(def, p); p.state = "needs";
@@ -650,7 +831,9 @@ function suddenDrop(p){
 function advance(p, by, fxOverride){
   const st = p.active.steps[p.active.step];
   let fx = fxOverride || st.fx;
-  if(st.k==="vitals"){ takeVitals(p); fx = vitalsSummary(p.vit); }
+  if(st.k==="vitals" && !st.fx){ takeVitals(p); fx = vitalsSummary(p.vit); }
+  if(st.rh) p.rhythm = st.rh;
+  if(st.cpr) G.cpr = CPR_FOR;
   if(st.k==="blood" && !/^Stop/.test(st.b)) p.gotBlood = true;
   if(/hydromorphone|oxycodone|morphine/i.test(fx)) p.got.opioid = true;
   if(/antibiotic|cefazolin|ceftriaxone|piperacillin|vancomycin/i.test(fx) && !/stopped/i.test(fx)) p.got.abx = true;
@@ -662,6 +845,14 @@ function advance(p, by, fxOverride){
   if(by==="you") G.score += 10;
   if(p.active.step >= p.active.steps.length) complete(p, by);
   dirty = true;
+}
+/* during a 2-minute CPR cycle, only CPR-time steps (meds, airway, access, labs) can happen */
+function cprBlocks(st){
+  if(G.cpr>0 && st && !st.during && st.k!=="cpr"){
+    sfx.wrong(); toast("Compressions continue. Finish the 2-minute cycle, or tap ⏩ to fast-forward.");
+    return true;
+  }
+  return false;
 }
 function complete(p, via){
   p.health = Math.min(100, p.health + 25);
@@ -685,9 +876,10 @@ function escalate(p, via){
 }
 function rushTo(p){
   const st = curStep(p); if(!st || st.k!=="go") return;
+  if(cprBlocks(st)) return;
   const d = DEST[st.b];
   logIt(p, d.fx); pushFeed(p, "go", d.fx); if(p === cur()) floatText("+200");
-  G.score += 200; G.rushed++; earnSlow();
+  G.score += 200; G.rushed++; earnSlow(); G.cpr = 0;
   p.state = "leaving"; p.out = "go"; p.dest = st.b; p.timer = 3.4; p.active = null; p.queue = [];
   sfx.done();
   toast(`${p.name} ${d.toast}`, "good");
@@ -747,6 +939,12 @@ function tapTool(key, btn){
     return;
   }
   const want = curStep(p).k;
+  if(key==="shock" && /Asystole|PEA/.test(p.rhythm||"")){
+    sfx.wrong(); G.badShocks++; G.score = Math.max(0, G.score - 25);
+    btn.classList.remove("shake"); void btn.offsetWidth; btn.classList.add("shake");
+    toast(`${p.rhythm} is not shockable. Never shock it: CPR, epi and find the cause.`, "alarm"); return;
+  }
+  if(cprBlocks(curStep(p))) return;
   if(want === "go"){ sfx.wrong(); toast(`Tap “${DEST[curStep(p).b].btn}” in the order card.`); return; }
   if(want === "esc"){ sfx.wrong(); toast("Time to call for help. Tap Rapid response or Call charge."); return; }
   if(want === "vitals"){ sfx.wrong(); toast("Check vitals first. Tap the Vitals button on the monitor."); return; }
@@ -762,16 +960,19 @@ function tapVitals(){
   if(!playing()) return;
   const p = cur();
   if(p.state==="empty" || p.state==="leaving") return;
+  G.tutVitals = true;
+  if(curStep(p) && curStep(p).k==="vitals"){ if(cprBlocks(curStep(p))) return; sfx.tap(); advance(p, "you"); return; }
+  if(p.active && p.active.def.code){ toast(`Monitor: ${p.rhythm || p.active.def.rh}.`); return; }
   sfx.tap();
-  if(curStep(p) && curStep(p).k==="vitals"){ advance(p, "you"); return; }
   takeVitals(p); dirty = true;
   pushFeed(p, "vitals", vitalsSummary(p.vit));
 }
 function callCharge(){
   const p = cur();
   if(!playing() || G.chargeCd>0 || p.state!=="needs") return;
-  G.score = Math.max(0, G.score - 20); G.helps++; G.chargeCd = 10;
   const st = curStep(p);
+  if(cprBlocks(st)) return;
+  G.score = Math.max(0, G.score - 20); G.helps++; G.chargeCd = 10;
   if(st.k === "go"){ rushTo(p); return; }
   if(st.k === "esc"){
     if(p.active.step === p.active.steps.length-1){ escalate(p, "charge"); return; }
@@ -786,6 +987,7 @@ function callRR(){
   const st = curStep(p);
   if(st.k === "go") return;
   if(st.k === "esc"){
+    if(cprBlocks(st)) return;
     G.rrUsed++;
     if(p.active.step === p.active.steps.length-1) escalate(p, "rr");
     else advance(p, "you", st.fx || "Rapid response team at the bedside.");
@@ -866,17 +1068,22 @@ function miniSVG(p){
 
 /* ---------- UI ---------- */
 const trayEl = $("#tray"), listEl = $("#list");
-const toolBtns = {};
-ORDER.forEach(k=>{
-  const t = TOOLS[k];
-  const b = document.createElement("button");
-  b.className = "tool"; b.id = "tool-"+k;
-  b.style.setProperty("--tint", t.tint); b.style.setProperty("--tc", t.c);
-  b.innerHTML = `<span class="ic">${ICON[k]}</span><span class="lb">${t.name}</span>`;
-  b.lb = b.querySelector(".lb"); b.ic = b.querySelector(".ic");
-  b.addEventListener("click", ()=>tapTool(k,b));
-  trayEl.appendChild(b); toolBtns[k] = b;
-});
+let toolBtns = {}, trayKeys = [];
+function buildTray(keys){
+  trayEl.innerHTML = ""; toolBtns = {}; trayKeys = keys.slice();
+  trayEl.style.setProperty("--n", keys.length);
+  trayEl.classList.toggle("many", keys.length > 6);
+  keys.forEach(k=>{
+    const t = TOOLS[k];
+    const b = document.createElement("button");
+    b.className = "tool"; b.id = "tool-"+k;
+    b.style.setProperty("--tint", t.tint); b.style.setProperty("--tc", t.c);
+    b.innerHTML = `<span class="ic">${ICON[k]}</span><span class="lb">${t.name}</span>`;
+    b.lb = b.querySelector(".lb"); b.ic = b.querySelector(".ic");
+    b.addEventListener("click", ()=>tapTool(k,b));
+    trayEl.appendChild(b); toolBtns[k] = b;
+  });
+}
 const cards = [];
 ROOMS.forEach((r,i)=>{
   const c = document.createElement("button");
@@ -892,6 +1099,7 @@ $("#vitBtn").addEventListener("click", tapVitals);
 $("#slow").addEventListener("click", useSlow);
 $("#pauseBtn").addEventListener("click", ()=>{ if(G.running && !G.over){ G.paused = true; showPause(); } });
 $("#chartBtn").addEventListener("click", showChart);
+$("#ffBtn").addEventListener("click", ()=>{ if(playing() && G.cpr>0){ G.cpr = 0.0001; G.ff++; sfx.tap(); } });
 
 let artKey = "";
 function renderAll(){
@@ -906,6 +1114,7 @@ function renderAll(){
     o.innerHTML = `<h2>${esc(a.def.t)}</h2><p>${esc(a.def.d)}</p><div class="steps">${
       a.steps.map((s,i)=>{ if(s.k==="go") return ""; const ic = `<span class="ic" style="background:${TOOLS[s.k].tint};color:${TOOLS[s.k].c}">${ICON[s.k]}</span>`;
       if(i<a.step) return i===a.step-1 ? `<span class="chip done">✓ ${a.step} done</span>` : "";
+      if(i>a.step+2){ const left = a.steps.slice(a.step+3).filter(x=>x.k!=="go").length; return i===a.step+3 && left ? `<span class="chip more">+${left} more</span>` : ""; }
       return `<span class="chip ${i===a.step?"now":""}">${ic}${esc(s.l)}</span>`; }).join("")
     }</div>${st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
     const gb = $("#goBtn"); if(gb) gb.addEventListener("click", ()=>{ if(playing()) rushTo(cur()); });
@@ -931,7 +1140,7 @@ function renderAll(){
     c.need.style.background = nk ? TOOLS[nk].tint : ""; c.need.style.color = nk ? TOOLS[nk].c : "";
     c.st.textContent = b.state==="needs" ? b.active.def.t.replace("!","") : b.state==="resting" ? (b.queue.length?"Resting":"Discharge soon") : b.state==="leaving" ? (b.out==="home"?"Going home":b.out==="go"?DEST[b.dest].out.replace("Off ","Off "):"To ICU") : "New admit soon";
   });
-  ORDER.forEach(k=>{ const b = toolBtns[k]; b.classList.remove("next"); b.lb.textContent = TOOLS[k].name; b.setAttribute("aria-label", TOOLS[k].name);
+  trayKeys.forEach(k=>{ const b = toolBtns[k]; b.classList.remove("next"); b.lb.textContent = TOOLS[k].name; b.setAttribute("aria-label", TOOLS[k].name);
     if(b.dataset.alt){ b.ic.innerHTML = ICON[k]; b.style.setProperty("--tint", TOOLS[k].tint); b.style.setProperty("--tc", TOOLS[k].c); delete b.dataset.alt; } });
   toolBtns.assess.classList.toggle("due", (p.state==="needs"||p.state==="resting") && !p.assessed);
   const st = curStep(p);
@@ -945,6 +1154,19 @@ function renderAll(){
 }
 function renderVitals(p){
   const box = $("#vitals");
+  const code = p.state==="needs" && p.active.def.code;
+  box.classList.toggle("code", !!code);
+  $("#vitLbl").textContent = code ? "Rhythm" : "Vitals";
+  if(code){
+    const rh = p.rhythm || p.active.def.rh, el = $("#rhythm");
+    el.textContent = rh; el.classList.toggle("rosc", /ROSC/.test(rh));
+    const t = $("#cprT"), secs = Math.ceil(G.cpr/CPR_FOR*120);
+    t.textContent = G.cpr>0 ? `CPR in progress · ${Math.floor(secs/60)}:${String(secs%60).padStart(2,"0")} left` : "No compressions right now";
+    t.classList.toggle("on", G.cpr>0);
+    $("#ffBtn").hidden = !(G.cpr>0);
+    $("#vitAt").textContent = "";
+    return;
+  }
   const show = p.state!=="empty" && p.state!=="leaving" && p.vit;
   box.classList.toggle("off", !show);
   const v = show ? p.vit : null;
@@ -989,7 +1211,7 @@ function updateLive(){
   sl.disabled = !on && G.slows<=0; sl.classList.toggle("on", on);
   $("#slowCount").textContent = on ? Math.ceil(G.slowLeft)+"s" : "×"+G.slows;
   $("#app").classList.toggle("slowmo", on);
-  $("#rrSub").textContent = escNow ? "ICU nurses respond. Free" : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
+  $("#rrSub").textContent = escNow ? "Calls the team. Free" : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
 }
 
 let toastT = 0;
@@ -1014,7 +1236,7 @@ function feedTasks(){
       const label = st.k==="go" ? DEST[st.b].btn : st.k==="esc" ? st.l.replace(/^Escalate: /,"") : st.l;
       out.push({i, k:st.k, label, urgent:b.active.urgent, here:i===G.current, prob:b.active.def.t.replace("!",""), kind:"step"});
     }
-    if((b.state==="needs"||b.state==="resting") && !b.assessed && !(st && st.k==="assess"))
+    if(LV.mode!=="rrt" && (b.state==="needs"||b.state==="resting") && !b.assessed && !(st && st.k==="assess"))
       out.push({i, k:"assess", label:"Shift assessment", urgent:false, here:i===G.current, prob:"Due this shift", kind:"shift"});
   });
   const rank = t => (t.here && t.kind==="step" ? 0 : t.urgent ? 1 : t.here ? 2 : t.kind==="step" ? 3 : 4);
@@ -1028,7 +1250,9 @@ function renderFeed(){
   const rest = latest ? G.feed.slice(1) : G.feed;
   const fe = $("#feed"), top = G.feed[0] ? G.feed[0].ts : 0;
   if(top !== fe._top){ fe._top = top; fe.scrollTop = 0; }
-  fe.innerHTML = (latest ? upd(latest) : "") +
+  const c = LV.mode==="tutorial" && !G.over ? COACH[G.coach] : null;
+  fe.innerHTML = (c ? `<div class="coach"><span class="cstep">Tutorial · ${G.coach+1} of ${COACH.length}</span>${c.txt}${c.btn?`<br><button class="coachBtn">${c.btn}</button>`:""}</div>` : "") +
+    (latest ? upd(latest) : "") +
     tasks.map(t=>{
       const b = G.beds[t.i], crit = t.i!==G.current && t.kind==="step" && (t.urgent || b.health<30);
       const inner = `${ic(t.k)}<span class="tx"><small>Rm ${ROOMS[t.i]} · ${esc(shortName(b))}${t.urgent?" · "+esc(t.prob):""}</small>${esc(t.label)}</span>`;
@@ -1049,8 +1273,7 @@ function doTask(i, kind){
   else { sfx.tap(); advance(p, "you"); }
 }
 document.getElementById("feed").addEventListener("click", e=>{
-  const b = e.target.closest("button.fd.task"); if(!b) return;
-  doTask(+b.dataset.i, "room");
+  if(e.target.closest(".coachBtn") && playing()){ G.coachAck = G.coach; checkCoach(); }
 });
 function floatText(txt, minus){
   const f = document.createElement("span");
@@ -1070,7 +1293,10 @@ function showStart(){
   ov.hidden = false;
   ov.innerHTML = `<div class="card">
     <h1>Med-Surg Shift</h1>
-    <p class="sub">4 West · 3 patients · 07:00 to 19:00</p>
+    <p class="sub">New here? Start with the tutorial.</p>
+    <h3 class="pick">Pick a shift</h3>
+    <div class="levels">${LEVELS.map(l=>{ const s = saved[l.n]||{}; return `<button class="lvl" data-l="${l.n}"><span class="num">${l.tag||l.n}</span><span class="txt"><b>${esc(l.name)}</b><small>${esc(l.blurb)}</small></span><span class="st">${starsRow(s.stars||0)}${s.best?`<small>${s.best} pts</small>`:""}</span></button>`; }).join("")}</div>
+    <details class="howto"><summary>How to play</summary>
     <ul>
       <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. The next step <b>glows</b>; tap the matching tool at the bottom. The feed lists what everyone needs, but you have to go to each room yourself.</span></li>
       <li><span class="n">2</span><span><b>Assess</b> every patient once a shift. An orange ring means they haven&rsquo;t been assessed yet. Some problems start with an assessment too.</span></li>
@@ -1078,15 +1304,15 @@ function showStart(){
       <li><span class="n">4</span><span>Tap a patient on the right to go to their room. Tap the <b>H&amp;P</b> folder to read their history. The game pauses while it&rsquo;s open.</span></li>
       <li><span class="n">5</span><span>Earn <b>slow moments</b> by sending patients home or getting them where they need to go. Tap the snail to slow time for 15 seconds.</span></li>
       <li><span class="n">6</span><span>When it's beyond you, call <b>rapid response</b> or <b>charge</b>. Some patients need the ICU, OR, CT or cath lab.</span></li>
+      <li><span class="n">7</span><span>In a <b>code</b>, the monitor shows the rhythm. Start CPR, and during each 2-minute cycle you can give meds, breaths and access. Tap <b>⏩</b> to skip ahead to the rhythm check. Never shock asystole or PEA.</span></li>
     </ul>
-    <h3 class="pick">Pick a shift</h3>
-    <div class="levels">${LEVELS.map(l=>{ const s = saved[l.n]||{}; return `<button class="lvl" data-l="${l.n}"><span class="num">${l.n}</span><span class="txt"><b>${esc(l.name)}</b><small>${esc(l.blurb)}</small></span><span class="st">${starsRow(s.stars||0)}${s.best?`<small>${s.best} pts</small>`:""}</span></button>`; }).join("")}</div>
+    </details>
     <p class="fine">A game, not clinical guidance. Time runs fast: one shift is about 3 minutes.</p>
   </div>`;
   ov.querySelectorAll(".lvl").forEach(b=>b.addEventListener("click", ()=>startLevel(+b.dataset.l)));
 }
 function startLevel(n){
-  LV = LEVELS[n-1];
+  LV = LEVELS.find(l=>l.n===n);
   newGame(); clearResults(); start();
 }
 function showPause(){
@@ -1104,6 +1330,7 @@ function showChart(){
   if(p.state==="empty") return;
   const wasRunning = playing();
   if(G.running) G.paused = true;
+  G.tutChart = true;
   const now = p.state==="needs" ? `${p.active.def.t.replace("!","")}: ${p.active.def.d}` : null;
   const v = p.vit;
   ov.hidden = false;
@@ -1126,7 +1353,7 @@ function showChart(){
     <button class="go" id="closeChart">${wasRunning?"Back to the floor":"Close chart"}</button>
   </div>`;
   $("#closeChart").addEventListener("click", ()=>{
-    if(wasRunning){ G.paused = false; ov.hidden = true; }
+    if(wasRunning){ G.paused = false; ov.hidden = true; checkCoach(); }
     else if(G.over){ endShift(true); }
     else if(!G.running){ showStart(); }
     else { showPause(); }
@@ -1138,7 +1365,10 @@ function endShift(reshow){
     G.over = true; G.running = false;
     const due = G.all.filter(p => p.admittedAt < SHIFT-20);
     G.assessedN = due.filter(p=>p.assessed).length; G.dueN = due.length;
-    const s1 = G.discharged >= 3, s2 = s1 && G.score >= LV.stars[0], s3 = s2 && G.score >= LV.stars[1] && G.transfers === 0 && G.assessedN === G.dueN;
+    const rrt = LV.mode==="rrt";
+    const s1 = rrt ? G.callsDone >= LV.calls.length : G.discharged >= 3;
+    const s2 = s1 && G.score >= LV.stars[0];
+    const s3 = s2 && G.score >= LV.stars[1] && G.transfers === 0 && (rrt ? G.badShocks===0 : G.assessedN === G.dueN);
     const stars = s3 ? 3 : s2 ? 2 : s1 ? 1 : 0;
     const prev = saved[LV.n] || {stars:0, best:0};
     const isBest = G.score > (prev.best||0);
@@ -1148,28 +1378,37 @@ function endShift(reshow){
   const {stars, isBest} = lastReport;
   const msg = stars===3 ? "Flawless shift. Your patients adore you." : stars===2 ? "Solid shift. Everyone's in good hands." : stars===1 ? "You made it through. Go eat something." : "Tough shift. They happen to everyone.";
   ov.hidden = false;
-  ov.innerHTML = `<div class="card"><h1>Shift report</h1><p class="sub">Level ${LV.n}: ${esc(LV.name)}. ${msg}</p>
+  const idx = LEVELS.indexOf(LV), nextL = LEVELS[idx+1];
+  const statsHtml = LV.mode==="rrt" ? `
+      <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
+      <div class="stat"><b>${G.callsDone}/${LV.calls.length}</b><span>Calls answered</span></div>
+      <div class="stat"><b>${G.rushed}</b><span>Got to the ICU, OR or CT</span></div>
+      <div class="stat"><b>${G.transfers}</b><span>Taken over by the ICU team</span></div>
+      <div class="stat"><b>${G.badShocks}</b><span>Shocks on a non-shockable rhythm</span></div>
+      <div class="stat"><b>${G.ff}</b><span>CPR cycles fast-forwarded</span></div>` : "";
+  ov.innerHTML = `<div class="card"><h1>${LV.mode==="rrt"?"Rapid response report":"Shift report"}</h1><p class="sub">${esc(LV.name)}. ${msg}</p>
     <div class="stars">${starsRow(stars)}</div>
-    <div class="stats">
+    <div class="stats">${statsHtml || `
       <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
       <div class="stat"><b>${G.discharged}</b><span>Sent home</span></div>
       <div class="stat"><b>${G.escalated}</b><span>Escalated to ICU in time</span></div>
       <div class="stat"><b>${G.rushed}</b><span>Rushed to OR, CT or cath lab</span></div>
       <div class="stat"><b>${G.transfers}</b><span>Moved to ICU too late</span></div>
       <div class="stat"><b>${G.helps}</b><span>Times you called charge</span></div>
-      <div class="stat"><b>${G.assessedN}/${G.dueN}</b><span>Patients assessed</span></div>
+      <div class="stat"><b>${G.assessedN}/${G.dueN}</b><span>Patients assessed</span></div>`}
     </div>
-    ${LV.n < LEVELS.length ? `<button class="go" id="nextBtn">Next shift: ${esc(LEVELS[LV.n].name)}</button>` : ""}
-    <button class="${LV.n < LEVELS.length ? "toggle" : "go"}" id="againBtn">Work this shift again</button>
+    ${nextL ? `<button class="go" id="nextBtn">Next: ${esc(nextL.name)}</button>` : ""}
+    <button class="${nextL ? "toggle" : "go"}" id="againBtn">Play this level again</button>
     <button class="toggle" id="listBtn">All shifts</button>
-    <p class="fine">★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody moved to ICU too late and every patient assessed</p></div>`;
-  const nb = $("#nextBtn"); if(nb) nb.addEventListener("click", ()=>startLevel(LV.n+1));
+    <p class="fine">${LV.mode==="rrt" ? `★ answer every call · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody taken over and no wrong shocks` : `★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody moved to ICU too late and every patient assessed`}</p></div>`;
+  const nb = $("#nextBtn"); if(nb) nb.addEventListener("click", ()=>startLevel(nextL.n));
   $("#againBtn").addEventListener("click", ()=>startLevel(LV.n));
   $("#listBtn").addEventListener("click", showStart);
 }
 function start(){
   try{ if(!ac) ac = new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); }catch(e){ ac = null; }
   G.running = true; G.paused = false; G.over = false; ov.hidden = true; dirty = true;
+  clearTimeout(toastT); $("#toast").className = "toast";
 }
 document.addEventListener("visibilitychange", ()=>{ if(document.hidden && playing()){ G.paused = true; showPause(); } });
 
@@ -1181,13 +1420,14 @@ function frame(ts){
     let gdt = dt;
     if(G.slowLeft>0){ G.slowLeft = Math.max(0, G.slowLeft - dt); gdt = dt*SLOW_RATE; }
     update(gdt);
+    checkCoach();
   }
   if(dirty){ renderAll(); dirty = false; }
   updateLive();
   if(G.feed && G.feed[0] && !G.feed[0].aged && performance.now()-G.feed[0].ts > 6000){ G.feed[0].aged = true; dirty = true; }
   requestAnimationFrame(frame);
 }
-newGame(); showStart(); renderAll(); updateLive();
+LV = LEVELS[1]; newGame(); showStart(); renderAll(); updateLive();
 requestAnimationFrame(frame);
 })();
 </script>

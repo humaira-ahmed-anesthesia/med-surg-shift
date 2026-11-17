@@ -6,7 +6,8 @@ A cozy nursing time-management game, in the spirit of cooking games like Cooking
 
 ## How it plays
 - You're the nurse on 4 West with 3 patients. A 12-hour shift (07:00–19:00) lasts about 3 minutes.
-- Three levels: Day shift on 4 West, Busy Monday and Short-staffed Saturday, each with its own patients and emergencies.
+- A guided tutorial, then three floor levels (Day shift on 4 West, Busy Monday, Short-staffed Saturday), each with its own patients and emergencies.
+- **Rapid Response Nurse:** one patient at a time across the hospital. Run a pulseless VT code and an asystole/PEA code from hyperkalemia (CPR cycles you can fast-forward, shocks, epinephrine, amiodarone, H's and T's), a stroke to CT, and a liver transplant hemorrhage with massive transfusion (whole blood, PRBCs, plasma, platelets, cryo) before rushing to surgery.
 - A vitals monitor refreshes on its own. Abnormal numbers turn red, and some emergencies start with a vitals check.
 - Assess every patient once a shift (an orange ring means not yet). Some problems start with an assessment, like a respiratory exam before a neb.
 - Each patient has a problem and a short chain of care (for example, low hemoglobin: type & screen → large-bore IV → hang PRBCs). The next step glows; tap the matching tool at the bottom. The feed lists what everyone needs, but you have to go to each room yourself.
