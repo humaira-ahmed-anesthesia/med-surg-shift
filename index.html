@@ -406,9 +406,9 @@ const U = {
     s:[S("wound","Pressure dressing","Pressure","Firm pressure held and dressing reinforced. Surgeon paged."), S("labs","Stat CBC","CBC","Hemoglobin 7.1 g/dL (dropped from 9.4)."), S("blood","Hang blood","PRBCs","Two-nurse check done. 1 unit PRBCs running.")], r:2.6},
   fever:{t:"New fever!", d:"Shaking chills.", v:{t:39.2,hr:112},
     s:[VIT(), S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn. Lactate 1.6, normal."), S("meds","Fever med","Tylenol","Acetaminophen (Tylenol) 650 mg by mouth given.")], r:2.2},
-  sleepy:{t:"Too sleepy to breathe!", d:"Hard to wake after pain meds. Pinpoint pupils.", v:{rr:6,spo2:85,hr:56},
+  sleepy:{needs:"opioid", t:"Too sleepy to breathe!", d:"Hard to wake after pain meds. Pinpoint pupils.", v:{rr:6,spo2:85,hr:56},
     s:[S("assess","Check responsiveness","Assess","Barely rouses to a sternal rub. Pinpoint pupils, shallow breaths."), VIT(), S("o2","Apply oxygen","NC 4 L","4 L nasal cannula on. SpO₂ climbing to 90%."), S("meds","Reverse the opioid","Narcan","Naloxone (Narcan) 0.4 mg IV given. Awake and breathing 14/min.")], r:2.6},
-  hives:{t:"Hives during antibiotic!", d:"Itchy red welts spreading up the arm.", v:{hr:104},
+  hives:{needs:"abx", t:"Hives during antibiotic!", d:"Itchy red welts spreading up the arm.", v:{hr:104},
     s:[S("assess","Assess the reaction","Assess","Hives on arms and chest. Breathing fine, no throat swelling."), S("iv","Stop the infusion","Stop","Antibiotic stopped and line flushed with saline."), S("meds","Antihistamine","Benadryl","Diphenhydramine (Benadryl) 25 mg IV given. Hives fading. Allergy added to chart.")], r:2.0},
   dehisc:{t:"Wound popped open!", d:"Felt a pop while coughing. The incision has split open.", surg:true, leaves:true, v:{hr:104},
     s:[S("wound","Cover the wound","NS gauze","Sterile saline-soaked gauze over the wound. Knees bent to ease tension. Surgeon paged."), S("labs","Pre-op labs","T&S","CBC and type & screen sent. Hemoglobin 9.9."), S("iv","IV fluids, NPO","IV fluids","Nothing by mouth. Maintenance IV fluids running."), S("go","Rush to surgery","or","")], r:2.6},
@@ -552,7 +552,7 @@ function admit(i, initial){
     allergy: wpick(ALLERGIES),
     code: Math.random()<0.85 ? "Full code" : "DNR (do not resuscitate)",
     health: initial ? rand(64,80) : rand(58,74),
-    active:null, state:"resting", timer:1.5, flash:0, out:null, log:[], doomed, base:baseVitals(), gotBlood:false, assessed:false, admittedAt:G.t
+    active:null, state:"resting", timer:1.5, flash:0, out:null, log:[], doomed, base:baseVitals(), gotBlood:false, got:{}, assessed:false, admittedAt:G.t
   };
   let defs;
   if(doomed){ G.doomSeen++; defs = LV.doom.slice(); }
@@ -636,7 +636,8 @@ function alarmFor(p){
   logIt(p, p.active.def.t.replace("!","") + " " + p.active.def.d);
 }
 function suddenDrop(p){
-  const pool = LV.urgent.filter(u => (!u.surg || p.surg) && (!u.blood || p.gotBlood));
+  const pool = LV.urgent.filter(u => (!u.surg || p.surg) && (!u.blood || p.gotBlood) && (!u.needs || p.got[u.needs]));
+  if(!pool.length) return;
   const def = pick(pool);
   if(def.leaves) p.queue = [];
   else if(p.active) p.queue.unshift(p.active);
@@ -651,6 +652,8 @@ function advance(p, by, fxOverride){
   let fx = fxOverride || st.fx;
   if(st.k==="vitals"){ takeVitals(p); fx = vitalsSummary(p.vit); }
   if(st.k==="blood" && !/^Stop/.test(st.b)) p.gotBlood = true;
+  if(/hydromorphone|oxycodone|morphine/i.test(fx)) p.got.opioid = true;
+  if(/antibiotic|cefazolin|ceftriaxone|piperacillin|vancomycin/i.test(fx) && !/stopped/i.test(fx)) p.got.abx = true;
   if(st.k==="assess") p.assessed = true;
   logIt(p, fx + (by==="charge" ? " (charge nurse)" : ""));
   pushFeed(p, st.k, fx);
@@ -721,9 +724,13 @@ function transfer(p){
 
 const playing = () => G.running && !G.paused && !G.over;
 function headToToe(p){
-  const lungs = LUNGY.test(p.dx) ? (/heart failure/i.test(p.dx) ? "crackles at the bases" : "coarse breath sounds") : "lungs clear";
-  const pain = p.surg ? "pain 3/10 at the incision" : "pain 1/10";
-  return `Shift assessment done: alert and oriented, ${lungs}, heart regular, ${pain}, skin intact${p.surg?", incision clean":""}.`;
+  const now = p.active ? p.active.def.t : "";
+  const neuro = /altered|unresponsive|sleepy/i.test(now) ? "not at baseline mentally" : "alert and oriented";
+  const lungs = /desat|breath|COPD|pneumonia|fluid/i.test(now) || LUNGY.test(p.dx) ? (/heart failure|fluid/i.test(p.dx+now) ? "crackles at the bases" : "coarse breath sounds") : "lungs clear";
+  const heart = /racing|afib|chest/i.test(now) ? "heart racing" : "heart regular";
+  const pain = /pain/i.test(now) ? "pain 7/10" : p.surg ? "pain 3/10 at the incision" : "pain 1/10";
+  const skin = /incision|bleed|wound|dressing|pressure|cellulitis|hives/i.test(now) ? "skin as noted in the current problem" : p.surg ? "skin intact, incision clean" : "skin intact";
+  return `Shift assessment done: ${neuro}, ${lungs}, ${heart}, ${pain}, ${skin}.`;
 }
 function shiftAssess(p){
   p.assessed = true; G.score += 25;
@@ -1007,7 +1014,7 @@ function feedTasks(){
       const label = st.k==="go" ? DEST[st.b].btn : st.k==="esc" ? st.l.replace(/^Escalate: /,"") : st.l;
       out.push({i, k:st.k, label, urgent:b.active.urgent, here:i===G.current, prob:b.active.def.t.replace("!",""), kind:"step"});
     }
-    if((b.state==="needs"||b.state==="resting") && !b.assessed)
+    if((b.state==="needs"||b.state==="resting") && !b.assessed && !(st && st.k==="assess"))
       out.push({i, k:"assess", label:"Shift assessment", urgent:false, here:i===G.current, prob:"Due this shift", kind:"shift"});
   });
   const rank = t => (t.here && t.kind==="step" ? 0 : t.urgent ? 1 : t.here ? 2 : t.kind==="step" ? 3 : 4);
@@ -1025,8 +1032,7 @@ function renderFeed(){
     tasks.map(t=>{
       const b = G.beds[t.i], crit = t.i!==G.current && t.kind==="step" && (t.urgent || b.health<30);
       const inner = `${ic(t.k)}<span class="tx"><small>Rm ${ROOMS[t.i]} · ${esc(shortName(b))}${t.urgent?" · "+esc(t.prob):""}</small>${esc(t.label)}</span>`;
-      return crit ? `<button class="fd task urgent" data-i="${t.i}">${inner}<span class="tap">Go to room</span></button>`
-                  : `<div class="fd task info ${t.urgent?"urgent":""} ${t.here?"here":""}">${inner}</div>`;
+      return `<div class="fd task info ${t.urgent||crit?"urgent":""} ${t.here?"here":""}">${inner}</div>`;
     }).join("")
     + (rest.length ? `<div class="lbl">Earlier</div>` : "")
     + rest.map(upd).join("");
@@ -1066,7 +1072,7 @@ function showStart(){
     <h1>Med-Surg Shift</h1>
     <p class="sub">4 West · 3 patients · 07:00 to 19:00</p>
     <ul>
-      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. The next step <b>glows</b>; tap the matching tool at the bottom. The feed lists what everyone needs, but you have to go to each room yourself. Only critical patients get a shortcut.</span></li>
+      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. The next step <b>glows</b>; tap the matching tool at the bottom. The feed lists what everyone needs, but you have to go to each room yourself.</span></li>
       <li><span class="n">2</span><span><b>Assess</b> every patient once a shift. An orange ring means they haven&rsquo;t been assessed yet. Some problems start with an assessment too.</span></li>
       <li><span class="n">3</span><span>The <b>monitor</b> refreshes vitals on its own. Red numbers mean trouble. Tap <b>Vitals</b> to check now.</span></li>
       <li><span class="n">4</span><span>Tap a patient on the right to go to their room. Tap the <b>H&amp;P</b> folder to read their history. The game pauses while it&rsquo;s open.</span></li>
