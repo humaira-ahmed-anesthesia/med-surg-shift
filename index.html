@@ -569,6 +569,7 @@ const LEVELS = [
    calls:CALLS, tools:["assess","cpr","shock","meds","o2","labs","iv","wound"], drain:1, ev:[999,999], stars:[1000,1250]}
 ];
 
+LEVELS.forEach(l => { l.mode = l.mode || "floor"; });
 const NAMES = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Begay","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
 const PMH = ["Hypertension","High cholesterol","Asthma","Hypothyroidism","Atrial fibrillation","Chronic kidney disease, stage 3","Depression","GERD","Osteoarthritis","Sleep apnea"];
 const ALLERGIES = [["No known allergies",10],["Penicillin (anaphylaxis)",3],["Sulfa drugs (rash)",2],["Morphine (itching)",2],["Latex (rash)",1],["Codeine (nausea)",1]];
@@ -928,6 +929,7 @@ function expire(p){
 }
 function transfer(p){
   if(LV.mode==="rrt"){ expire(p); return; }
+  if(LV.mode==="floor" && p.active && p.active.urgent && Math.random() < 0.2){ expire(p); return; } // rare on the floor
   p.health = 0; G.transfers++;
   G.score = Math.max(0, G.score - 150);
   p.state = "leaving"; p.out = "icu"; p.timer = 2.6; p.active = null; p.queue = [];
@@ -1149,7 +1151,7 @@ function renderAll(){
     if(p.state==="resting"){ h = p.queue.length ? "Resting comfortably" : "Ready for discharge"; d = p.queue.length ? "Go check on your other patients." : "Paperwork is almost done."; }
     else if(p.state==="leaving"){
       h = p.out==="home" ? "Going home!" : p.out==="go" ? DEST[p.dest].out : p.out==="esc" ? "Moving to the ICU" : p.out==="expired" ? "Patient expired" : "Transferred to ICU";
-      d = p.out==="home" ? "Great care today." : p.out==="go" ? "The team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : p.out==="expired" ? "Take a breath. The next call is coming." : "They'll get closer monitoring there.";
+      d = p.out==="home" ? "Great care today." : p.out==="go" ? "The team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : p.out==="expired" ? (LV.mode==="rrt" ? "Take a breath. The next call is coming." : "Take a breath. Your other patients still need you.") : "They'll get closer monitoring there.";
     }
     else { h = "Room being cleaned"; d = "A new admission is on the way."; }
     if(p.out==="expired" && p.state==="leaving") o.classList.add("lost");
@@ -1395,7 +1397,7 @@ function endShift(reshow){
     const rrt = LV.mode==="rrt";
     const s1 = rrt ? G.callsDone >= LV.calls.length : G.discharged >= 3;
     const s2 = s1 && G.score >= LV.stars[0];
-    const s3 = s2 && G.score >= LV.stars[1] && G.transfers === 0 && (rrt ? G.badShocks===0 && G.expired===0 : G.assessedN === G.dueN);
+    const s3 = s2 && G.score >= LV.stars[1] && G.transfers === 0 && G.expired===0 && (rrt ? G.badShocks===0 : G.assessedN === G.dueN);
     const stars = s3 ? 3 : s2 ? 2 : s1 ? 1 : 0;
     const prev = saved[LV.n] || {stars:0, best:0};
     const isBest = G.score > (prev.best||0);
@@ -1422,12 +1424,13 @@ function endShift(reshow){
       <div class="stat"><b>${G.rushed}</b><span>Rushed to OR, CT or cath lab</span></div>
       <div class="stat"><b>${G.transfers}</b><span>Moved to ICU too late</span></div>
       <div class="stat"><b>${G.helps}</b><span>Times you called charge</span></div>
-      <div class="stat"><b>${G.assessedN}/${G.dueN}</b><span>Patients assessed</span></div>`}
+      <div class="stat"><b>${G.assessedN}/${G.dueN}</b><span>Patients assessed</span></div>
+      ${G.expired ? `<div class="stat"><b>${G.expired}</b><span>Patients expired</span></div>` : ""}`}
     </div>
     ${nextL ? `<button class="go" id="nextBtn">Next: ${esc(nextL.name)}</button>` : ""}
     <button class="${nextL ? "toggle" : "go"}" id="againBtn">Play this level again</button>
     <button class="toggle" id="listBtn">All shifts</button>
-    <p class="fine">${LV.mode==="rrt" ? `★ answer every call · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody expired and no wrong shocks` : `★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody moved to ICU too late and every patient assessed`}</p></div>`;
+    <p class="fine">${LV.mode==="rrt" ? `★ answer every call · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody expired and no wrong shocks` : `★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody lost or moved to ICU too late, and every patient assessed`}</p></div>`;
   const nb = $("#nextBtn"); if(nb) nb.addEventListener("click", ()=>startLevel(nextL.n));
   $("#againBtn").addEventListener("click", ()=>startLevel(LV.n));
   $("#listBtn").addEventListener("click", showStart);
