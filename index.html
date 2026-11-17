@@ -223,8 +223,9 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .fd.task.urgent small{color:#c9483b}
 .fd.task.urgent .tap{background:#ffe3df;color:#c9483b}
 .fd.task:active{transform:scale(.98)}
-.fd.res{background:rgba(255,255,255,.55);font-weight:600}
-.fd.res.new{animation:resIn .3s ease-out;background:#fff}
+.fd.res{background:rgba(255,255,255,.55);font-weight:600;animation:none}
+.fd.res.fresh{background:#fff}
+.fd.res.new{animation:resIn .3s ease-out}
 .feed .lbl{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:4px 2px 0}
 button.chip.now{cursor:pointer;animation:glow 1s ease-in-out infinite}
 button.chip.now:active{transform:scale(.96)}
@@ -279,8 +280,20 @@ button.chip.now:active{transform:scale(.96)}
 .drip.off .dv b{color:#d24a3c}
 .drip.off{box-shadow:0 0 0 2px #f0a69c,0 2px 0 var(--line)}
 .drip .dm,.drip .dp{height:40px;border-radius:10px;font-size:22px;font-weight:800;background:#eef4f2;color:var(--ink)}
-.drip.lo .dp,.drip.hi .dm{background:#ffe9a8;box-shadow:0 0 0 2px var(--glow)}
+.drip.wantUp .dp,.drip.wantDn .dm{background:#ffe9a8;box-shadow:0 0 0 2.5px var(--glow);animation:dripGlow 1s ease-in-out infinite}
+@keyframes dripGlow{50%{box-shadow:0 0 0 5px rgba(255,200,60,.35)}}
+.drip.off .gl{color:#d24a3c}
+.drip.fixed{grid-template-columns:1fr auto}
+.drip.fixed .dv b{font-size:16px;color:var(--ink)}
 .drip .dm:active,.drip .dp:active{transform:scale(.92)}
+.who .devs{display:flex;gap:3px;min-width:0;overflow-x:auto;scrollbar-width:none;align-self:center}
+.who .devs::-webkit-scrollbar{display:none}
+.who .dev{flex:none;width:26px;height:26px;border-radius:8px;background:var(--surface);box-shadow:0 1.5px 0 var(--line);display:grid;place-items:center}
+.who .dev:active{transform:scale(.9)}
+.hp-sec.dev .devart{float:right;margin:0 0 4px 8px;background:var(--wall);border-radius:12px;padding:4px;line-height:0}
+.picks{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.picks small{font-weight:800;color:var(--muted);font-size:12px}
+.orbtn.pick{margin-top:0;background:#e3f1ea;color:#1f6a46;box-shadow:0 2px 0 #b9d8c6;animation:none}
 .hp-tabs{display:flex;gap:6px;margin-bottom:10px}
 .hp-tabs .tab{flex:1;padding:7px 8px;border-radius:10px;background:var(--wall);font-weight:800;font-size:13px;color:var(--muted)}
 .hp-tabs .tab.on{background:var(--accent);color:#fff}
@@ -377,7 +390,7 @@ button.chip.now:active{transform:scale(.96)}
   <main class="stage">
     <section class="room" aria-live="polite">
       <div>
-        <div class="who"><span class="whoav" id="ptAv"></span><span class="nm" id="ptName">Patient</span>
+        <div class="who"><span class="whoav" id="ptAv"></span><span class="nm" id="ptName">Patient</span><span class="devs" id="ptDevs"></span>
           <button class="chartbtn" id="chartBtn" aria-label="Open H&amp;P (pauses the game)"><svg viewBox="0 0 24 24"><path d="M3 6.5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#f3d58e" stroke="#c99a3a" stroke-width="1.6" stroke-linejoin="round"/><rect x="6.5" y="9.5" width="11" height="8" rx="1" fill="#fff" stroke="#c99a3a" stroke-width="1.2"/><path d="M8.5 12h7M8.5 14.5h4.5" stroke="#9aa6ad" stroke-width="1.3" stroke-linecap="round"/></svg>H&amp;P</button></div>
         <div class="hp"><div class="bar" id="ptBar"><i></i></div><span id="ptPct">70%</span></div>
         <div class="vitals" id="vitals" aria-label="Vital signs monitor">
@@ -742,13 +755,14 @@ const DRIPS = {
   hts:     {name:"3% saline", unit:"mL/hr", min:0, max:60, step:10, start:20, v:"Sodium", lo:145, hi:155, base:138, gain:0.3, noise:0.15, speed:0.25, why:"Raises sodium to pull fluid out of a swollen brain. Goal sodium 145–155."},
   nitro:   {name:"Nitroglycerin", unit:"mcg/min", min:0, max:100, step:10, start:10, v:"SBP", lo:100, hi:130, base:160, gain:-0.6, noise:2.2, bp:"sbp", why:"After heart surgery, blood pressure stays low (SBP 100–130) to protect the new grafts and stitches."},
   epi:     {name:"Epinephrine", unit:"mcg/min", min:0, max:10, step:1, start:1, v:"Cardiac index", lo:2.2, hi:3.0, base:1.7, gain:0.18, noise:0.04, dec:1, why:"Helps a tired heart squeeze harder. Cardiac index 2.2–3.0 means it's pumping enough."},
+  amio:    {name:"Amiodarone", unit:"mg/min", fixed:true, start:1, why:"Keeps the heart out of A-fib. Protocol: 150 mg over 10 minutes, then 1 mg/min for 6 hours, then 0.5 mg/min for 18 hours. Not titrated to a number: change the rate on schedule."},
   lr:      {name:"Lactated Ringer's", unit:"mL/hr", min:100, max:1200, step:50, start:400, v:"Urine output", vu:" mL/hr", lo:35, hi:70, base:-25, gain:0.13, noise:2.2, why:"Burn resuscitation. Adjust the rate hourly to keep urine output 0.5–1 mL/kg/hr (about 35–70). Too much fluid causes swelling (fluid creep)."}
 };
 /* hourly (or every-2/3-hour) cares */
 const CARE = {
   neuro:   {t:"Hourly neuro check", d:"Pupils, level of consciousness, strength.", r:0.6, s:[C("assess","Pupils & GCS","Neuro","Pupils 3 mm and brisk. GCS 10, unchanged.")]},
   evd:     {t:"Level & zero the EVD", d:"Every 2 hours and after any position change.", r:0.6, s:[C("device","Level to the ear & zero","Level","EVD leveled to the tragus and zeroed. ICP 14, draining clear fluid.")]},
-  turn:    {t:"Turn & reposition", d:"Every 2 hours to protect the skin.", r:0.5, s:[C("wound","Turn & check skin","Turn","Turned with pillows. Heels floated. Skin intact.")]},
+  turn:    {t:"Q2 hour turn", d:"Turn every 2 hours to prevent pressure injuries.", r:0.5, s:[C("wound","Turn the patient","Turn","Patient turned. Pillows placed, heels floated, skin intact.")]},
   oral:    {t:"Oral care (ventilator bundle)", d:"Prevents ventilator pneumonia.", r:0.5, s:[C("o2","Oral care & head up 30°","Oral care","Mouth care done, head of bed at 30°, tube secured at 23 cm.")]},
   io:      {t:"Hourly ins & outs", d:"Drips, flushes and urine.", r:0.5, s:[C("labs","Measure & chart","I&O","Urine 45 mL this hour. Totals charted.")]},
   ct:      {t:"Chest tube check", d:"Output, air leak and suction.", r:0.6, s:[C("device","Check output & air leak","Chest tube","60 mL this hour. No air leak, no clots in the tubing.")]},
@@ -759,6 +773,8 @@ const CARE = {
   glucose: {t:"Glucose check", d:"Hourly while on an insulin drip.", r:0.5, s:[C("labs","Fingerstick","FSBG","Glucose checked and charted. Drip adjusted to protocol.")]},
   traction:{t:"Neurovascular check on the leg", d:"Femur in traction.", r:0.5, s:[C("assess","Pulses, color, feeling","Assess","Foot warm and pink, pulse strong, can wiggle toes.")]},
   motor:   {t:"Motor & sensation check", d:"Spinal cord injury: level of function.", r:0.6, s:[C("assess","Strength & sensation","Assess","Can shrug shoulders. No movement below the chest, unchanged.")]},
+  amioDown:{t:"Amiodarone: 6 hours are up", d:"Protocol step-down to 0.5 mg/min for the next 18 hours.", r:0.6, s:[C("iv","Turn amio to 0.5 mg/min","0.5 mg/min","Amiodarone drip now 0.5 mg/min for 18 hours. Still in a regular rhythm.")]},
+  vit:     {t:"Hourly vitals", d:"Recheck a full set every hour.", r:0.5, s:[C("vitals","Recheck vitals","")]},
   sodium:  {t:"Sodium check", d:"Every 4 hours on 3% saline.", r:0.5, s:[C("labs","Draw a sodium","Na","Sodium drawn and charted.")]}
 };
 /* alarms & events: hit = push a drip's number up or down; fatal = the patient dies when this recipe ends */
@@ -812,7 +828,8 @@ const EV = {
   ciDrop:{t:"Cardiac index falling!", d:"The heart is tiring. Cool legs.", r:1.6, hit:{d:"epi", by:-0.5},
     s:[C("assess","Assess & titrate","Assess","Cool, mottled knees. Turn up the epinephrine.")]},
   afib:{t:"New A-fib!", d:"Irregular, rate 140. Common after heart surgery.", r:1.6, v:{hr:140},
-    s:[C("labs","12-lead EKG","EKG","Atrial fibrillation, rate 140 (high)."), C("meds","Amiodarone","Amio","Amiodarone 150 mg IV over 10 minutes. Rate 96.")]},
+    addDrip:"amio",
+    s:[C("labs","12-lead EKG","EKG","Atrial fibrillation, rate 140 (high)."), C("meds","Amiodarone bolus","Amio","Amiodarone 150 mg IV over 10 minutes. Rate 104."), C("iv","Start the amiodarone drip","1 mg/min","Amiodarone drip at 1 mg/min for 6 hours, then 0.5 mg/min for 18 hours. Rate 92.")]},
   airway:{t:"Voice getting hoarse!", d:"House fire. Soot around the nose, and the voice is changing.", r:2.4, v:{rr:28,spo2:92},
     s:[C("assess","Check the airway","Assess","Soot in the mouth, singed nose hairs, stridor (abnormal). The airway is swelling."), C("esc","Call the intensivist & RT","","Airway team at the bedside."), C("meds","Intubation medicines","RSI","On the MD's order: etomidate and rocuronium."), MD("MD intubates early","Breathing tube placed before the swelling closed the airway. Airway secured."), MD("RT: ventilator","Now on the ventilator.")]},
   eschar:{t:"Arm feels tight & numb!", d:"Circumferential burn on the right arm.", r:2.0,
@@ -831,6 +848,19 @@ const EV = {
   lateArrest:{t:"Heart rhythm suddenly flat!", d:"She was doing so well. Asystole on the monitor.", r:1.2, v:{hr:0,sbp:0,dbp:0,spo2:0}, fatal:"even though she was getting better",
     s:[C("assess","Check for a pulse","Assess","No pulse. Asystole."), C("esc","Call a code","","Code team in the room. CPR, epinephrine, airway."), MD("The team runs the code","The team worked for 30 minutes. Asystole the whole time."), C("assess","Support the family","Family","Her daughter arrives. You stay with her.")]}
 };
+/* BP above goal with no drip yet: PRNs first, and check the heart rate before labetalol */
+function prnBP(p){
+  const hr = p.prnHR, slow = hr < 60;
+  return {t:"BP 176/94!", d:"SBP goal is 130–150 and there's no drip yet. Start with a PRN.", r:1.4, v:{sbp:176, dbp:94, hr}, addDrip:"nicard",
+    s:[C("vitals","Check the heart rate first","HR", `HR ${hr}${slow?" (low)":""}, BP 176/94 (high).`),
+       C("meds","Give a PRN for BP","PRN","", {pick:[
+         {b:"Labetalol 10 mg IV", ok:!slow, fx:"Labetalol 10 mg IV. SBP 168, HR 76.",
+          bad:`HR is ${hr}. Labetalol is a beta blocker and would slow it even more. Hold it and use the other PRN.`},
+         {b:"Hydralazine 10 mg IV", ok:true, fx:"Hydralazine 10 mg IV. SBP 166.",
+          note: slow ? "" : "Hydralazine works too. With a normal heart rate, labetalol is usually tried first."}]}),
+       C("vitals","Recheck BP in 15 minutes","","SBP still 166 after the PRN (high). The MD orders a nicardipine drip."),
+       C("iv","Start the nicardipine drip","Nicardipine","Nicardipine at 2.5 mg/hr. Titrate to SBP 130–150.")]};
+}
 /* devices for the Lines & drains tab */
 const DEV = {
   vent:{n:"Ventilator & breathing tube", w:"Breathes for the patient through a tube in the windpipe.", k:"Peak pressures, SpO₂ and tube depth. Alarms: high pressure (biting, secretions, kink) or low pressure (disconnected). Call RT."},
@@ -849,51 +879,71 @@ const DEV = {
   burns:{n:"Burn dressings", w:"Silver dressings cover the burns to fight infection.", k:"Premedicate before changes. Keep the room warm. Check pulses in burned limbs."},
   ng:{n:"Feeding tube", w:"Early tube feeds help burns and critically ill patients heal.", k:"Check placement and keep the head of bed up."}
 };
+const DEVART = {
+  vent:'<rect x="4" y="5" width="18" height="15" rx="3" fill="#dbe9f7" stroke="#4a78a8" stroke-width="1.6"/><rect x="7" y="8" width="12" height="6" rx="1.5" fill="#24484a"/><path d="M8 12l2-2 2 3 2-4 2 3h2" stroke="#7fe0b8" stroke-width="1.2" fill="none" stroke-linecap="round"/><circle cx="9" cy="17" r="1.2" fill="#4a78a8"/><circle cx="13" cy="17" r="1.2" fill="#f0b44c"/><path d="M22 12c4 0 5 3 5 6v8" stroke="#8fb4d8" stroke-width="2.6" fill="none" stroke-linecap="round"/><path d="M22 12c4 0 5 3 5 6v8" stroke="#fff" stroke-width="0.9" stroke-dasharray="1.5 2" fill="none"/>',
+  evd:'<path d="M5 22c0-9 5-15 11-15s11 6 11 15z" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4"/><path d="M8 13c3-4 13-4 16 0" stroke="#7a5236" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="16" cy="9" r="1.6" fill="#fff" stroke="#6a4fb3" stroke-width="1.2"/><path d="M16 9C16 3 23 2 25 6v8" stroke="#6a4fb3" stroke-width="1.6" fill="none"/><rect x="22.5" y="14" width="5" height="9" rx="1.5" fill="#fff" stroke="#6a4fb3" stroke-width="1.3"/><rect x="23.4" y="18.5" width="3.2" height="3.6" rx="0.8" fill="#f7efc4"/><path d="M4 26h24" stroke="#c99a3a" stroke-width="1.2" stroke-dasharray="2 2"/>',
+  icpMon:'<path d="M7 17c-3-1-3-7 1-8 0-4 6-5 8-3 2-2 8-1 8 3 4 1 4 7 1 8-1 3-5 4-9 3-4 1-8 0-9-3z" fill="#f7c9d4" stroke="#c96d86" stroke-width="1.4"/><path d="M12 9c1 2 0 4-1 5M17 8c0 3 2 4 3 6M14 15c1 1 3 1 4 0" stroke="#c96d86" stroke-width="1.1" fill="none" stroke-linecap="round"/><rect x="18" y="20" width="11" height="8" rx="2" fill="#24484a"/><text x="23.5" y="26.2" font-size="5.6" text-anchor="middle" fill="#7fe0b8" font-family="sans-serif" font-weight="700">14</text>',
+  cvc:'<path d="M9 28V18c0-4 3-6 7-6s7 2 7 6v10" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4"/><path d="M13 12c0-3 1.5-5 3-5s3 2 3 5" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4"/><rect x="16" y="13" width="6" height="5" rx="1" fill="#fff" stroke="#9aa6ad"/><path d="M19 16l5 4M19 16l6 1M19 16l5-2" stroke-width="1.6" stroke-linecap="round" fill="none"/><path d="M19 16l5 4" stroke="#d24a3c" stroke-width="1.6"/><path d="M19 16l6 1" stroke="#4a78a8" stroke-width="1.6"/><path d="M19 16l5-2" stroke="#f0b44c" stroke-width="1.6"/><circle cx="24.4" cy="20.3" r="1.3" fill="#d24a3c"/><circle cx="25.4" cy="17" r="1.3" fill="#4a78a8"/><circle cx="24.4" cy="13.7" r="1.3" fill="#f0b44c"/>',
+  art:'<path d="M3 20c4-2 8-3 13-3h6v7h-6c-5 0-9-1-13-2z" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4"/><rect x="12" y="17.5" width="5" height="4" rx="1" fill="#fff" stroke="#9aa6ad"/><path d="M15 19.5h6c3 0 4-3 4-6V8" stroke="#d24a3c" stroke-width="1.6" fill="none"/><path d="M19 7l2-3 1.5 4 1.5-2 1.5 3 1.5-2" stroke="#d24a3c" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>',
+  foley:'<path d="M16 3v8" stroke="#d6b45a" stroke-width="2"/><path d="M9 11h14l-1 14a3 3 0 0 1-3 3h-6a3 3 0 0 1-3-3z" fill="#fff" stroke="#9aa6ad" stroke-width="1.4"/><path d="M9.6 18h12.8l-.5 7a3 3 0 0 1-3 3h-5.8a3 3 0 0 1-3-3z" fill="#f7d66a"/><path d="M12 14h8M12 16h5" stroke="#c9d3d8" stroke-width="1"/>',
+  crrt:'<rect x="7" y="4" width="18" height="24" rx="3" fill="#e4eef2" stroke="#4a78a8" stroke-width="1.5"/><rect x="10" y="7" width="12" height="5" rx="1" fill="#24484a"/><rect x="14" y="14" width="4" height="10" rx="2" fill="#fff" stroke="#9aa6ad"/><path d="M14 16H5M18 22h9" stroke-width="2"/><path d="M14 16H4" stroke="#d24a3c" stroke-width="2" stroke-linecap="round"/><path d="M18 22h10" stroke="#8a2b28" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="21" r="1.8" fill="none" stroke="#4a78a8" stroke-width="1.2"/>',
+  ct:'<rect x="6" y="11" width="20" height="16" rx="2.5" fill="#fff" stroke="#4a78a8" stroke-width="1.5"/><path d="M12.5 11v16M19.5 11v16" stroke="#c9d3d8" stroke-width="1"/><path d="M7 21h5" stroke="#d24a3c" stroke-width="5"/><path d="M14 23h4" stroke="#7fb8e0" stroke-width="3"/><path d="M9 11V6c0-2 2-3 4-3h6" stroke="#d24a3c" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  ctubes:'<path d="M16 15c-3-4-9-2-7 3 1 3 5 5 7 7 2-2 6-4 7-7 2-5-4-7-7-3z" fill="#f08f8f" stroke="#c44b4b" stroke-width="1.3"/><path d="M13 20v5M19 20v5" stroke="#d24a3c" stroke-width="1.8"/><rect x="9" y="25" width="14" height="5" rx="1.5" fill="#fff" stroke="#4a78a8" stroke-width="1.2"/><path d="M10 28h5" stroke="#d24a3c" stroke-width="2.4"/>',
+  wires:'<path d="M14 12c-3-4-9-2-7 3 1 3 5 5 7 7 2-2 6-4 7-7 2-5-4-7-7-3z" fill="#f08f8f" stroke="#c44b4b" stroke-width="1.3"/><path d="M12 16c3 4 8 4 12 6M16 18c3 2 6 3 8 3" stroke="#555" stroke-width="1" fill="none"/><rect x="21" y="19" width="9" height="9" rx="2" fill="#dbe9f7" stroke="#4a78a8" stroke-width="1.3"/><path d="M23 24h1.5l1-2 1 4 1-2h1" stroke="#24484a" stroke-width="1" fill="none"/>',
+  swan:'<path d="M18 13c-3-4-9-2-7 3 1 3 5 5 7 7 2-2 6-4 7-7 2-5-4-7-7-3z" fill="#f08f8f" stroke="#c44b4b" stroke-width="1.3"/><path d="M3 6c5 0 8 2 11 6s3 8 6 7 3-6 5-9" stroke="#f0b44c" stroke-width="1.6" fill="none"/><circle cx="25.5" cy="9" r="2.2" fill="#fff3c4" stroke="#c99a3a" stroke-width="1.1"/>',
+  traction:'<path d="M3 13h15l3 3v3H3z" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4"/><path d="M5 13v6M12 13v6" stroke="#fff" stroke-width="1.6"/><circle cx="25" cy="10" r="2.5" fill="#fff" stroke="#9aa6ad" stroke-width="1.3"/><path d="M21 17l4-7M25 12.5v8" stroke="#555" stroke-width="1"/><rect x="22.5" y="20" width="5" height="7" rx="1" fill="#9aa6ad"/>',
+  collar:'<circle cx="16" cy="9" r="5.5" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4"/><path d="M8 16c3-2 13-2 16 0v7c-3 2-13 2-16 0z" fill="#f2efe6" stroke="#9aa6ad" stroke-width="1.4"/><path d="M12 15.6v8.6M20 15.6v8.6" stroke="#c9d3d8" stroke-width="1"/><path d="M14 19h4" stroke="#7fb8e0" stroke-width="2.2" stroke-linecap="round"/>',
+  burns:'<path d="M3 13h19c3 0 6 2 6 4s-3 4-6 4H3z" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4"/><path d="M6 13v8M10 13v8M14 13v8M18 13v8" stroke="#b8c2c8" stroke-width="3.2"/><path d="M5 13h16v8H5z" fill="#d7dde1" opacity=".55"/><path d="M8 15l2 2M13 16l2 2" stroke="#fff" stroke-width="0.9"/>',
+  ng:'<path d="M10 4c6 0 11 4 11 10l3 4-3 1v3c0 3-2 4-5 4h-2v4" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4" stroke-linejoin="round"/><path d="M22 18c3 0 5 2 5 5v6" stroke="#f0b44c" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="16" cy="12" r="1.2" fill="#24484a"/>'
+};
+const devSVG = (k, size) => `<svg viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true">${DEVART[k]||""}</svg>`;
 const icuPt = (name, age, sex, kg, dx, pmh, devs) => ({name, age, sex, kg, dx, pmh, devs});
-const icuLevel = (k, o) => Object.assign({n:200+k, tag:"I"+k, unit:"ICU", mode:"icu", tools:["assess","labs","meds","iv","wound","o2","device","shock"], ev:[999,999], drain:1}, o);
+const icuLevel = (k, o) => { const l = Object.assign({n:200+k, tag:"I"+k, unit:"ICU", mode:"icu", tools:["assess","labs","meds","iv","wound","o2","device","shock"], ev:[999,999], drain:1}, o);
+  if(!l.tutorial){ l.cares = l.cares.filter(c=>c[0]!=="turn"); l.cares = [["vit",15,3], ["turn",30,9], ...l.cares]; }
+  return l; };
 const ICU_LEVELS = [
   icuLevel(0, {tag:"IT", name:"ICU tutorial", blurb:"Short and untimed. Learn titration, hourly cares, alarms and the Lines & drains tab.", shift:90, tutorial:true, drips:["norepi"],
     pt:icuPt("Mrs. Alvarez", 67, "woman", 70, "Septic shock from pneumonia", ["COPD","Hypertension"], ["vent","cvc","art","foley"]),
     cares:[["io",22,8]], events:[], stars:[0,0]}),
   icuLevel(1, {name:"Medical-surgical ICU", blurb:"Septic shock on a ventilator. Keep the MAP up while the vent and the patient keep you busy.", drips:["norepi"],
     pt:icuPt("Mr. Okafor", 62, "man", 88, "Septic shock from pneumonia", ["Type 2 diabetes","Hypertension"], ["vent","cvc","art","foley"]),
-    cares:[["io",15,6],["oral",30,14],["turn",30,24]], events:[[28,"ventHigh"],[72,"mapDrop"],[115,"pullTube"],[150,"fever"]], stars:[2700,3700]}),
+    cares:[["io",15,6],["oral",30,14],["turn",30,24]], events:[[28,"ventHigh"],[72,"mapDrop"],[115,"pullTube"],[150,"fever"]], stars:[3700,5100]}),
   icuLevel(2, {name:"Medical-surgical ICU 2", blurb:"ARDS and failing kidneys on CRRT. Two drips, one dialysis machine, zero downtime.", drips:["norepi","insulin"],
     pt:icuPt("Ms. Nguyen", 54, "woman", 76, "ARDS with kidney failure", ["Chronic kidney disease, stage 3","Type 2 diabetes"], ["vent","cvc","art","crrt","foley"]),
-    cares:[["crrt",15,5],["glucose",15,11],["oral",30,20]], events:[[25,"crrtClot"],[62,"ards"],[100,"mapDrop"],[135,"hyperK"],[165,"ventOff"]], stars:[3500,4800]}),
+    cares:[["crrt",15,5],["glucose",15,11],["oral",30,20]], events:[[25,"crrtClot"],[62,"ards"],[100,"mapDrop"],[135,"hyperK"],[165,"ventOff"]], stars:[4800,6600]}),
   icuLevel(3, {name:"Trauma ICU", blurb:"A crash, a chest tube and a femur in traction. Not every patient can be saved.", drips:["propofol"],
     pt:icuPt("Mr. Haddad", 38, "man", 82, "Liver laceration after a crash", ["None"], ["vent","cvc","art","ct","foley"]),
     next:icuPt("Mr. Tanaka", 27, "man", 74, "Motorcycle crash: rib fractures, femur fracture", ["Asthma"], ["vent","cvc","art","ct","traction","foley"]),
-    cares:[["ct",15,7],["traction",30,18],["turn",30,26]], events:[[6,"mtpFail"],[70,"ptx"],[112,"pullTube"],[150,"ctBleed"]], stars:[2600,3600]}),
+    cares:[["ct",15,7],["traction",30,18],["turn",30,26]], events:[[6,"mtpFail"],[70,"ptx"],[112,"pullTube"],[150,"ctBleed"]], stars:[3600,5000]}),
   icuLevel(4, {name:"Trauma ICU 2", blurb:"Spinal cord injury: keep the MAP high, the sedation light and the heart rate up.", drips:["propofol","norepiSCI"],
     pt:icuPt("Mrs. Rossi", 45, "woman", 68, "Cervical spinal cord injury after a fall", ["Hypothyroidism"], ["vent","cvc","art","collar","foley"]),
-    cares:[["motor",15,6],["turn",30,13],["oral",30,22]], events:[[30,"brady"],[78,"mapDrop"],[120,"foley"],[158,"ventHigh"]], stars:[3000,4100]}),
+    cares:[["motor",15,6],["turn",30,13],["oral",30,22]], events:[[30,"brady"],[78,"mapDrop"],[120,"foley"],[158,"ventHigh"]], stars:[4100,5700]}),
   icuLevel(5, {name:"Neuro ICU", blurb:"A bleed in the brain with an EVD. Some nights, everything isn't enough.", drips:["nicard"],
     pt:icuPt("Mr. Begay", 71, "man", 80, "Large bleed in the brain", ["Hypertension","Atrial fibrillation"], ["evd","icpMon","art","foley"]),
-    next:icuPt("Ms. Brooks", 59, "woman", 66, "Bleed in the brain from high blood pressure", ["Hypertension"], ["evd","icpMon","art","foley"]),
-    cares:[["neuro",15,5],["evd",30,12],["turn",30,24]], events:[[22,"icp"],[52,"herniate"],[110,"sbpUp"],[150,"evdStop"]], stars:[2600,3600]}),
+    next:Object.assign(icuPt("Ms. Brooks", 59, "woman", 66, "Bleed in the brain from high blood pressure", ["Hypertension"], ["evd","icpMon","art","foley"]), {prn:true}), nextDrips:[],
+    cares:[["neuro",15,5],["evd",30,12],["turn",30,24]], events:[[22,"icp"],[52,"herniate"],[110,"sbpUp"],[150,"evdStop"]], stars:[3600,5000]}),
   icuLevel(6, {name:"Neuro ICU 2", blurb:"Brain aneurysm bleed: hypertonic saline, seizures and vasospasm on day 7.", drips:["nicard","hts"],
     pt:icuPt("Mrs. Kowalski", 52, "woman", 72, "Subarachnoid hemorrhage from an aneurysm", ["Smoker","Hypertension"], ["evd","icpMon","art","cvc","foley"]),
-    cares:[["neuro",15,5],["evd",30,12],["sodium",60,30]], events:[[28,"icp"],[70,"seizure"],[110,"spasm"],[150,"sbpUp"]], stars:[2800,3800]}),
+    cares:[["neuro",15,5],["evd",30,12],["sodium",60,30]], events:[[28,"icp"],[70,"seizure"],[110,"spasm"],[150,"sbpUp"]], stars:[3900,5200]}),
   icuLevel(7, {name:"Cardiac ICU", blurb:"Fresh from open-heart surgery. Watch the chest tubes and keep BP gentle.", drips:["nitro"],
     pt:icuPt("Mr. Patel", 66, "man", 84, "Coronary bypass surgery (CABG), today", ["Coronary artery disease","Type 2 diabetes"], ["vent","cvc","art","ctubes","wires","foley"]),
-    cares:[["ct",15,6],["pacer",30,12],["io",15,10]], events:[[28,"cabgBleed"],[75,"pace"],[115,"sbpUpC"],[150,"lowK"]], stars:[3200,4300]}),
+    cares:[["ct",15,6],["pacer",30,12],["io",15,10]], events:[[28,"cabgBleed"],[75,"pace"],[115,"sbpUpC"],[150,"lowK"]], stars:[4400,5900]}),
   icuLevel(8, {name:"Cardiac ICU 2", blurb:"Valve surgery and a tired heart. VF, tamponade and A-fib.", drips:["epi","insulin"],
     pt:icuPt("Mrs. Mensah", 72, "woman", 64, "Aortic valve replacement, today", ["Aortic stenosis","Hypertension"], ["vent","cvc","art","swan","ctubes","wires","foley"]),
-    cares:[["ct",15,6],["pacer",30,12],["glucose",15,9]], events:[[25,"vf"],[68,"tamponade"],[110,"ciDrop"],[150,"afib"]], stars:[3500,4700]}),
+    cares:[["ct",15,6],["pacer",30,12],["glucose",15,9]], events:[[25,"vf"],[55,"afib"],[100,"tamponade"],[140,"ciDrop"]], stars:[4800,6500]}),
   icuLevel(9, {name:"Burn ICU", blurb:"40% burns from a kitchen fire. Fluids by the hour, an airway that's closing, and tight skin.", drips:["lr"],
     pt:icuPt("Mr. Silva", 44, "man", 72, "Flame burns, 40% of the body", ["Hypertension"], ["burns","cvc","art","foley","ng"]),
-    cares:[["pulses",15,6],["dressing",45,20],["turn",30,32]], events:[[20,"airway"],[70,"eschar"],[115,"cold"],[155,"fever"]], stars:[2500,3400]}),
+    cares:[["pulses",15,6],["dressing",45,20],["turn",30,32]], events:[[20,"airway"],[70,"eschar"],[115,"cold"],[155,"fever"]], stars:[3400,4700]}),
   icuLevel(10, {name:"Burn ICU 2", blurb:"A house fire: carbon monoxide, cyanide and chest burns. She fights all night.", drips:["lr","insulin"],
     pt:icuPt("Ms. Park", 63, "woman", 66, "House fire: burns and smoke inhalation", ["Asthma"], ["vent","burns","cvc","art","foley","ng"]),
-    cares:[["pulses",15,6],["dressing",45,22],["glucose",15,11]], events:[[22,"co"],[70,"chestEschar"],[115,"cold"],[168,"lateArrest"]], stars:[3100,4200]})
+    cares:[["pulses",15,6],["dressing",45,22],["glucose",15,11]], events:[[22,"co"],[70,"chestEschar"],[115,"cold"],[168,"lateArrest"]], stars:[4300,5800]})
 ];
 const ICU_COACH = [
-  {txt:"Welcome to the ICU: <b>one patient, a lot going on</b>. The drip panel keeps her <b>MAP 65–80</b>. Tap <b>+</b> on norepinephrine until MAP turns green.", done:()=>G.icu.drips[0] && dripOK(G.icu.drips[0])},
+  {txt:"Welcome to the ICU: <b>one patient, a lot going on</b>. The drip panel keeps her <b>MAP 65–80</b>. When a number drifts, the <b>+</b> or <b>−</b> you need glows. Tap <b>+</b> until MAP turns green.", done:()=>G.icu.drips[0] && dripOK(G.icu.drips[0])},
   {txt:"Drips drift, so keep an eye on them all shift. Next: <b>hourly cares</b> come due on a clock. Do the glowing step when one appears.", done:()=>G.icu.caresDone>=1},
   {txt:"The <b>ventilator is alarming!</b> Follow the steps. When it's time, tap the call button to bring <b>RT</b>.", setup:()=>{G.icu.pendingEv="ventHigh";}, done:()=>G.icu.eventsDone>=1},
   {txt:"Open the <b>H&amp;P</b> folder and tap <b>Lines &amp; drains</b> to learn what each device is and what to watch.", done:()=>G.tutDevices},
-  {txt:"That's the ICU: titrate, keep up with cares, answer alarms. Hearts are on the line in the real levels.", btn:"Finish ICU tutorial", done:()=>G.coachAck===4}
+  {txt:"That's the ICU: titrate, keep up with cares, answer alarms. In the real levels, <b>recheck vitals every hour</b> and <b>turn every 2 hours</b>. Hearts are on the line.", btn:"Finish ICU tutorial", done:()=>G.coachAck===4}
 ];
 
 /* ---------- levels ---------- */
@@ -1080,10 +1130,10 @@ function newGame(){
   dirty = true;
 }
 /* ---------- ICU engine ---------- */
-function dripOK(d){ return d.val >= d.def.lo && d.val <= d.def.hi; }
+function dripOK(d){ if(d.def.fixed) return true; return d.val >= d.def.lo && d.val <= d.def.hi; }
 function fmtVal(d){ const v = d.val; return d.def.dec ? v.toFixed(d.def.dec) : d.def.int ? ((Math.round(v)>0?"+":"") + Math.round(v)) : String(Math.round(v)); }
 function fmtRate(d){ return (d.def.step % 1 ? d.rate.toFixed(1) : d.rate) + " " + d.def.unit; }
-function newDrip(key){ const def = DRIPS[key]; return {key, def, rate:def.start, dist:0, val:def.base + def.gain*def.start}; }
+function newDrip(key){ const def = DRIPS[key]; return {key, def, rate:def.start, dist:0, val:def.fixed ? 0 : def.base + def.gain*def.start}; }
 function icuSetup(){
   G.icu = {drips:LV.drips.map(newDrip), sched:LV.cares.map(([k,every,first])=>({k, every, next:first})),
     events:LV.events.map(([at,k])=>({at, k, done:false})), inRange:0, total:0, caresDone:0, eventsDone:0, passed:0, acc:0, rt:0, usedNext:false};
@@ -1093,6 +1143,11 @@ function admitICU(pt){
     s:[C("assess","Head-to-toe assessment","Assess", `Assessment done. ${pt.dx}. Lines and drains checked.`)]};
   const p = admit(0, true, {defs:[first], name:pt.name, age:pt.age, sex:pt.sex, pmh:pt.pmh, dx:pt.dx});
   p.kg = pt.kg; p.devices = pt.devs; p.health = 74; p.icu = true;
+  if(pt.prn){
+    p.prnHR = Math.random() < 0.5 ? 52 : 84;
+    Object.assign(p.base, {sbp:176, dbp:94, hr:p.prnHR});
+    p.queue.push(inst(prnBP(p), p));
+  }
   return p;
 }
 function icuEvent(def){
@@ -1107,6 +1162,7 @@ function icuTick(dt){
   const dying = p && p.active && p.active.def.fatal;
   I.drips.forEach(d=>{
     const def = d.def;
+    if(def.fixed) return;
     d.dist += (Math.random()*2-1) * def.noise * dt * 1.5; d.dist *= Math.pow(0.97, dt);
     const eq = def.base + def.gain*d.rate + d.dist;
     d.val += (eq - d.val) * (1 - Math.exp(-(def.speed||0.6)*dt));
@@ -1117,12 +1173,13 @@ function icuTick(dt){
   });
   if(I.acc >= 1){ const w = Math.floor(I.acc); G.score += w; I.acc -= w; }
   if(p && p.base) I.drips.forEach(d=>{
+    if(d.def.fixed) return;
     if(d.def.bp==="map"){ p.base.sbp = Math.round(d.val+26); p.base.dbp = Math.round(d.val-13); }
     if(d.def.bp==="sbp"){ p.base.sbp = Math.round(d.val); p.base.dbp = Math.round(d.val*0.55); }
   });
   I.sched.forEach(sc=>{
     if(G.t < sc.next) return;
-    sc.next += sc.every;
+    sc.next = sc.every ? sc.next + sc.every : Infinity;
     const def = CARE[sc.k];
     if(live && !dying && !p.queue.some(q=>q.def===def) && !(p.active && p.active.def===def)){ p.queue.push(inst(def, p)); if(p.state==="resting") p.timer = 0; }
   });
@@ -1144,12 +1201,18 @@ function buildDrips(){
   const box = $("#drips");
   if(LV.mode!=="icu"){ box.hidden = true; box.innerHTML = ""; return; }
   box.hidden = false;
-  box.innerHTML = G.icu.drips.map((d,i)=>`<div class="drip" data-i="${i}">
+  box.innerHTML = G.icu.drips.map((d,i)=> d.def.fixed ? `<div class="drip fixed" data-i="${i}">
       <button class="dn" data-why="${i}"><b>${esc(d.def.name)}</b><small class="dr"></small></button>
-      <div class="dv"><small>${esc(d.def.v)}</small><b class="val"></b><small>goal ${d.def.lo}–${d.def.hi}${d.def.vu||""}</small></div>
+      <div class="dv"><small>Protocol</small><b class="val"></b><small class="gl"></small></div></div>` : `<div class="drip" data-i="${i}">
+      <button class="dn" data-why="${i}"><b>${esc(d.def.name)}</b><small class="dr"></small></button>
+      <div class="dv"><small>${esc(d.def.v)}</small><b class="val"></b><small class="gl">goal ${d.def.lo}–${d.def.hi}${d.def.vu||""}</small></div>
       <button class="dm" data-d="${i}" data-s="-1" aria-label="Turn ${esc(d.def.name)} down">−</button>
       <button class="dp" data-d="${i}" data-s="1" aria-label="Turn ${esc(d.def.name)} up">+</button></div>`).join("");
 }
+document.getElementById("ptDevs").addEventListener("click", e=>{
+  const b = e.target.closest("[data-dev]"); if(!b) return;
+  const d = DEV[b.dataset.dev]; toast(`${d.n}: ${d.w}`);
+});
 document.getElementById("drips").addEventListener("click", e=>{
   if(!G || !G.icu) return;
   const b = e.target.closest("button"); if(!b) return;
@@ -1165,7 +1228,19 @@ function updateDrips(){
   document.querySelectorAll("#drips .drip").forEach(row=>{
     const d = G.icu.drips[+row.dataset.i]; if(!d) return;
     row.querySelector(".dr").textContent = fmtRate(d);
+    if(d.def.fixed){
+      const left = G.icu.sched.find(sc=>sc.k==="amioDown");
+      row.querySelector(".val").textContent = d.rate + " mg/min";
+      row.querySelector(".gl").textContent = left && left.next!==Infinity ? `0.5 in ${Math.max(0,Math.round((left.next-G.t)/1.5)/10)} hr` : "for 18 hours";
+      return;
+    }
     row.querySelector(".val").textContent = fmtVal(d);
+    const def = d.def, span = def.hi - def.lo, eq = def.base + def.gain*d.rate + d.dist;
+    const low = d.val < def.lo || (d.val < def.lo + span*0.2 && eq < d.val);
+    const high = d.val > def.hi || (d.val > def.hi - span*0.2 && eq > d.val);
+    const up = def.gain > 0 ? low : high, down = def.gain > 0 ? high : low;
+    row.classList.toggle("wantUp", up); row.classList.toggle("wantDn", down);
+    row.querySelector(".gl").textContent = d.val < def.lo ? `too low: tap ${def.gain>0?"+":"−"}` : d.val > def.hi ? `too high: tap ${def.gain>0?"−":"+"}` : (up||down) ? `drifting: tap ${up?"+":"−"}` : `goal ${def.lo}–${def.hi}${def.vu||""}`;
     const ok = dripOK(d); row.classList.toggle("ok", ok); row.classList.toggle("off", !ok);
     row.classList.toggle("hi", d.val > d.def.hi); row.classList.toggle("lo", d.val < d.def.lo);
   });
@@ -1281,7 +1356,7 @@ function update(dt){
 
   G.beds.forEach((p,i)=>{
     p.flash = Math.max(0, p.flash - dt);
-    if(p.state!=="empty" && p.state!=="leaving"){ p.vitTimer -= dt; if(p.vitTimer<=0) takeVitals(p); }
+    if(p.state!=="empty" && p.state!=="leaving" && !(LV.mode==="icu" && !LV.tutorial)){ p.vitTimer -= dt; if(p.vitTimer<=0) takeVitals(p); }
     if(p.state === "needs"){
       // the MD's steps, and everything once the team is in the room, happen on their own
       const ast = curStep(p);
@@ -1314,6 +1389,7 @@ function update(dt){
         if(LV.mode==="icu"){
           if(LV.next && !G.icu.usedNext && (LV.shift||SHIFT) - G.t > 25){
             G.icu.usedNext = true; G.beds[0] = admitICU(LV.next);
+            if(LV.nextDrips){ G.icu.drips = LV.nextDrips.map(newDrip); buildDrips(); }
             sfx.ping(); toast(`New admission: ${LV.next.name}, ${LV.next.dx.charAt(0).toLowerCase()+LV.next.dx.slice(1)}.`);
           } else p.timer = 999;
           dirty = true; return;
@@ -1362,7 +1438,21 @@ function forceUrgent(p, def){
   dirty = true;
 }
 
+function choosePick(i){
+  const p = cur(); if(!playing() || p.state!=="needs") return;
+  const st = curStep(p); if(!st || !st.pick) return;
+  const o = st.pick[i];
+  if(!o.ok){
+    sfx.wrong(); G.score = Math.max(0, G.score - 40); p.health = Math.max(5, p.health - 12);
+    G.badPicks = (G.badPicks||0) + 1;
+    toast(o.bad, "alarm"); logIt(p, "Held: " + o.b + ". " + o.bad); dirty = true; return;
+  }
+  sfx.tap(); G.picking = false;
+  if(o.note) toast(o.note);
+  advance(p, "you", o.fx);
+}
 function advance(p, by, fxOverride){
+  G.picking = false;
   const st = p.active.steps[p.active.step];
   let fx = fxOverride || st.fx;
   if(st.k==="vitals" && !st.fx){ takeVitals(p); fx = vitalsSummary(p.vit); }
@@ -1391,6 +1481,12 @@ function cprBlocks(st){
 function complete(p, via){
   if(LV.mode==="icu" && G.icu && p.active){
     if(p.active.def.fatal){ passAway(p, p.active.def.fatal); return; }
+    const dd = p.active.def;
+    if(dd.addDrip && !G.icu.drips.some(x=>x.key===dd.addDrip)){
+      G.icu.drips.push(newDrip(dd.addDrip)); buildDrips();
+      if(dd.addDrip==="amio") G.icu.sched.push({k:"amioDown", every:0, next:G.t + 90});
+    }
+    if(dd===CARE.amioDown){ const a = G.icu.drips.find(x=>x.key==="amio"); if(a) a.rate = 0.5; }
     if(Object.values(CARE).includes(p.active.def)) G.icu.caresDone++;
     else if(Object.values(EV).includes(p.active.def)) G.icu.eventsDone++;
   }
@@ -1519,6 +1615,7 @@ function tapTool(key, btn){
   if(want === "go"){ sfx.wrong(); toast(`Tap “${DEST[curStep(p).b].btn}” in the order card.`); return; }
   if(want === "esc"){ sfx.wrong(); toast("Time to call for help. Tap Rapid response or Call charge."); return; }
   if(want === "vitals"){ sfx.wrong(); toast("Check vitals first. Tap the Vitals button on the monitor."); return; }
+  if(key === btnFor(want) && curStep(p).pick){ sfx.tap(); G.picking = true; dirty = true; return; }
   if(key === btnFor(want)){ sfx.tap(); advance(p, "you"); }
   else{
     sfx.wrong();
@@ -1688,6 +1785,9 @@ function renderAll(){
   const p = cur();
   $("#ptName").textContent = p.state==="empty" ? "Empty bed" : p.name;
   $("#chartBtn").hidden = p.state==="empty";
+  const devKey = p.state!=="empty" && p.devices ? p.devices.join() : "";
+  const dv = $("#ptDevs");
+  if(dv.dataset.k !== devKey){ dv.dataset.k = devKey; dv.innerHTML = devKey ? p.devices.map(k=>`<button class="dev" data-dev="${k}" aria-label="${esc(DEV[k].n)}">${devSVG(k,22)}</button>`).join("") : ""; }
   const o = $("#order");
   o.className = "order";
   if(p.state==="needs"){
@@ -1698,15 +1798,16 @@ function renderAll(){
       if(i<a.step) return i===a.step-1 ? `<span class="chip done">✓ ${a.step} done</span>` : "";
       if(i>a.step+2){ const left = a.steps.slice(a.step+3).filter(x=>x.k!=="go").length; return i===a.step+3 && left ? `<span class="chip more">+${left} more</span>` : ""; }
       return `<span class="chip ${i===a.step?"now":""}">${ic}${esc(s.l)}</span>`; }).join("")
-    }</div>${G.cpr>0 && !st.during && st.k!=="cpr" ? `<button class="orbtn ffbig" id="ffBig">⏩ Fast-forward CPR to the rhythm check</button>` : st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
+    }</div>${st.pick ? (G.picking ? `<div class="picks"><small>Which PRN?</small>${st.pick.map((o,i)=>`<button class="orbtn pick" data-pick="${i}">${esc(o.b)}</button>`).join("")}</div>` : "") : G.cpr>0 && !st.during && st.k!=="cpr" ? `<button class="orbtn ffbig" id="ffBig">⏩ Fast-forward CPR to the rhythm check</button>` : st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
     const fb = $("#ffBig"); if(fb) fb.addEventListener("click", fastForward);
+    o.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click", ()=>choosePick(+b.dataset.pick)));
     const gb = $("#goBtn"); if(gb) gb.addEventListener("click", ()=>{ if(playing()) rushTo(cur()); });
     const nc = $("#nowChip"); if(nc) nc.addEventListener("click", ()=>doTask(G.current, "step"));
   } else {
     o.classList.add("calm");
     let h, d;
     if(p.state==="resting" && p.icu){
-      const nx = G.icu.sched.slice().sort((a,b)=>a.next-b.next)[0];
+      const nx = G.icu.sched.filter(sc=>sc.next!==Infinity).sort((a,b)=>a.next-b.next)[0];
       h = "Stable for now"; d = nx ? `Keep titrating. Next up: ${CARE[nx.k].t.toLowerCase()}.` : "Keep titrating.";
     }
     else if(p.state==="resting"){ h = p.queue.length ? "Resting comfortably" : "Ready for discharge"; d = p.queue.length ? "Go check on your other patients." : "Paperwork is almost done."; }
@@ -1835,7 +1936,7 @@ function feedTasks(){
       out.push({i, k:"assess", label:"Shift assessment", urgent:false, here:i===G.current, prob:"Due this shift", kind:"shift"});
   });
   if(LV.mode==="icu" && G.icu){
-    G.icu.sched.slice().sort((a,b)=>a.next-b.next).forEach(sc=>{
+    G.icu.sched.filter(sc=>sc.next!==Infinity).sort((a,b)=>a.next-b.next).forEach(sc=>{
       const mins = Math.max(0, Math.round((sc.next - G.t) * 4));
       out.push({i:0, k:CARE[sc.k].s[0].k, label:CARE[sc.k].t, urgent:false, here:false, prob:`due in ${mins} min`, kind:"due"});
     });
@@ -1846,21 +1947,23 @@ function feedTasks(){
 function renderFeed(){
   const tasks = feedTasks(), now = performance.now();
   const ic = k => `<span class="ic" style="background:${TOOLS[k].tint};color:${TOOLS[k].c}">${ICON[k]}</span>`;
-  const upd = f => `<div class="fd res ${now-f.ts<900?"new":""}">${ic(f.k)}<span class="tx"><small>${f.at} · ${f.room} · ${esc(f.who)}</small>${flagify(f.fx)}</span></div>`;
+  const upd = f => { const n = !f.seen; f.seen = true; return `<div class="fd res ${n?"new":""} ${now-f.ts<6000?"fresh":""}">`; };
+  const updB = f => `${upd(f)}${ic(f.k)}<span class="tx"><small>${f.at} · ${f.room} · ${esc(f.who)}</small>${flagify(f.fx)}</span></div>`;
   const latest = G.feed[0] && now - G.feed[0].ts < 6000 ? G.feed[0] : null;
   const rest = latest ? G.feed.slice(1) : G.feed;
   const fe = $("#feed"), top = G.feed[0] ? G.feed[0].ts : 0;
   if(top !== fe._top){ fe._top = top; fe.scrollTop = 0; }
   const cl = coachList(), c = cl && !G.over ? cl[G.coach] : null;
-  fe.innerHTML = (c ? `<div class="coach"><span class="cstep">Tutorial · ${G.coach+1} of ${cl ? cl.length : 0}</span>${c.txt}${c.btn?`<br><button class="coachBtn">${c.btn}</button>`:""}</div>` : "") +
-    (latest ? upd(latest) : "") +
+  const html = (c ? `<div class="coach"><span class="cstep">Tutorial · ${G.coach+1} of ${cl ? cl.length : 0}</span>${c.txt}${c.btn?`<br><button class="coachBtn">${c.btn}</button>`:""}</div>` : "") +
+    (latest ? updB(latest) : "") +
     tasks.map(t=>{
       const b = G.beds[t.i], crit = t.i!==G.current && t.kind==="step" && (t.urgent || b.health<30);
       const inner = `${ic(t.k)}<span class="tx"><small>${t.kind==="due" ? "Coming up · "+esc(t.prob) : `${roomLabel(t.i)} · ${esc(shortName(b))}${t.urgent?" · "+esc(t.prob):""}`}</small>${esc(t.label)}</span>`;
       return `<div class="fd task info ${t.urgent||crit?"urgent":""} ${t.here?"here":""}">${inner}</div>`;
     }).join("")
     + (rest.length ? `<div class="lbl">Earlier</div>` : "")
-    + rest.map(upd).join("");
+    + rest.map(updB).join("");
+  if(html !== fe._html){ fe._html = html; fe.innerHTML = html; }
 }
 function doTask(i, kind){
   if(!playing()) return;
@@ -1953,7 +2056,7 @@ function showChart(){
   const plan = [p.active, ...p.queue].filter(Boolean);
   const devTab = p.devices ? `<div class="hp-tabs"><button class="tab on" data-tab="hp">H&amp;P</button><button class="tab" data-tab="dev">Lines &amp; drains</button></div>` : "";
   const devHtml = p.devices ? `<div class="tabpane" data-pane="dev" hidden>
-      ${p.devices.map(k=>DEV[k]).map(d=>`<div class="hp-sec dev"><h3>${esc(d.n)}</h3><p>${esc(d.w)}</p><p class="watch"><b>Watch for:</b> ${esc(d.k)}</p></div>`).join("")}
+      ${p.devices.map(k=>[k,DEV[k]]).map(([k,d])=>`<div class="hp-sec dev"><span class="devart">${devSVG(k,44)}</span><h3>${esc(d.n)}</h3><p>${esc(d.w)}</p><p class="watch"><b>Watch for:</b> ${esc(d.k)}</p></div>`).join("")}
       ${G.icu ? G.icu.drips.map(d=>`<div class="hp-sec dev"><h3>Drip: ${esc(d.def.name)}</h3><p>${esc(d.def.why)}</p></div>`).join("") : ""}
     </div>` : "";
   ov.innerHTML = `<div class="card chart" role="dialog" aria-label="History and physical for ${esc(p.name)}">
