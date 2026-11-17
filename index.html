@@ -229,6 +229,8 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 button.chip.now{cursor:pointer;animation:glow 1s ease-in-out infinite}
 button.chip.now:active{transform:scale(.96)}
 .chip .tapit{margin-left:4px;font-size:10px;font-weight:800;color:#8a5a00;background:#ffe39a;border-radius:99px;padding:1px 6px}
+.fd.task.info{box-shadow:none;background:rgba(255,255,255,.7)}
+.fd.task.info.here{box-shadow:0 0 0 2px var(--glow)}
 /* chart */
 .chart h1{font-size:22px}
 .chart dl{margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px}
@@ -285,7 +287,7 @@ button.chip.now:active{transform:scale(.96)}
     <aside class="list" id="list" aria-label="Your patients"></aside>
   </main>
 
-  <div class="tray" id="tray" aria-label="Interventions" hidden></div>
+  <div class="tray" id="tray" aria-label="Interventions"></div>
 
   <div class="help">
     <button class="hbtn" id="charge">
@@ -897,7 +899,7 @@ function renderAll(){
     o.innerHTML = `<h2>${esc(a.def.t)}</h2><p>${esc(a.def.d)}</p><div class="steps">${
       a.steps.map((s,i)=>{ if(s.k==="go") return ""; const ic = `<span class="ic" style="background:${TOOLS[s.k].tint};color:${TOOLS[s.k].c}">${ICON[s.k]}</span>`;
       if(i<a.step) return i===a.step-1 ? `<span class="chip done">✓ ${a.step} done</span>` : "";
-      return i===a.step ? `<button class="chip now" id="nowChip">${ic}${esc(s.l)}<span class="tapit">Tap</span></button>` : `<span class="chip">${ic}${esc(s.l)}</span>`; }).join("")
+      return `<span class="chip ${i===a.step?"now":""}">${ic}${esc(s.l)}</span>`; }).join("")
     }</div>${st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
     const gb = $("#goBtn"); if(gb) gb.addEventListener("click", ()=>{ if(playing()) rushTo(cur()); });
     const nc = $("#nowChip"); if(nc) nc.addEventListener("click", ()=>doTask(G.current, "step"));
@@ -1020,14 +1022,19 @@ function renderFeed(){
   const fe = $("#feed"), top = G.feed[0] ? G.feed[0].ts : 0;
   if(top !== fe._top){ fe._top = top; fe.scrollTop = 0; }
   fe.innerHTML = (latest ? upd(latest) : "") +
-    tasks.map(t=>`<button class="fd task ${t.urgent?"urgent":""} ${t.here?"here":""}" data-i="${t.i}" data-kind="${t.kind}">${ic(t.k)}<span class="tx"><small>Rm ${ROOMS[t.i]} · ${esc(shortName(G.beds[t.i]))}${t.urgent?" · "+esc(t.prob):""}</small>${esc(t.label)}</span><span class="tap">${t.i===G.current ? "Do it" : "Go to room"}</span></button>`).join("")
+    tasks.map(t=>{
+      const b = G.beds[t.i], crit = t.i!==G.current && t.kind==="step" && (t.urgent || b.health<30);
+      const inner = `${ic(t.k)}<span class="tx"><small>Rm ${ROOMS[t.i]} · ${esc(shortName(b))}${t.urgent?" · "+esc(t.prob):""}</small>${esc(t.label)}</span>`;
+      return crit ? `<button class="fd task urgent" data-i="${t.i}">${inner}<span class="tap">Go to room</span></button>`
+                  : `<div class="fd task info ${t.urgent?"urgent":""} ${t.here?"here":""}">${inner}</div>`;
+    }).join("")
     + (rest.length ? `<div class="lbl">Earlier</div>` : "")
     + rest.map(upd).join("");
 }
 function doTask(i, kind){
   if(!playing()) return;
   const p = G.beds[i];
-  if(i !== G.current){ G.current = i; dirty = true; sfx.tap(); return; } // other patients: walk to the room first
+  if(i !== G.current){ G.current = i; dirty = true; sfx.tap(); return; } // only critical patients get a shortcut to their room
   dirty = true;
   if(kind==="shift"){ if(!p.assessed) shiftAssess(p); return; }
   const st = curStep(p); if(!st) return;
@@ -1036,8 +1043,8 @@ function doTask(i, kind){
   else { sfx.tap(); advance(p, "you"); }
 }
 document.getElementById("feed").addEventListener("click", e=>{
-  const b = e.target.closest(".fd.task"); if(!b) return;
-  doTask(+b.dataset.i, b.dataset.kind);
+  const b = e.target.closest("button.fd.task"); if(!b) return;
+  doTask(+b.dataset.i, "room");
 });
 function floatText(txt, minus){
   const f = document.createElement("span");
@@ -1059,7 +1066,7 @@ function showStart(){
     <h1>Med-Surg Shift</h1>
     <p class="sub">4 West · 3 patients · 07:00 to 19:00</p>
     <ul>
-      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. <b>Tap the glowing step</b> to do it. Feed cards show what other patients need; tap one to go to that room.</span></li>
+      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. The next step <b>glows</b>; tap the matching tool at the bottom. The feed lists what everyone needs, but you have to go to each room yourself. Only critical patients get a shortcut.</span></li>
       <li><span class="n">2</span><span><b>Assess</b> every patient once a shift. An orange ring means they haven&rsquo;t been assessed yet. Some problems start with an assessment too.</span></li>
       <li><span class="n">3</span><span>The <b>monitor</b> refreshes vitals on its own. Red numbers mean trouble. Tap <b>Vitals</b> to check now.</span></li>
       <li><span class="n">4</span><span>Tap a patient on the right to go to their room. Tap the <b>H&amp;P</b> folder to read their history. The game pauses while it&rsquo;s open.</span></li>
