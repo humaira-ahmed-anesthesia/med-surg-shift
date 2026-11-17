@@ -1,4 +1,6 @@
-# Med-Surg Shift
+# Float Pool
+
+*Formerly Med-Surg Shift.* You're a float pool nurse sent wherever the hospital needs you: Med-Surg, Rapid Response and the ER.
 
 A cozy nursing time-management game, in the spirit of cooking games like Cooking Fever, but the "recipes" are real nursing interventions.
 

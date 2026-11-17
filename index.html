@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Med-Surg Shift</title>
+<title>Float Pool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
@@ -1571,8 +1571,8 @@ function starsRow(n){ return STAR(n>=1)+STAR(n>=2)+STAR(n>=3); }
 function showStart(){
   ov.hidden = false;
   ov.innerHTML = `<div class="card">
-    <h1>Med-Surg Shift</h1>
-    <p class="sub">New here? Start with the tutorial.</p>
+    <h1>Float Pool</h1>
+    <p class="sub">A nurse who floats wherever she's needed. New here? Start with the tutorial.</p>
     <h3 class="pick">Pick a shift</h3>
     <div class="levels">${LEVELS.map((l,i)=>{ const s = saved[l.n]||{};
       const head = (i===0 || LEVELS[i-1].unit!==l.unit) ? `<div class="unit-head"><b>${l.unit}</b>${l.unit==="ER" ? `<span class="hearts-note">${heartRow(heartsNow())}${heartsNow()<3 ? ` · next heart in ${mmss(nextHeartIn())}` : ""}</span>` : ""}</div>` : "";
