@@ -294,6 +294,19 @@ button.chip.now:active{transform:scale(.96)}
 .picks{display:flex;flex-direction:column;gap:6px;margin-top:8px}
 .picks small{font-weight:800;color:var(--muted);font-size:12px}
 .orbtn.pick{margin-top:0;background:#e3f1ea;color:#1f6a46;box-shadow:0 2px 0 #b9d8c6;animation:none}
+.fetal{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;background:var(--surface);border-radius:12px;padding:5px 8px;box-shadow:0 2px 0 var(--line)}
+.fetal .fhrnum{line-height:1.1;min-width:92px}
+.fetal .fhrnum small{display:block;font-size:9.5px;font-weight:800;color:var(--muted)}
+.fetal .fhrnum b{font-family:var(--display);font-weight:600;font-size:22px;color:#c63e55}
+.fetal .cat{display:block;font-size:10px;font-weight:800;border-radius:99px;padding:1px 7px;margin-top:2px;width:max-content;max-width:120px}
+.fetal .catI{background:#dff3e7;color:#2f7a52}
+.fetal .catII{background:#fff1c8;color:#8a6100}
+.fetal .catIII{background:#ffe0dc;color:#c0392b}
+.fetal.catIII{box-shadow:0 0 0 2px #f0a69c,0 2px 0 var(--line)}
+.fetal .strip{height:46px;overflow:hidden;border-radius:8px;background:repeating-linear-gradient(90deg,#fff7f8 0 11px,#fde9ec 11px 12px)}
+.fhrsvg{width:200%;height:100%;display:block}
+.fhrsvg .scroll{animation:fhrscroll 16s linear infinite}
+@keyframes fhrscroll{to{transform:translateX(-240px)}}
 .hp-tabs{display:flex;gap:6px;margin-bottom:10px}
 .hp-tabs .tab{flex:1;padding:7px 8px;border-radius:10px;background:var(--wall);font-weight:800;font-size:13px;color:var(--muted)}
 .hp-tabs .tab.on{background:var(--accent);color:#fff}
@@ -404,6 +417,7 @@ button.chip.now:active{transform:scale(.96)}
         </div>
       </div>
       <div class="drips" id="drips" hidden></div>
+      <div class="fetal" id="fetal" hidden></div>
       <div class="order" id="order"></div>
       <div class="bedwrap" id="bedwrap">
         <div id="ptArt"></div>
@@ -449,6 +463,8 @@ const TOOLS = {
   cpr:   {name:"CPR",    tint:"#ffe0ea", c:"#c43c62"},
   shock: {name:"Shock",  tint:"#fff4c2", c:"#a87d00"},
   device:{name:"Device", tint:"#eae4f7", c:"#6a4fb3"},
+  hands: {name:"Hands-on", tint:"#fbe6ee", c:"#c0507a"},
+  baby:  {name:"Newborn", tint:"#e9f1fd", c:"#4f78c4"},
   md:    {name:"MD",     tint:"#e6ecfb", c:"#3d5fb8"},
   vitals:{name:"Vitals", tint:"#dff3ee", c:"#24484a"},
   esc:   {name:"RRT",    tint:"#ffe3df", c:"#d4503f"},
@@ -458,6 +474,8 @@ const ORDER = ["assess","iv","labs","meds","wound","o2"];
 const btnFor = k => k==="blood" ? "meds" : k;
 
 const ICON = {
+  hands:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V12"/><path d="M11 11V4.5a1.5 1.5 0 0 1 3 0V12"/><path d="M14 11.5V6a1.5 1.5 0 0 1 3 0v8a7 7 0 0 1-7 7h-.5a6 6 0 0 1-5-2.7L3 15.5a1.6 1.6 0 0 1 2.6-1.8L8 16"/></svg>',
+  baby:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="5.5"/><path d="M10 8.2h.01M14 8.2h.01" stroke-width="2.6"/><path d="M10.3 11a2.4 2.4 0 0 0 3.4 0"/><path d="M12 3.5c-.8-1-.2-2 .8-1.9"/><path d="M6.5 21c.5-3 2.8-5 5.5-5s5 2 5.5 5"/></svg>',
   device:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v5a4 4 0 0 0 4 4h8a4 4 0 0 1 4 4v3"/><rect x="15.5" y="17" width="9" height="5" rx="1.5" transform="translate(-5 0)"/><circle cx="4" cy="4" r="1.6" fill="currentColor"/></svg>',
   md:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="3.5"/><path d="M5 21c.8-4.2 3.6-6.5 7-6.5s6.2 2.3 7 6.5"/><path d="M12 15.5v3M10.5 17h3"/></svg>',
   cpr:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20.5s-7-4.4-7-9.5A3.8 3.8 0 0 1 12 8.5 3.8 3.8 0 0 1 19 11c0 5.1-7 9.5-7 9.5z" fill="currentColor" fill-opacity=".2"/><path d="M7.5 3.5 9 6.5M16.5 3.5 15 6.5M12 2.5V6"/></svg>',
@@ -476,6 +494,7 @@ const ICON = {
 
 /* Where a patient can be rushed. */
 const DEST = {
+  csec: {btn:"Rush to the OR for a C-section", out:"Off to the OR", fx:"Stat C-section. Baby out in minutes and handed to the NICU team.", toast:"is off for a stat C-section."},
   or:   {btn:"Rush to surgery",  out:"Off to surgery",      fx:"Surgeon at the bedside. Consent signed, off to the OR.", toast:"is headed to surgery. Great catch."},
   ct:   {btn:"Rush to CT",       out:"Off to CT",           fx:"CT shows no bleeding. The stroke team takes it from here for clot-busting or clot retrieval.", mid:"Back from CT: no bleeding. Clear for a clot-buster if BP is under 185/110.", toast:"is off to CT with the stroke team."},
   nicu: {btn:"Take to the neuro ICU", out:"Off to the neuro ICU", fx:"Settled in the neuro ICU with neuro checks every 15 minutes, watching for bleeding.", toast:"is headed to the neuro ICU."},
@@ -726,9 +745,10 @@ const ER = {
 };
 /* CT results for cases that come back from CT */
 Object.values(ER).forEach(c => { if(c.def.ct) c.ct = c.def.ct; });
+const addCases = obj => Object.keys(obj).forEach(k => { ER[k] = obj[k]; });
 const KID_NAMES = {woman:["Maya","Lily","Zoe","Ava","Nora"], man:["Leo","Sam","Omar","Eli","Kai"]};
 const ER_TOOLS = ["assess","iv","labs","meds","wound","o2","cpr","shock"];
-const erLevel = (k, beds, drain, ids, stars, name, blurb) => ({n:100+k, tag:"E"+k, unit:"ER", mode:"er", beds, drain, cases:ids, stars, name, blurb, tools:ER_TOOLS, ev:[999,999]});
+const erLevel = (k, beds, drain, ids, stars, name, blurb) => ({names:null, n:100+k, tag:"E"+k, unit:"ER", mode:"er", beds, drain, cases:ids, stars, name, blurb, tools:ER_TOOLS, ev:[999,999]});
 const ER_LEVELS = [
   erLevel(1, 3, 0.9, ["uti","lac","ankle","migraine","asthmaKid","stone","kidVomit","backPain","chestLow","wristKid"], [2600,3800], "First night in the ER", "Cuts, sprains, headaches and a wheezy kid. Get to know the ER."),
   erLevel(2, 3, 1.0, ["uti","lac","ankle","asthmaKid","stone","appy","std","kidPoison","gall","chestLow","migraine"], [2900,4250], "Belly pain season", "Is it a kidney stone, the gallbladder or the appendix? Plus your first call to poison control."),
@@ -946,6 +966,271 @@ const ICU_COACH = [
   {txt:"That's the ICU: titrate, keep up with cares, answer alarms. In the real levels, <b>recheck vitals every hour</b> and <b>turn every 2 hours</b>. Hearts are on the line.", btn:"Finish ICU tutorial", done:()=>G.coachAck===4}
 ];
 
+/* ---------- Labor & Delivery and Postpartum ---------- */
+const OB_NAMES = ["Ms. Rivera","Mrs. Johnson","Ms. Chen","Mrs. Okoye","Ms. Hassan","Mrs. Novak","Ms. Thompson","Mrs. Morales","Ms. Kim","Mrs. Adeyemi","Ms. Walker","Mrs. Petrov","Ms. Nakamura","Mrs. Castillo","Ms. Bennett","Mrs. Sharma","Ms. Delgado","Mrs. Fischer"];
+const OB_PMH = ["Asthma","Chronic hypertension","Gestational diabetes","Anemia","Hypothyroidism","Group B strep positive","Depression","First baby","Second baby"];
+/* second-line uterotonics: the right choice depends on her history */
+const UTERO = [
+  {b:"Methylergonovine 0.2 mg IM", ok:p=>!p.pmh.some(x=>/hypertension|preeclampsia/i.test(x)),
+   bad:"Methylergonovine raises blood pressure. Never give it with preeclampsia or high blood pressure. Pick another.", fx:"Methylergonovine 0.2 mg IM. Uterus firming up."},
+  {b:"Carboprost 250 mcg IM", ok:p=>!p.pmh.some(x=>/asthma/i.test(x)),
+   bad:"Carboprost can cause severe bronchospasm. Never give it with asthma. Pick another.", fx:"Carboprost 250 mcg IM. Uterus firming up."},
+  {b:"Misoprostol 800 mcg", ok:true, fx:"Misoprostol 800 mcg. Uterus firming up."}];
+const OB_BP = [
+  {b:"Labetalol 20 mg IV", ok:p=>!p.pmh.some(x=>/asthma/i.test(x)) && !(p.vit && p.vit.hr<60),
+   bad:"Labetalol is a beta blocker: it can trigger bronchospasm with asthma and slows the heart. Pick another.", fx:"Labetalol 20 mg IV. BP 148/96."},
+  {b:"Hydralazine 10 mg IV", ok:true, fx:"Hydralazine 10 mg IV. BP 150/98."},
+  {b:"Nifedipine 10 mg by mouth", ok:true, fx:"Immediate-release nifedipine 10 mg. BP 150/96."}];
+const PUSH = {t:"Ready to push!", d:"Fully dilated and feeling lots of pressure.", r:1.0, s:[
+  C("hands","Cervical exam","SVE","10 cm and +2 station. Time to push."),
+  C("hands","Coach pushing","Push","Pushing with each contraction. Baby's head is crowning."),
+  C("md","OB delivers the baby","","Baby born, crying right away!",{born:1}),
+  C("baby","Dry, stimulate, skin-to-skin","Newborn","Baby dried and on mom's chest. Apgars 8 and 9."),
+  C("meds","Oxytocin after the placenta","Pitocin","Oxytocin 30 units/500 mL running to keep the uterus firm."),
+  C("hands","Fundal check","Fundus","Fundus firm, midline at the belly button. Bleeding light.")]};
+const pphDef = () => ({t:"Bleeding after delivery!", d:"Delivered 20 minutes ago. Blood pooling under her.", r:2.2, crit:1, v:{hr:124,sbp:94,dbp:54},
+  dispo:"admit", dispoTxt:"Bleeding controlled. Off to postpartum with close checks.", s:[
+  C("hands","Fundal massage","Massage","Uterus boggy (abnormal), firming a little with massage. Clots expressed."),
+  C("iv","Second large IV, oxytocin wide open","IV","Second 18-gauge IV. Oxytocin wide open."),
+  C("meds","Second-line uterotonic","Uterotonic","",{pick:UTERO, q:"Which medicine?"}),
+  C("meds","Tranexamic acid","TXA","TXA 1 g IV over 10 minutes."),
+  C("labs","Measure blood loss","QBL","Quantitative blood loss 1,100 mL. Hemoglobin 8.4 (low)."),
+  C("hands","Recheck the fundus","Fundus","Firm now. Bleeding has slowed.")]});
+const LD = {
+  triage:{age:24, sex:"woman", pmh:["First baby"], dx:"Early labor at 39 weeks", fetal:1, def:{t:"Is this labor?", d:"39 weeks, first baby. Contractions every 10 minutes.", r:0.8,
+    dispoTxt:"Only 1 cm and baby looks great. Sent home to walk, and to come back when contractions are 5 minutes apart.", s:[
+    C("assess","Ask about water, bleeding, movement","Assess","No leaking fluid, no bleeding. Baby moving a lot."),
+    C("hands","Cervical exam","SVE","1 cm, 50% effaced."),
+    C("assess","Watch the fetal monitor","Monitor","20 minutes on the monitor: Category I. Reassuring.")]}},
+  labor:{age:29, sex:"woman", pmh:["Second baby"], dx:"Active labor at 40 weeks", fetal:1, def:{t:"Labor: wants an epidural", d:"5 cm, contracting every 3 minutes. Pain 9/10.", r:0.9,
+    dispo:"admit", dispoTxt:"Mom and baby off to postpartum, bonding beautifully.", s:[
+    C("iv","IV & fluid before the epidural","LR 500","IV placed, 500 mL lactated Ringer's."),
+    C("labs","Platelets & type and screen","CBC","Platelets 210 (normal): safe for an epidural."),
+    C("md","Anesthesia places the epidural","","Epidural in. Pain 1/10."),
+    C("vitals","BP check after the epidural","","")]}, more:[PUSH]},
+  epiHypo:{age:31, sex:"woman", pmh:["First baby"], dx:"Labor with an epidural", fetal:1, def:{t:"BP dropped after the epidural!", d:"BP 82/44 and nauseated. Baby's heart rate is dipping.", r:1.6, v:{sbp:82,dbp:44,hr:104}, fhr:"late",
+    dispo:"admit", dispoTxt:"Healthy baby. Mom and baby to postpartum.", s:[
+    C("hands","Turn her onto her left side","Left tilt","Turned to her left so the uterus isn't pressing on the big blood vessels."),
+    C("iv","Open the IV fluid","Bolus","Fluid bolus running wide open."),
+    C("meds","Phenylephrine (anesthesia's order)","Phenylephrine","Phenylephrine 100 mcg IV. BP 114/68."),
+    C("vitals","Recheck BP","","")]}, more:[PUSH]},
+  tachy:{age:27, sex:"woman", pmh:["Gestational diabetes"], dx:"Induction of labor at 39 weeks", fetal:1, def:{t:"Contractions too close!", d:"On oxytocin: 7 contractions in 10 minutes, with late decelerations.", r:1.6, fhr:"late",
+    dispo:"admit", dispoTxt:"Delivered without a C-section. To postpartum.", s:[
+    C("iv","Stop the oxytocin","Stop Pit","Oxytocin turned off."),
+    C("hands","Reposition onto her side","Left side","Turned to her left side."),
+    C("iv","Fluid bolus","Bolus","500 mL lactated Ringer's bolus."),
+    C("esc","Call the OB","","OB at the bedside reviewing the strip."),
+    C("meds","Terbutaline to relax the uterus","Terbutaline","Terbutaline 0.25 mg under the skin. Contractions spacing out, baby recovering.")]}, more:[PUSH]},
+  chorio:{age:22, sex:"woman", pmh:["Group B strep positive"], dx:"Fever in labor", fetal:1, def:{t:"Fever in labor!", d:"Temp 38.6 °C. Baby's heart rate 175.", r:1.3, v:{t:38.6,hr:112}, fhr:"tachy",
+    dispo:"admit", dispoTxt:"Baby checked by peds at birth and doing well. To postpartum on antibiotics.", s:[
+    C("vitals","Recheck vitals","",""),
+    C("labs","CBC & blood cultures","Cultures","WBC 19 (high). Cultures sent."),
+    C("meds","IV antibiotics","Amp + gent","Ampicillin and gentamicin IV for intraamniotic infection."),
+    C("meds","Fever medicine","Tylenol","Acetaminophen 1 g by mouth. Baby's heart rate coming down."),
+    C("esc","Tell the OB & pediatrics","","Peds will check the baby at birth.")]}, more:[PUSH]},
+  precip:{age:33, sex:"woman", pmh:["Third baby"], dx:"Fast labor, third baby", fetal:1, def:{t:"Baby's coming now!", d:"Third baby. \"I need to push!\" The head is crowning.", r:1.8,
+    dispo:"admit", dispoTxt:"Fastest delivery of the night. Mom and baby to postpartum.", s:[
+    C("esc","Call the OB stat","","OB running down the hall."),
+    C("hands","Support the head, no pulling","Deliver","Gentle pressure so the head doesn't pop out too fast. Baby born!",{born:1}),
+    C("baby","Dry, stimulate, skin-to-skin","Newborn","Crying and pink on mom's chest. Apgars 9 and 9."),
+    C("meds","Oxytocin after the placenta","Pitocin","Oxytocin running."),
+    C("hands","Fundal check","Fundus","Firm and midline. Bleeding light.")]}},
+  preE:{age:35, sex:"woman", pmh:["Asthma","First baby"], dx:"Severe preeclampsia at 36 weeks", fetal:1, def:{t:"BP 168/112!", d:"36 weeks. Headache and seeing spots.", r:1.6, crit:1, v:{sbp:168,dbp:112},
+    dispo:"admit", dispoTxt:"Induced and delivered. To postpartum on magnesium for 24 hours.", s:[
+    C("vitals","Recheck BP in 15 minutes","",""),
+    C("labs","Preeclampsia labs","Labs","Platelets 98 (low), liver enzymes high (high), protein in the urine."),
+    C("meds","Lower the BP within an hour","BP med","",{pick:OB_BP, q:"Which BP medicine?"}),
+    C("meds","Magnesium to prevent seizures","Mag 4 g","Magnesium 4 g IV over 20 minutes, then 2 g/hr."),
+    C("hands","Reflexes & breathing","DTRs","Knee reflexes 2+, RR 16. Check every hour on magnesium.")]}},
+  preE2:{age:38, sex:"woman", pmh:["Chronic hypertension","Second baby"], dx:"Severe preeclampsia at 35 weeks", fetal:1, def:{t:"BP 172/110!", d:"35 weeks. Pain under the right ribs.", r:1.6, crit:1, v:{sbp:172,dbp:110},
+    dispo:"admit", dispoTxt:"Delivered. To postpartum on magnesium for 24 hours.", s:[
+    C("vitals","Recheck BP in 15 minutes","",""),
+    C("labs","Preeclampsia labs","Labs","Platelets 112 (low), liver enzymes high (high)."),
+    C("meds","Lower the BP within an hour","BP med","",{pick:OB_BP, q:"Which BP medicine?"}),
+    C("meds","Magnesium to prevent seizures","Mag 4 g","Magnesium 4 g IV over 20 minutes, then 2 g/hr."),
+    C("hands","Reflexes & breathing","DTRs","Knee reflexes 2+, RR 16.")]}},
+  eclampsia:{age:19, sex:"woman", pmh:["First baby"], dx:"Eclampsia at 35 weeks", fetal:1, def:{t:"Seizure!", d:"Complained of a terrible headache, now shaking all over.", r:2.2, crit:1, v:{sbp:174,dbp:110,spo2:88,hr:124}, fhr:"brady",
+    dispo:"admit", dispoTxt:"Stabilized, then delivered. Mom to postpartum on magnesium.", s:[
+    C("hands","Safety: on her side, pad rails, time it","Safety","On her left side, rails padded, timer running. Nothing in her mouth."),
+    C("esc","Call for help","","OB, anesthesia and extra nurses in the room."),
+    C("meds","Magnesium 4 g IV now","Mag","Magnesium 4 g IV over 5 minutes. Seizure stopped."),
+    C("o2","Oxygen","NRB","Non-rebreather on. SpO₂ 96%."),
+    C("meds","Treat the BP","BP med","",{pick:OB_BP, q:"Which BP medicine?"}),
+    C("assess","Watch the baby recover","Monitor","Baby's heart rate back to 135 now that mom is oxygenated.")]}},
+  magTox:{age:28, sex:"woman", pmh:["Preeclampsia this pregnancy"], dx:"Preeclampsia on magnesium", fetal:1, def:{t:"Breathing slow, very sleepy!", d:"On magnesium for preeclampsia. Hard to wake.", r:1.8, crit:1, v:{rr:8,spo2:89},
+    dispo:"admit", dispoTxt:"Awake and breathing well. Delivered later in the shift.", s:[
+    C("hands","Reflexes & breathing","DTRs","No knee reflexes, RR 8 (low). Magnesium toxicity."),
+    C("iv","Stop the magnesium","Stop Mag","Magnesium infusion stopped."),
+    C("meds","Calcium gluconate","Ca gluc","Calcium gluconate 1 g IV over 3 minutes."),
+    C("o2","Oxygen","NRB","Oxygen on. RR 14, more awake."),
+    C("labs","Magnesium level","Mg","Magnesium 9.6 (high). Low urine output: her kidneys weren't clearing it.")]}},
+  shoulder:{age:32, sex:"woman", pmh:["Gestational diabetes"], dx:"Shoulder dystocia", fetal:1, def:{t:"Shoulders stuck!", d:"The head delivered, then pulled back tight against her (turtle sign).", r:2.4, crit:1, fhr:"brady",
+    dispo:"admit", dispoTxt:"Big healthy baby, moving both arms. Mom and baby to postpartum.", s:[
+    C("esc","Call for help & call out the time","","Extra nurses, peds and anesthesia coming. Time called: 15 seconds."),
+    C("hands","McRoberts: knees to chest","McRoberts","Two nurses push her knees up toward her shoulders."),
+    C("hands","Suprapubic pressure (never fundal)","Suprapubic","Pressure just above the pubic bone, pushing the shoulder down and sideways."),
+    C("md","OB delivers the back arm","","Back arm delivered. Baby out at 1 minute 40 seconds!",{born:1}),
+    C("baby","Floppy baby: warm, dry, stimulate","Stimulate","Dried and rubbed. Still not breathing well."),
+    C("o2","Bag-mask breaths for the baby","PPV","Breaths for 30 seconds. Heart rate over 100, and a big cry!")]}},
+  cordProlapse:{age:30, sex:"woman", pmh:["Second baby"], dx:"Umbilical cord prolapse", fetal:1, def:{t:"Cord prolapse!", d:"Water just broke. You feel the cord in the vagina. FHR 70.", r:2.6, crit:1, fhr:"brady", s:[
+    C("hands","Lift the baby's head off the cord","Lift","Gloved hand pushing the head up off the cord. You don't let go."),
+    C("esc","Call for a stat C-section","","OR team, OB and anesthesia activated."),
+    C("hands","Knee-chest position","Knee-chest","Mom on her knees, chest down, so gravity helps."),
+    C("go","Rush to the OR","csec","")]}},
+  abruption:{age:36, sex:"woman", pmh:["Chronic hypertension","Smoker"], dx:"Placental abruption at 34 weeks", fetal:1, def:{t:"Painful bleeding!", d:"34 weeks. Constant belly pain, uterus rock hard, dark blood.", r:2.2, crit:1, v:{hr:122,sbp:94,dbp:56}, fhr:"late", s:[
+    C("assess","Assess","Assess","Uterus hard and tender (abnormal). Late decelerations on the monitor."),
+    C("iv","Two large IVs","16g x2","Two 16-gauge IVs, fluids running."),
+    C("labs","Type & cross, coags, fibrinogen","T&C","Fibrinogen 180 (low). Blood bank preparing 4 units."),
+    C("esc","Call the OB","","OB: placental abruption. Stat C-section."),
+    C("go","Rush to the OR","csec","")]}},
+  vbac:{age:33, sex:"woman", pmh:["C-section 2 years ago"], dx:"Labor after a prior C-section (TOLAC)", fetal:1, def:{t:"Sudden tearing pain!", d:"Trying for a VBAC. Contractions suddenly stopped and the baby's head moved back up.", r:2.6, crit:1, v:{hr:128,sbp:88,dbp:50}, fhr:"brady", s:[
+    C("assess","Assess","Assess","Severe pain, FHR 70 (low). Signs of uterine rupture."),
+    C("iv","Stop the oxytocin, open the fluids","Stop Pit","Oxytocin off, fluids wide open."),
+    C("esc","Call for a stat C-section","","OR team activated."),
+    C("go","Rush to the OR","csec","")]}},
+  pphA:{age:34, sex:"woman", pmh:["Preeclampsia this pregnancy"], dx:"Postpartum hemorrhage", def:pphDef()},
+  pphB:{age:27, sex:"woman", pmh:["Asthma"], dx:"Postpartum hemorrhage", def:pphDef()},
+  maternalCode:{age:38, sex:"woman", pmh:["Third baby"], dx:"Collapse in labor", fetal:1, def:{t:"Code blue!", d:"Said \"I don't feel right,\" then collapsed. No pulse.", code:true, rh:"Unknown: pads not on yet", r:2.4, crit:1,
+    dispo:"admit", dispoTxt:"Pulse back after the baby was delivered. Mom to the ICU, baby to the NICU. Both alive because the team moved fast.", s:[
+    C("assess","Check pulse & breathing","Assess","No pulse. Not breathing."),
+    C("esc","Call a maternal code blue","","Code team, OB, anesthesia and NICU coming."),
+    C("cpr","Start CPR","CPR","Compressions started, hands a little higher on the chest.",{cpr:1}),
+    C("hands","Push the uterus to her left","LUD","Left uterine displacement: one nurse holds the uterus left so it doesn't squash the big vessels.",{during:1}),
+    C("iv","IV above the diaphragm","IV","IV in her arm.",{during:1}),
+    C("meds","Epinephrine 1 mg","Epi","Epinephrine 1 mg IV.",{during:1}),
+    C("vitals","Rhythm check","","PEA (abnormal). Not shockable.",{rh:"PEA"}),
+    C("cpr","Resume CPR","CPR","CPR resumed. Four minutes since the arrest.",{cpr:1}),
+    C("md","OB: delivers the baby at the bedside","","Baby delivered at 5 minutes. NICU team takes over.",{born:1, during:1}),
+    C("vitals","Rhythm & pulse check","","Pulse is back! Emptying the uterus helped her heart. ROSC!",{rh:"Sinus tach · ROSC"})]}}
+};
+const DEVNONE = 0;
+/* postpartum (mother-baby) floor recipes */
+const PP = {
+  vag:{t:"Postpartum check", d:"Vaginal delivery this morning. Sore and tired.", dx:"Vaginal delivery, postpartum day 0", r:0.9, s:[
+    C("hands","Fundus & bleeding","Fundus","Fundus firm, 1 finger below the belly button. Bleeding moderate."),
+    C("wound","Ice pack for the stitches","Ice","Ice pack on a small tear."),
+    C("meds","Pain medicine","Ibuprofen","Ibuprofen 600 mg by mouth.")]},
+  cs:{t:"C-section day 1", d:"Sore incision, wants to try walking.", dx:"C-section, postpartum day 1", surg:true, r:1.0, s:[
+    C("assess","Incision & fundus","Assess","Incision clean and dry. Fundus firm."),
+    C("meds","Pain medicine","Oxycodone","Oxycodone 5 mg, plus scheduled ibuprofen and acetaminophen."),
+    C("assess","Walk with her","Walk","Walked to the door and back. SCDs back on in bed.")]},
+  latch:{t:"Baby won't latch", d:"Breastfeeding hurts and the baby keeps slipping off.", dx:"Vaginal delivery, postpartum day 1", r:0.8, s:[
+    C("baby","Help with the latch","Latch","Tummy to tummy, wide mouth, lips flanged out. No pain now."),
+    C("assess","Teach feeding cues","Teach","Feed 8 to 12 times a day. Wet diapers should match the baby's age in days, up to 6.")]},
+  rhogam:{t:"Rh-negative mom", d:"Baby's blood type came back Rh positive.", dx:"Vaginal delivery, postpartum day 1", pmh:"Rh negative", r:0.8, s:[
+    C("labs","Check the blood bank results","Fetal screen","Mom Rh negative, baby Rh positive. Fetal bleed screen negative."),
+    C("meds","RhoGAM within 72 hours","RhoGAM","Rh immune globulin 300 mcg IM. Protects her next pregnancy.")]},
+  newbornMeds:{t:"Newborn meds due", d:"Baby is 1 hour old.", dx:"Vaginal delivery, postpartum day 0", r:0.8, s:[
+    C("baby","Vitamin K shot","Vit K","Vitamin K IM in the thigh to prevent bleeding."),
+    C("baby","Eye ointment","Eyes","Erythromycin eye ointment."),
+    C("baby","Hepatitis B vaccine (with consent)","Hep B","First hepatitis B vaccine given.")]},
+  gdmBaby:{t:"Baby's sugar check", d:"Mom has gestational diabetes. Baby is 1 hour old.", dx:"Vaginal delivery, gestational diabetes", pmh:"Gestational diabetes", r:1.1, s:[
+    C("labs","Baby's glucose","Heel stick","Baby's glucose 32 (low)."),
+    C("baby","Dextrose gel & a feed","Feed","Dextrose gel inside the cheek, then a breastfeed."),
+    C("labs","Recheck the baby","Recheck","Glucose 54. Normal.")]},
+  vaccines:{t:"Discharge vaccines", d:"Going home tomorrow.", dx:"C-section, postpartum day 2", surg:true, r:0.7, s:[
+    C("labs","Check rubella immunity","Rubella","Not immune to rubella."),
+    C("meds","MMR before discharge","MMR","MMR vaccine given. No pregnancy for 1 month.")]},
+  mag:{t:"On magnesium", d:"Delivered for preeclampsia. Magnesium for 24 hours.", dx:"Preeclampsia, postpartum day 0", pmh:"Preeclampsia this pregnancy", r:1.0, s:[
+    C("hands","Reflexes & breathing","DTRs","Reflexes 2+, RR 16, lungs clear."),
+    C("labs","Strict ins & outs","I&O","Urine 60 mL/hr. Her kidneys are clearing the magnesium."),
+    C("vitals","BP check","","")]}
+};
+const PPF = {
+  afterpains:{t:"Cramping", d:"Strong cramps while breastfeeding.", r:0.9, s:[C("hands","Check the fundus","Fundus","Firm and midline. These are normal afterpains."), C("meds","Pain medicine","Ibuprofen","Ibuprofen 600 mg.")]},
+  retention:{t:"Fundus off to the right", d:"Hasn't peed in 6 hours. Bleeding more than before.", r:1.1, s:[
+    C("hands","Check the fundus","Fundus","High and pushed to the right (abnormal): full bladder."),
+    C("assess","Help her to the bathroom","Void","Can't go."),
+    C("hands","Straight cath","Cath","800 mL drained. Fundus back to midline and firm.")]},
+  spinalHA:{t:"Headache when sitting up", d:"Had an epidural. Fine when lying flat.", r:1.0, s:[
+    C("assess","Assess","Assess","Headache only when upright. No vision changes. BP normal."),
+    C("meds","Caffeine, fluids, pain medicine","Caffeine","Caffeine and fluids. Anesthesia may offer a blood patch.")]},
+  jaundice:{t:"Baby looks yellow", d:"Baby is 30 hours old.", r:1.0, s:[
+    C("labs","Bilirubin check","Bili","Bilirubin high for age (high)."),
+    C("baby","Phototherapy","Bili lights","Baby under the blue lights. Keep feeding often.")]},
+  epds:{t:"Feeling down", d:"Tearful. Can't sleep even when the baby sleeps.", r:0.9, s:[
+    C("assess","Depression screening","EPDS","Screening score high. No thoughts of harming herself or the baby."),
+    C("assess","Listen & connect to support","Support","Provider and social work updated. Follow-up plan and support resources in place.")]},
+  engorge:{t:"Breasts hard & painful", d:"Day 3. Milk is coming in.", r:0.8, s:[
+    C("baby","Feed or pump often","Feed","Frequent feeding, cold packs after.")]}
+};
+const PPU = {
+  bleed:{t:"Soaking a pad in 15 minutes!", d:"Large clots on the pad.", v:{hr:118,sbp:98,dbp:58}, r:2.2, s:[
+    C("hands","Fundal massage","Massage","Boggy (abnormal), firming with massage. Clots expressed."),
+    C("assess","Empty the bladder","Void","Bladder emptied."),
+    C("meds","Second-line uterotonic","Uterotonic","",{pick:UTERO, q:"Which medicine?"}),
+    C("labs","Weigh pads for blood loss","QBL","QBL 650 mL. Hemoglobin ordered.")]},
+  preE:{t:"Headache, BP 164/108!", d:"Preeclampsia can start after delivery.", v:{sbp:164,dbp:108}, r:2.0, s:[
+    C("vitals","Recheck in 15 minutes","",""),
+    C("meds","Lower the BP","BP med","",{pick:OB_BP, q:"Which BP medicine?"}),
+    C("meds","Magnesium","Mag","Magnesium 4 g load, then 2 g/hr."),
+    C("labs","Preeclampsia labs","Labs","Platelets and liver enzymes normal.")]},
+  hematoma:{t:"Terrible pressure down there!", d:"Pain way out of proportion. HR 112.", v:{hr:112,sbp:104,dbp:62}, r:1.8, s:[
+    C("assess","Look at the perineum","Assess","Large, purple, bulging swelling (abnormal): a hematoma."),
+    C("wound","Ice","Ice","Ice pack on."),
+    C("labs","CBC","CBC","Hemoglobin 9.0 (low). OB will drain it.")]},
+  endo:{t:"Fever 38.7 °C!", d:"Day 2 after C-section. Uterus tender, bad-smelling bleeding.", surg:true, v:{t:38.7,hr:114}, r:1.6, s:[
+    C("labs","Cultures & CBC","Cultures","WBC 18 (high)."),
+    C("meds","IV antibiotics","Clinda + gent","Clindamycin and gentamicin IV."),
+    C("meds","Fever medicine","Tylenol","Acetaminophen 1 g.")]},
+  pe:{t:"Sudden shortness of breath!", d:"Sharp chest pain when breathing in. HR 124.", v:{spo2:88,hr:124,rr:28}, r:2.2, s:[
+    C("o2","Oxygen","NC 4 L","SpO₂ 94%."),
+    C("assess","Check her legs","Assess","Left calf swollen and tender (abnormal)."),
+    C("labs","CT angiogram & labs","CTA","CT: blood clot in the lung."),
+    C("meds","Heparin","Heparin","Heparin drip started.")]},
+  babyBlue:{t:"Baby turned blue!", d:"Coughing and gagging during a feed.", r:2.0, s:[
+    C("baby","Sit up, suction, stimulate","Suction","Bulb suction mouth then nose. Pink and crying."),
+    C("assess","Teach mom","Teach","Showed mom how to use the bulb syringe.")]}
+};
+const PPD1 = {t:"Heavy bleeding!", d:"Delivered 2 hours ago. Bleeding through the sheets.", dx:"Vaginal delivery, postpartum day 0", v:{hr:122,sbp:96,dbp:56}, r:1.8, s:[
+  C("hands","Fundal massage","Massage","Boggy (abnormal), barely firming."),
+  C("meds","Second-line uterotonic","Uterotonic","",{pick:UTERO, q:"Which medicine?"}),
+  C("meds","Tranexamic acid","TXA","TXA 1 g IV.")]};
+const PPD2 = {t:"Still bleeding!", d:"Medicines aren't working. BP falling.", v:{hr:136,sbp:82,dbp:44}, r:2.4, s:[
+  C("blood","Hang blood","PRBCs","Two-nurse check done. Two units running."),
+  C("labs","Labs & blood loss","QBL","QBL 1,600 mL. Fibrinogen low (low)."),
+  C("go","Rush to the OR","or","")]};
+addCases(LD);
+const LD_TOOLS = ["assess","hands","iv","labs","meds","baby","o2","cpr"];
+const ldLevel = (k, beds, drain, ids, stars, name, blurb) => ({n:300+k, tag:"L"+k, unit:"Labor & Delivery", mode:"er", ld:true, names:OB_NAMES, beds, drain, cases:ids, stars, name, blurb, tools:LD_TOOLS, ev:[999,999]});
+const LD_LEVELS = [
+  ldLevel(1, 2, 0.9, ["triage","labor","precip","epiHypo","chorio","tachy"], [2400,3500], "First night on L&D", "Epidurals, a baby who can't wait, and a fetal monitor to watch."),
+  ldLevel(2, 2, 1.0, ["preE","preE2","magTox","labor","tachy","chorio","triage"], [2600,3800], "Pressure's rising", "Preeclampsia, magnesium and picking the right BP medicine."),
+  ldLevel(3, 2, 1.1, ["shoulder","pphA","pphB","labor","epiHypo","precip","preE"], [2800,4100], "Stuck shoulders", "Shoulder dystocia, a floppy baby and hemorrhages with a catch."),
+  ldLevel(4, 2, 1.2, ["cordProlapse","abruption","eclampsia","pphA","shoulder","labor","magTox"], [3000,4400], "Every second counts", "Cord prolapse, abruption and a seizure. Straight to the OR."),
+  ldLevel(5, 2, 1.3, ["maternalCode","vbac","cordProlapse","eclampsia","pphB","shoulder","preE","precip"], [3200,4700], "Full moon on L&D", "Everything L&D can throw at you, including a maternal code.")
+];
+const ppLevel = (k, o) => Object.assign({n:400+k, tag:"P"+k, unit:"Postpartum", mode:"floor", pp:true, names:OB_NAMES, ages:[19,42], pmhPool:OB_PMH,
+  tools:["assess","hands","labs","meds","iv","wound","baby","o2"], doom:[PPD1,PPD2]}, o);
+const PP_LEVELS = [
+  ppLevel(1, {name:"Mother-baby day shift", blurb:"Three moms and their babies. Fundus checks, latching and newborn meds.",
+    first:[PP.vag,PP.cs,PP.latch,PP.newbornMeds,PP.rhogam], follow:[PPF.afterpains,PPF.engorge,PPF.retention,PPF.jaundice], urgent:[PPU.bleed,PPU.babyBlue], drain:0.9, ev:[22,32], stars:[1500,2400]}),
+  ppLevel(2, {name:"Boggy and bleeding", blurb:"A full bladder, a boggy uterus and choosing a safe uterotonic.",
+    first:[PP.vag,PP.cs,PP.rhogam,PP.gdmBaby,PP.latch], follow:[PPF.retention,PPF.afterpains,PPF.spinalHA,PPF.jaundice], urgent:[PPU.bleed,PPU.hematoma,PPU.babyBlue], drain:1, ev:[20,30], stars:[1600,2600]}),
+  ppLevel(3, {name:"After the pressure", blurb:"Magnesium checks and preeclampsia that shows up after delivery.",
+    first:[PP.mag,PP.vag,PP.cs,PP.vaccines,PP.newbornMeds], follow:[PPF.spinalHA,PPF.retention,PPF.epds,PPF.engorge], urgent:[PPU.preE,PPU.bleed,PPU.endo], drain:1.1, ev:[18,27], stars:[1700,2700]}),
+  ppLevel(4, {name:"Night shift", blurb:"Fevers, a blood clot in the lung and a mom who needs someone to listen.",
+    first:[PP.cs,PP.mag,PP.gdmBaby,PP.vag,PP.rhogam], follow:[PPF.epds,PPF.jaundice,PPF.afterpains,PPF.retention], urgent:[PPU.pe,PPU.endo,PPU.preE,PPU.hematoma], drain:1.15, ev:[16,25], stars:[1800,2800]}),
+  ppLevel(5, {name:"Full house", blurb:"Everything at once on mother-baby. Keep all three moms and babies safe.",
+    first:[PP.vag,PP.cs,PP.mag,PP.gdmBaby,PP.rhogam,PP.latch,PP.vaccines], follow:[PPF.retention,PPF.epds,PPF.spinalHA,PPF.jaundice,PPF.engorge], urgent:[PPU.bleed,PPU.preE,PPU.pe,PPU.endo,PPU.babyBlue,PPU.hematoma], drain:1.22, ev:[15,23], stars:[1900,3000]})
+];
+/* fetal monitor tracing: a little scrolling strip */
+const FHR_PAT = {normal:{rate:140, cat:"I", lab:"Category I: reassuring"}, late:{rate:145, cat:"II", lab:"Late decelerations"}, tachy:{rate:176, cat:"II", lab:"Fetal tachycardia"}, brady:{rate:72, cat:"III", lab:"Bradycardia: emergency"}};
+function fhrPath(pat){
+  let seed = pat.length * 7 + 3; const rnd = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+  const W = 480, base = FHR_PAT[pat].rate, y = b => 4 + (190 - b) * 0.3;
+  let d = "", toco = "";
+  for(let x=0; x<=W; x+=3){
+    const cyc = (x % 120) / 120, contr = Math.max(0, Math.sin(cyc * Math.PI * 2 - 0.6)) ;
+    let b = base + (rnd()-0.5) * (pat==="normal" ? 14 : 5);
+    if(pat==="normal" && cyc > 0.3 && cyc < 0.42) b += 15 * Math.sin((cyc-0.3)/0.12*Math.PI);
+    if(pat==="late"){ const lag = Math.max(0, Math.sin(cyc * Math.PI * 2 - 1.6)); b -= 22 * lag; }
+    d += (x ? "L" : "M") + x + " " + y(b).toFixed(1);
+    toco += (x ? "L" : "M") + x + " " + (46 - contr * 12).toFixed(1);
+  }
+  return `<svg class="fhrsvg" viewBox="0 0 240 50" preserveAspectRatio="none" aria-hidden="true"><g class="scroll"><path d="${d}" fill="none" stroke="#e05a6a" stroke-width="1.2"/><path d="${toco}" fill="none" stroke="#6a8db8" stroke-width="1"/></g></svg>`;
+}
+
 /* ---------- levels ---------- */
 const LEVELS = [
   {n:0, tag:"T", mode:"tutorial", name:"Tutorial: first day on 4 West", blurb:"A slow, guided shift. Learn the tools, the monitor and how to handle an emergency.",
@@ -965,6 +1250,8 @@ const LEVELS = [
 
 ER_LEVELS.forEach(l => LEVELS.push(l));
 ICU_LEVELS.forEach(l => LEVELS.push(l));
+LD_LEVELS.forEach(l => LEVELS.push(l));
+PP_LEVELS.forEach(l => LEVELS.push(l));
 LEVELS.forEach(l => { l.mode = l.mode || "floor"; l.unit = l.unit || (l.mode==="rrt" ? "Rapid Response" : "Med-Surg"); });
 const NAMES = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Begay","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
 const PMH = ["Hypertension","High cholesterol","Asthma","Hypothyroidism","Atrial fibrillation","Chronic kidney disease, stage 3","Depression","GERD","Osteoarthritis","Sleep apnea"];
@@ -973,7 +1260,7 @@ const SKIN = ["#f6d5bd","#eab896","#cf9068","#9b6443","#f2c8a6","#b07452","#7a4a
 const HAIR = ["#3b2a20","#7a4b2a","#cfc8bf","#1f1a17","#d9a35b","#ebe6df","#5b3a29"];
 const GOWN = ["#bfe3de","#c9d8f3","#f4d3de","#d6ebc2","#f6e3b3","#dcd3f2"];
 let ROOMS = [412,414,416];
-const roomLabel = i => LV && LV.mode==="er" ? `Bay ${i+1}` : LV && LV.mode==="icu" ? "ICU bed 7" : `Rm ${ROOMS[i]}`;
+const roomLabel = i => LV && LV.ld ? `LDR ${i+1}` : LV && LV.mode==="er" ? `Bay ${i+1}` : LV && LV.mode==="icu" ? "ICU bed 7" : `Rm ${ROOMS[i]}`;
 const HEART_MS = 30 * 60 * 1000; // one heart back every 30 minutes
 const SHIFT = 180; // real seconds for a 12-hour shift
 const VITAL_EVERY = 7; // monitor auto-refresh, real seconds
@@ -1065,11 +1352,11 @@ function inst(def, p){
 }
 function admit(i, initial, o){
   o = o || {};
-  if(!G.namePool.length) G.namePool = shuffle(NAMES.slice());
+  if(!G.namePool.length) G.namePool = shuffle((LV.names || NAMES).filter(n => !G.beds.some(b => b && b.name===n)));
   const doomed = !o.defs && LV.mode==="floor" && !initial && !G.beds.some(b=>b && b.doomed) && (G.doomSeen===0 ? G.t>35 : Math.random()<0.12);
   const p = {
     name: o.name || G.namePool.shift(),
-    age: o.age || Math.floor(doomed ? rand(62,86) : rand(29,89)),
+    age: o.age || Math.floor(LV.ages ? rand(LV.ages[0], LV.ages[1]) : doomed ? rand(62,86) : rand(29,89)),
     kg: Math.floor(rand(52,112)),
     look: {skin:pick(SKIN), hair:pick(HAIR), gown:pick(GOWN), style:Math.floor(Math.random()*3)},
     allergy: wpick(ALLERGIES),
@@ -1087,7 +1374,7 @@ function admit(i, initial, o){
   }
   p.dx = o.dx || defs[0].dx; p.surg = !!(o.surg || defs[0].surg); p.hpi = defs[0].d; p.loc = o.loc || null;
   p.sex = o.sex || (/^Mr\./.test(p.name) ? "man" : "woman");
-  const hist = new Set(shuffle(PMH.slice()).slice(0, 1 + Math.floor(Math.random()*2)));
+  const hist = new Set(shuffle((LV.pmhPool || PMH).slice()).slice(0, 1 + Math.floor(Math.random()*2)));
   defs.forEach(d => { if(d.pmh) hist.add(d.pmh); });
   p.pmh = o.pmh ? o.pmh.slice() : [...hist];
   const copd = p.pmh.some(x=>/COPD/.test(x)), etoh = p.pmh.some(x=>/Alcohol/.test(x));
@@ -1106,9 +1393,9 @@ function admit(i, initial, o){
 }
 function newGame(){
   G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:2, chargeCd:0, doomSeen:0, cpr:0, ff:0, badShocks:0, callIdx:0, callsDone:0, coach:0, coachAck:-1,
-       discharged:0, transfers:0, expired:0, escalated:0, rushed:0, helps:0, rrUsed:0, slows:1, slowLeft:0, saves:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], all:[], feed:[], namePool:shuffle(NAMES.slice())};
+       discharged:0, transfers:0, expired:0, escalated:0, rushed:0, helps:0, rrUsed:0, slows:1, slowLeft:0, saves:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], all:[], feed:[], namePool:shuffle((LV.names || NAMES).slice())};
   buildTray(LV.tools || ORDER);
-  ROOMS = LV.mode==="er" ? Array.from({length:LV.beds}, (_,i)=>i+1) : LV.mode==="icu" ? [7] : [412,414,416];
+  ROOMS = LV.mode==="er" ? Array.from({length:LV.beds}, (_,i)=>i+1) : LV.mode==="icu" ? [7] : LV.pp ? [512,514,516] : [412,414,416];
   buildCards();
   $("#app").classList.toggle("er", LV.mode==="er");
   if(LV.mode==="er"){ G.deck = []; G.lwbs = 0; G.admitted = 0; }
@@ -1121,11 +1408,11 @@ function newGame(){
   }
   else if(LV.mode==="icu"){ icuSetup(); G.beds.push(admitICU(LV.pt)); }
   else if(LV.mode==="er"){
-    for(let i=0;i<LV.beds;i++) G.beds.push(i<2 ? admitER(i) : emptyBed(3 + i*4));
+    for(let i=0;i<LV.beds;i++) G.beds.push(i<(LV.ld ? 1 : 2) ? admitER(i) : emptyBed(LV.ld ? 4 : 3 + i*4));
   }
   else for(let i=0;i<3;i++) G.beds.push(admit(i,true));
   buildDrips();
-  $("#unitName").textContent = LV.mode==="icu" ? (LV.tutorial ? "ICU · Tutorial" : `ICU · Level ${LV.n-200}`) : LV.mode==="rrt" ? "Rapid Response" : LV.mode==="tutorial" ? "4 West · Tutorial" : LV.mode==="er" ? `ER · Level ${LV.n-100}` : `4 West · Level ${LV.n}`;
+  $("#unitName").textContent = LV.mode==="icu" ? (LV.tutorial ? "ICU · Tutorial" : `ICU · Level ${LV.n-200}`) : LV.mode==="rrt" ? "Rapid Response" : LV.mode==="tutorial" ? "4 West · Tutorial" : LV.ld ? `L&D · Level ${LV.n-300}` : LV.pp ? `Mother-Baby · Level ${LV.n-400}` : LV.mode==="er" ? `ER · Level ${LV.n-100}` : `4 West · Level ${LV.n}`;
   $("#unitSub").textContent = LV.mode==="rrt" ? `Call 1 of ${LV.calls.length}` : LV.name;
   dirty = true;
 }
@@ -1245,6 +1532,20 @@ function updateDrips(){
     row.classList.toggle("hi", d.val > d.def.hi); row.classList.toggle("lo", d.val < d.def.lo);
   });
 }
+function fetalPat(p){ return (p.state==="needs" && p.active && p.active.def.fhr) || "normal"; }
+function updateFetal(p){
+  const el = $("#fetal");
+  const on = p && p.fetal && (p.state==="needs" || p.state==="resting");
+  if(!on){ if(!el.hidden){ el.hidden = true; el.innerHTML = ""; el._k = ""; } return; }
+  const pat = fetalPat(p), F = FHR_PAT[pat];
+  if(el._k !== pat + p.name){
+    el._k = pat + p.name; el.hidden = false;
+    el.innerHTML = `<div class="fhrnum"><small>Fetal heart rate</small><b></b><span class="cat cat${F.cat}">${esc(F.lab)}</span></div><div class="strip">${fhrPath(pat)}</div>`;
+    el.className = "fetal cat" + F.cat;
+  }
+  const t = Math.floor(performance.now()/1500);
+  if(el._t !== t){ el._t = t; el.querySelector("b").textContent = Math.round(F.rate + (Math.sin(t*1.7)*3) + (pat==="normal" ? Math.sin(t*0.6)*5 : 0)); }
+}
 function finishIcuTutorial(){
   G.over = true; G.running = false;
   saved[LV.n] = {stars:3, best:Math.max((saved[LV.n]||{}).best||0, G.score)}; save();
@@ -1261,8 +1562,9 @@ function admitER(i){
   if(!G.deck.length) G.deck = shuffle(LV.cases.slice());
   const c = ER[G.deck.shift()];
   const kid = c.age < 18;
-  const name = kid ? pick(KID_NAMES[c.sex]) : (()=>{ let n; for(let k=0;k<20;k++){ n = pick(NAMES); if((c.sex==="man") === /^Mr\./.test(n)) break; } return n; })();
-  const p = admit(i, true, {defs:[c.def], name, age:c.age, sex:c.sex, pmh:c.pmh, dx:c.dx});
+  const name = kid ? pick(KID_NAMES[c.sex]) : LV.names ? pick(LV.names.filter(n => !G.beds.some(b => b && b.name===n))) : (()=>{ let n; for(let k=0;k<20;k++){ n = pick(NAMES); if((c.sex==="man") === /^Mr\./.test(n)) break; } return n; })();
+  const p = admit(i, true, {defs:[c.def, ...(c.more||[])], name, age:c.age, sex:c.sex, pmh:c.pmh, dx:c.dx});
+  p.fetal = !!c.fetal;
   p.health = rand(62, 76);
   logIt(p, `Arrived: ${c.def.t.replace("!","")}. ${c.def.d}`);
   return p;
@@ -1394,6 +1696,12 @@ function update(dt){
           } else p.timer = 999;
           dirty = true; return;
         }
+        if(LV.ld){
+          if(!G.deck.length) G.deck = shuffle(LV.cases.slice());
+          const other = G.beds.some((b,j)=>j!==i && (b.state==="needs" || b.state==="resting"));
+          const otherCrit = G.beds.some((b,j)=>j!==i && b.active && (b.active.def.crit || b.active.def.code));
+          if(otherCrit || (other && (ER[G.deck[0]].def.crit || ER[G.deck[0]].def.code))){ p.timer = 2; return; }
+        }
         if(LV.mode==="er"){
           G.beds[i] = admitER(i); const np = G.beds[i];
           sfx.ping(); toast(`New patient in ${roomLabel(i)}: ${np.active.def.t.replace("!","").toLowerCase()}`, np.active.def.crit ? "alarm" : "");
@@ -1442,7 +1750,8 @@ function choosePick(i){
   const p = cur(); if(!playing() || p.state!=="needs") return;
   const st = curStep(p); if(!st || !st.pick) return;
   const o = st.pick[i];
-  if(!o.ok){
+  const ok = typeof o.ok === "function" ? o.ok(p) : o.ok;
+  if(!ok){
     sfx.wrong(); G.score = Math.max(0, G.score - 40); p.health = Math.max(5, p.health - 12);
     G.badPicks = (G.badPicks||0) + 1;
     toast(o.bad, "alarm"); logIt(p, "Held: " + o.b + ". " + o.bad); dirty = true; return;
@@ -1453,6 +1762,8 @@ function choosePick(i){
 }
 function advance(p, by, fxOverride){
   G.picking = false;
+  { const st0 = p.active && p.active.steps[p.active.step];
+    if(st0 && st0.born && p.fetal){ p.fetal = false; const g = Math.random()<0.5 ? "girl" : "boy"; setTimeout(()=>toast(`It's a ${g}! Welcome to the world.`, "good"), 300); beep(784,0.12,"sine",0.04); beep(988,0.18,"sine",0.04,0.13); } }
   const st = p.active.steps[p.active.step];
   let fx = fxOverride || st.fx;
   if(st.k==="vitals" && !st.fx){ takeVitals(p); fx = vitalsSummary(p.vit); }
@@ -1564,6 +1875,12 @@ function transfer(p){
   if(LV.mode==="rrt" || LV.mode==="icu"){ expire(p); return; }
   if(LV.mode==="er"){
     if(p.active && (p.active.def.crit || p.active.def.code)){ expire(p); return; }
+    if(LV.ld){
+      p.health = 35; G.score = Math.max(0, G.score - 100); G.lwbs++;
+      if(p === cur()) floatText("−100", true);
+      sfx.wrong(); toast(`Charge nurse had to step in for ${p.name}. Keep an eye on both rooms.`, "alarm");
+      pushFeed(p, "esc", "Charge nurse stepped in to help while you were busy."); dirty = true; return;
+    }
     // non-critical patients who wait too long walk out
     p.health = 0; G.lwbs++; G.score = Math.max(0, G.score - 100);
     logIt(p, "Left without being seen."); pushFeed(p, "assess", `${p.name} got tired of waiting and left without being seen.`);
@@ -1571,7 +1888,7 @@ function transfer(p){
     if(p === cur()) floatText("−100", true);
     sfx.wrong(); toast(`${p.name} left without being seen.`, "alarm"); dirty = true; return;
   }
-  if(LV.mode==="floor" && p.active && p.active.urgent && Math.random() < 0.2){ expire(p); return; } // rare on the floor
+  if(LV.mode==="floor" && !LV.pp && p.active && p.active.urgent && Math.random() < 0.2){ expire(p); return; } // rare on the floor
   p.health = 0; G.transfers++;
   G.score = Math.max(0, G.score - 150);
   p.state = "leaving"; p.out = "icu"; p.timer = 2.6; p.active = null; p.queue = [];
@@ -1798,7 +2115,7 @@ function renderAll(){
       if(i<a.step) return i===a.step-1 ? `<span class="chip done">✓ ${a.step} done</span>` : "";
       if(i>a.step+2){ const left = a.steps.slice(a.step+3).filter(x=>x.k!=="go").length; return i===a.step+3 && left ? `<span class="chip more">+${left} more</span>` : ""; }
       return `<span class="chip ${i===a.step?"now":""}">${ic}${esc(s.l)}</span>`; }).join("")
-    }</div>${st.pick ? (G.picking ? `<div class="picks"><small>Which PRN?</small>${st.pick.map((o,i)=>`<button class="orbtn pick" data-pick="${i}">${esc(o.b)}</button>`).join("")}</div>` : "") : G.cpr>0 && !st.during && st.k!=="cpr" ? `<button class="orbtn ffbig" id="ffBig">⏩ Fast-forward CPR to the rhythm check</button>` : st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
+    }</div>${st.pick ? (G.picking ? `<div class="picks"><small>${esc(st.q || "Which PRN?")}</small>${st.pick.map((o,i)=>`<button class="orbtn pick" data-pick="${i}">${esc(o.b)}</button>`).join("")}</div>` : "") : G.cpr>0 && !st.during && st.k!=="cpr" ? `<button class="orbtn ffbig" id="ffBig">⏩ Fast-forward CPR to the rhythm check</button>` : st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
     const fb = $("#ffBig"); if(fb) fb.addEventListener("click", fastForward);
     o.querySelectorAll("[data-pick]").forEach(b=>b.addEventListener("click", ()=>choosePick(+b.dataset.pick)));
     const gb = $("#goBtn"); if(gb) gb.addEventListener("click", ()=>{ if(playing()) rushTo(cur()); });
@@ -1810,9 +2127,10 @@ function renderAll(){
       const nx = G.icu.sched.filter(sc=>sc.next!==Infinity).sort((a,b)=>a.next-b.next)[0];
       h = "Stable for now"; d = nx ? `Keep titrating. Next up: ${CARE[nx.k].t.toLowerCase()}.` : "Keep titrating.";
     }
+    else if(p.state==="resting" && LV.ld){ h = p.queue.length ? "Laboring comfortably" : p.fetal ? "Baby looks good" : "Recovering with baby"; d = p.queue.length ? "Keep an eye on the fetal monitor." : p.fetal ? "Almost ready to go." : "Transfer to postpartum soon."; }
     else if(p.state==="resting"){ h = p.queue.length ? "Resting comfortably" : "Ready for discharge"; d = p.queue.length ? "Go check on your other patients." : "Paperwork is almost done."; }
     else if(p.state==="leaving"){
-      h = p.out==="passed" ? "Rest in peace" : p.out==="admit" ? "Admitted upstairs" : p.out==="lwbs" ? "Left without being seen" : p.out==="home" ? (LV.mode==="er" ? "Discharged home" : "Going home!") : p.out==="go" ? DEST[p.dest].out : p.out==="esc" ? "Moving to the ICU" : p.out==="expired" ? "Patient expired" : "Transferred to ICU";
+      h = p.out==="passed" ? "Rest in peace" : p.out==="admit" ? (LV.ld ? "Off to postpartum" : "Admitted upstairs") : p.out==="lwbs" ? "Left without being seen" : p.out==="home" ? (LV.mode==="er" ? "Discharged home" : "Going home!") : p.out==="go" ? DEST[p.dest].out : p.out==="esc" ? "Moving to the ICU" : p.out==="expired" ? "Patient expired" : "Transferred to ICU";
       d = p.out==="passed" ? "Take a moment. Sometimes everything isn't enough." : (p.out==="admit" || (p.out==="home" && p.dispoTxt)) ? p.dispoTxt : p.out==="lwbs" ? "Waiting too long sends people home untreated. Keep the board moving." : p.out==="home" ? "Great care today." : p.out==="go" ? "The team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : p.out==="expired" ? (LV.mode==="rrt" ? "Take a breath. The next call is coming." : "Take a breath. Your other patients still need you.") : "They'll get closer monitoring there.";
     }
     else if(LV.mode==="icu"){ h = "Bed being cleaned"; d = G.icu.usedNext || !LV.next ? "Keep the drips ready." : "A new admission is on the way."; }
@@ -1879,6 +2197,7 @@ function updateLive(){
   if(ak!==artKey){ artKey = ak; $("#ptArt").innerHTML = bedSVG(p); $("#ptAv").innerHTML = miniSVG(p); }
   renderVitals(p);
   updateDrips();
+  updateFetal(p);
   G.beds.forEach((b,i)=>{
     const c = cards[i], bh = clamp(b.health,0,100);
     c.fill.style.width = (b.state==="empty"?0:bh)+"%";
@@ -2000,7 +2319,7 @@ function showStart(){
     <p class="sub">A nurse who floats wherever she's needed. New here? Start with the tutorial.</p>
     <h3 class="pick">Pick a shift</h3>
     <div class="levels">${LEVELS.map((l,i)=>{ const s = saved[l.n]||{};
-      const head = (i===0 || LEVELS[i-1].unit!==l.unit) ? `<div class="unit-head"><b>${l.unit}</b>${(l.unit==="ER" || l.unit==="ICU") ? `<span class="hearts-note">${heartRow(heartsNow())}${heartsNow()<3 ? ` · next heart in ${mmss(nextHeartIn())}` : ""}</span>` : ""}</div>` : "";
+      const head = (i===0 || LEVELS[i-1].unit!==l.unit) ? `<div class="unit-head"><b>${l.unit}</b>${(l.unit==="ER" || l.unit==="ICU" || l.unit==="Labor & Delivery") ? `<span class="hearts-note">${heartRow(heartsNow())}${heartsNow()<3 ? ` · next heart in ${mmss(nextHeartIn())}` : ""}</span>` : ""}</div>` : "";
       return head + `<button class="lvl" data-l="${l.n}"><span class="num">${l.tag||l.n}</span><span class="txt"><b>${esc(l.name)}</b><small>${esc(l.blurb)}</small></span><span class="st">${starsRow(s.stars||0)}${s.best?`<small>${s.best} pts</small>`:""}</span></button>`; }).join("")}</div>
     <details class="howto"><summary>How to play</summary>
     <ul>
@@ -2022,7 +2341,7 @@ function startLevel(n){
   if((target.mode==="er" || (target.mode==="icu" && !target.tutorial)) && heartsNow() < 1){
     ov.hidden = false;
     ov.innerHTML = `<div class="card"><h1>Out of hearts</h1><p class="sub">The ER needs you rested. Your next heart comes back in <b id="hTimer">${mmss(nextHeartIn())}</b>.</p>
-      <p class="fine">Hearts come back one every 30 minutes, up to 3. Med-Surg, Rapid Response and the tutorials don't use hearts.</p>
+      <p class="fine">Hearts come back one every 30 minutes, up to 3. Med-Surg, Postpartum, Rapid Response and the tutorials don&rsquo;t use hearts.</p>
       <button class="go" id="listBtn">Back to the shift list</button></div>`;
     $("#listBtn").addEventListener("click", showStart);
     const iv = setInterval(()=>{ const el = document.getElementById("hTimer"); if(!el){ clearInterval(iv); return; } if(heartsNow()>0){ clearInterval(iv); showStart(); return; } el.textContent = mmss(nextHeartIn()); }, 1000);
