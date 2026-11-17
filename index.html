@@ -347,6 +347,8 @@ const F = {
     s:[S("labs","Fingerstick glucose","FSBG","Glucose 58 mg/dL (low)."), S("meds","Give oral glucose","Glucose","Awake and can swallow, so 15 g oral glucose given. Recheck in 15 minutes.")], r:1.6},
   am:{t:"Morning labs", d:"CBC due this morning.", s:[S("labs","Draw a CBC","CBC","Hemoglobin 10.8, WBC 8.1. All stable.")], r:0.7},
   mg:{t:"Low magnesium", d:"Morning labs are back.", s:[S("labs","Check the labs","Mag level","Magnesium 1.5 mg/dL (low)."), S("meds","Replace magnesium","Mag","Magnesium sulfate 2 g IV running over 2 hours.")], r:0.9},
+  phos:{t:"Low phosphorus", d:"Morning labs are back. Feeling weak.", s:[S("labs","Check the labs","Phos","Phosphorus 1.7 mg/dL (low)."), S("meds","Replace phosphorus","Phos","Sodium phosphate 15 mmol IV running over 4 hours.")], r:0.9},
+  ca:{t:"Low calcium", d:"Tingling around the lips and fingertips.", s:[S("labs","Ionized calcium","iCa","Ionized calcium 0.98 mmol/L (low)."), S("meds","Replace calcium","Ca gluc","Calcium gluconate 2 g IV running.")], r:1.1},
   k:{t:"Low potassium", d:"Morning labs are back.", s:[S("labs","Check the labs","BMP","Potassium 3.2 mEq/L (low)."), S("meds","Replace potassium","KCl","Potassium chloride 20 mEq by mouth given.")], r:0.9}
 };
 /* sudden events. surg = surgical patients only; blood = only after a transfusion; leaves = patient leaves the unit at the end */
@@ -377,6 +379,8 @@ const U = {
     s:[VIT(), S("labs","Fingerstick glucose","FSBG","Glucose 112 mg/dL. Not a low blood sugar, so think stroke."), S("esc","Call a stroke alert","","Stroke alert called. The stroke team is on the way."), S("go","Rush to CT","ct","")], r:2.6},
   stemi:{t:"Chest pain!", d:"Crushing chest pain. Sweaty and pale.", leaves:true, v:{hr:104,sbp:148,dbp:90},
     s:[VIT(), S("labs","12-lead EKG","EKG","ST elevation in leads II, III and aVF (abnormal). This is a STEMI."), S("meds","Chewable aspirin","Aspirin","Aspirin 324 mg chewed."), S("esc","Call a STEMI alert","","STEMI alert called. Cath lab team activated."), S("go","Rush to cath lab","cath","")], r:2.6},
+  hyperk:{t:"Potassium is high!", d:"Lab called a critical potassium of 6.8. Feels weak.", v:{hr:52},
+    s:[S("labs","Stat EKG","EKG","Peaked T waves (abnormal). Heart rate 52 (low)."), S("meds","Protect the heart","Ca gluc","Calcium gluconate 1 g IV given to stabilize the heart."), S("meds","Shift potassium","Insulin","Regular insulin 10 units IV given with dextrose 50% 25 g."), S("meds","Remove potassium","Lokelma","Sodium zirconium cyclosilicate (Lokelma) 10 g by mouth given. Recheck potassium in 2 hours.")], r:2.4},
   unresp:{t:"Suddenly unresponsive!", d:"Won't wake to voice or a sternal rub. Skin cold and clammy.", v:{hr:116,rr:12},
     s:[VIT(), S("labs","Fingerstick glucose","FSBG","Glucose 34 mg/dL (critically low)."), S("meds","IV dextrose","D50","Dextrose 50% 25 g IV push given. Eyes open, asking what happened.")], r:2.9}
 };
@@ -393,14 +397,14 @@ const GIB2 = {t:"Vomiting blood!", d:"Bright red blood. Lightheaded and pale.", 
 /* ---------- levels ---------- */
 const LEVELS = [
   {n:1, name:"Day shift on 4 West", blurb:"Learn the ropes. Pain, wounds, blood and a COPD flare who needs the ICU.",
-   first:[P.kneepain,P.hgb,P.pna,P.dsg,P.dehyd,P.cell,P.hypo,P.inc,P.lowk], follow:[F.pain,F.lostiv,F.nausea,F.pressure,F.lowsugar,F.am],
+   first:[P.kneepain,P.hgb,P.pna,P.dsg,P.dehyd,P.cell,P.hypo,P.inc,P.lowk], follow:[F.pain,F.lostiv,F.nausea,F.pressure,F.lowsugar,F.am,F.k,F.ca],
    urgent:[U.desat,U.bleed,U.fever,U.sleepy,U.hives,U.dehisc], doom:[COPD,COPD2,COPD3], drain:1, ev:[20,30], stars:[1500,2400]},
-  {n:2, name:"Busy Monday", blurb:"Sicker patients. Sepsis, A-fib, blood reactions and BP drops that need a rapid response.",
-   first:[P.gib,P.hgb,P.pna,P.dehyd,P.cell,P.inc,P.lowmg,P.hf], follow:[F.pain,F.lostiv,F.nausea,F.mg,F.lowsugar,F.k],
-   urgent:[U.afib,U.sepsis,U.rxn,U.bpdrop,U.infbleed,U.desat,U.hives], doom:[P.gib,GIB2], drain:1.12, ev:[17,26], stars:[1600,2600]},
+  {n:2, name:"Busy Monday", blurb:"Sicker patients. Sepsis, A-fib, high potassium, blood reactions and BP drops that need a rapid response.",
+   first:[P.gib,P.hgb,P.pna,P.dehyd,P.cell,P.inc,P.lowmg,P.hf], follow:[F.pain,F.lostiv,F.nausea,F.mg,F.lowsugar,F.phos,F.ca],
+   urgent:[U.afib,U.sepsis,U.rxn,U.bpdrop,U.infbleed,U.desat,U.hives,U.hyperk], doom:[P.gib,GIB2], drain:1.12, ev:[17,26], stars:[1600,2600]},
   {n:3, name:"Short-staffed Saturday", blurb:"Anything goes. Strokes to CT, chest pain to the cath lab, and patients who won't wake up.",
-   first:[P.hf,P.gib,P.pna,P.hypo,P.cell,P.inc,P.lowmg,P.hgb,P.kneepain], follow:[F.pain,F.lostiv,F.mg,F.lowsugar,F.nausea,F.pressure],
-   urgent:[U.stroke,U.stemi,U.unresp,U.bpdrop,U.rxn,U.sleepy,U.afib,U.sepsis,U.dehisc], doom:[COPD,COPD2,COPD3], drain:1.22, ev:[15,23], stars:[1700,2800]}
+   first:[P.hf,P.gib,P.pna,P.hypo,P.cell,P.inc,P.lowmg,P.hgb,P.kneepain], follow:[F.pain,F.lostiv,F.mg,F.phos,F.ca,F.lowsugar,F.nausea],
+   urgent:[U.stroke,U.stemi,U.unresp,U.bpdrop,U.rxn,U.sleepy,U.afib,U.sepsis,U.dehisc,U.hyperk], doom:[COPD,COPD2,COPD3], drain:1.22, ev:[15,23], stars:[1700,2800]}
 ];
 
 const NAMES = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Begay","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
