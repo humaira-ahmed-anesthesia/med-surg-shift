@@ -68,11 +68,11 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .chip{display:flex;align-items:center;gap:4px;padding:3px 7px 3px 4px;border-radius:99px;background:#f1f6f4;font-size:11.5px;font-weight:800;color:var(--muted);line-height:1.15}
 .chip .ic{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;flex:none}
 .chip .ic svg{width:16px;height:16px}
-.chip.done{text-decoration:line-through;opacity:.55}
+.chip.done{opacity:.7;padding-left:8px}
 .chip.now{background:#fff3cf;color:var(--ink);box-shadow:0 0 0 2px var(--glow)}
 
-.bedwrap{position:relative;flex:none;height:76px;display:grid;place-items:end center}
-.bedwrap svg.pt{height:76px;width:auto;overflow:visible}
+.bedwrap{position:relative;flex:none;height:64px;display:grid;place-items:end center}
+.bedwrap svg.pt{height:64px;width:auto;overflow:visible}
 .toast{position:absolute;left:50%;top:0;transform:translate(-50%,-6px);background:var(--ink);color:#fff;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:12px;width:max-content;max-width:94%;text-align:center;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:3}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.alarm{background:#c9483b}
@@ -225,6 +225,9 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .fd.res{background:rgba(255,255,255,.55);font-weight:600}
 .fd.res.new{animation:resIn .3s ease-out;background:#fff}
 .feed .lbl{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:4px 2px 0}
+button.chip.now{cursor:pointer;animation:glow 1s ease-in-out infinite}
+button.chip.now:active{transform:scale(.96)}
+.chip .tapit{margin-left:4px;font-size:10px;font-weight:800;color:#8a5a00;background:#ffe39a;border-radius:99px;padding:1px 6px}
 /* chart */
 .chart h1{font-size:22px}
 .chart dl{margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px}
@@ -281,7 +284,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
     <aside class="list" id="list" aria-label="Your patients"></aside>
   </main>
 
-  <div class="tray" id="tray" aria-label="Interventions"></div>
+  <div class="tray" id="tray" aria-label="Interventions" hidden></div>
 
   <div class="help">
     <button class="hbtn" id="charge">
@@ -891,9 +894,12 @@ function renderAll(){
     const a = p.active, st = a.steps[a.step];
     if(a.urgent) o.classList.add("urgent");
     o.innerHTML = `<h2>${esc(a.def.t)}</h2><p>${esc(a.def.d)}</p><div class="steps">${
-      a.steps.map((s,i)=>s.k==="go"?"":`<span class="chip ${i<a.step?"done":i===a.step?"now":""}"><span class="ic" style="background:${TOOLS[s.k].tint};color:${TOOLS[s.k].c}">${ICON[s.k]}</span>${esc(s.l)}</span>`).join("")
+      a.steps.map((s,i)=>{ if(s.k==="go") return ""; const ic = `<span class="ic" style="background:${TOOLS[s.k].tint};color:${TOOLS[s.k].c}">${ICON[s.k]}</span>`;
+      if(i<a.step) return i===a.step-1 ? `<span class="chip done">✓ ${a.step} done</span>` : "";
+      return i===a.step ? `<button class="chip now" id="nowChip">${ic}${esc(s.l)}<span class="tapit">Tap</span></button>` : `<span class="chip">${ic}${esc(s.l)}</span>`; }).join("")
     }</div>${st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
     const gb = $("#goBtn"); if(gb) gb.addEventListener("click", ()=>{ if(playing()) rushTo(cur()); });
+    const nc = $("#nowChip"); if(nc) nc.addEventListener("click", ()=>doTask(G.current, "step"));
   } else {
     o.classList.add("calm");
     let h, d;
@@ -994,7 +1000,7 @@ function feedTasks(){
   const out = [];
   G.beds.forEach((b,i)=>{
     const st = curStep(b);
-    if(st){
+    if(st && i!==G.current){
       const label = st.k==="go" ? DEST[st.b].btn : st.k==="esc" ? st.l.replace(/^Escalate: /,"") : st.l;
       out.push({i, k:st.k, label, urgent:b.active.urgent, here:i===G.current, prob:b.active.def.t.replace("!",""), kind:"step"});
     }
@@ -1051,7 +1057,7 @@ function showStart(){
     <h1>Med-Surg Shift</h1>
     <p class="sub">4 West · 3 patients · 07:00 to 19:00</p>
     <ul>
-      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. The next step <b>glows</b>. Tap it. Blood is given through <b>Meds</b>.</span></li>
+      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. <b>Tap the glowing step</b>, or any task card in the feed, to do it.</span></li>
       <li><span class="n">2</span><span><b>Assess</b> every patient once a shift. An orange ring means they haven&rsquo;t been assessed yet. Some problems start with an assessment too.</span></li>
       <li><span class="n">3</span><span>The <b>monitor</b> refreshes vitals on its own. Red numbers mean trouble. Tap <b>Vitals</b> to check now.</span></li>
       <li><span class="n">4</span><span>Tap a patient on the right to go to their room. Tap the <b>H&amp;P</b> folder to read their history. The game pauses while it&rsquo;s open.</span></li>
