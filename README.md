@@ -1,6 +1,6 @@
 # Float Pool
 
-*Formerly Med-Surg Shift.* You're a float pool nurse sent wherever the hospital needs you: Med-Surg, Rapid Response and the ER.
+*Formerly Med-Surg Shift.* You're a float pool nurse sent wherever the hospital needs you: Med-Surg, Rapid Response, the ER and the ICU.
 
 A cozy nursing time-management game, in the spirit of cooking games like Cooking Fever, but the "recipes" are real nursing interventions.
 
@@ -10,6 +10,7 @@ A cozy nursing time-management game, in the spirit of cooking games like Cooking
 - You're the nurse on 4 West with 3 patients. A 12-hour shift (07:00–19:00) lasts about 3 minutes.
 - A guided tutorial, then three floor levels (Day shift on 4 West, Busy Monday, Short-staffed Saturday), each with its own patients and emergencies.
 - **ER (10 levels):** 3 bays growing to 6, patients arriving all shift from a pool of about 30 real ER presentations (abdominal pain that turns out to be appendicitis or an ectopic, sepsis, DKA, overdoses with a call to poison control, a precipitous delivery, a farm injury needing a tourniquet, STEMI, stroke, intubations). You do the nursing actions; the MD's steps (ultrasound, intubation, stitches, delivery) play out in the feed. Call for help brings the whole team. Three hearts: lose one when a patient dies, and they come back one every 30 minutes.
+- **ICU (short tutorial + 10 levels):** one patient, all shift. Titrate drips with − / + to keep a number in its goal range (norepinephrine for MAP, insulin for glucose, propofol for sedation, nicardipine, 3% saline, nitroglycerin, epinephrine, and hourly Parkland-style fluids for burns). Hourly cares come due on a clock (EVD level & zero, chest tube checks, oral care, turns, burn dressings with premedication), and alarms interrupt (vent alarms → call RT, ICP spikes → call neurosurgery, tamponade, escharotomy, carbon monoxide and cyanide). Levels cover medical-surgical, trauma, neuro, cardiac and burn ICUs. The H&P has a Lines & drains tab explaining every device. Three patients die despite everything; that never costs a heart or points, and in two of those levels a new admission arrives afterward.
 - **Rapid Response Nurse:** one patient at a time across the hospital. Run a pulseless VT code and an asystole/PEA code from hyperkalemia (CPR cycles you can fast-forward, shocks, epinephrine, amiodarone, H's and T's), a stroke to CT and TNK, and a liver transplant hemorrhage with massive transfusion (whole blood, PRBCs, plasma, platelets, cryo) before rushing to surgery. Call for more help brings the code team, stroke team or blood bank. If you're too slow, the patient expires.
 - A vitals monitor refreshes on its own. Abnormal numbers turn red, and some emergencies start with a vitals check.
 - Assess every patient once a shift (an orange ring means not yet). Some problems start with an assessment, like a respiratory exam before a neb.
