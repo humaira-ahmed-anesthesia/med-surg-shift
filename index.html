@@ -2912,6 +2912,9 @@ function floatText(txt, minus){
 const ov = $("#overlay");
 let saved = {};
 try{ saved = JSON.parse(localStorage.getItem("medsurg-levels") || "{}") || {}; }catch(e){ saved = {}; }
+/* career points started counting after some shifts were already played: credit every level's best score */
+{ const bestSum = Object.keys(saved).filter(k=>/^\d+$/.test(k)).reduce((a,k)=>a + ((saved[k]||{}).best||0), 0);
+  if((saved.career||0) < bestSum){ saved.career = bestSum; try{ localStorage.setItem("medsurg-levels", JSON.stringify(saved)); }catch(e){} } }
 const save = () => { try{ localStorage.setItem("medsurg-levels", JSON.stringify(saved)); }catch(e){} };
 const STAR = on => `<svg viewBox="0 0 24 24"><path d="M12 2.8l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.6l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="${on?"#ffcf5c":"#e6eeeb"}" stroke="${on?"#e8a92a":"#cfe3dc"}" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
 /* career rank: every point from every shift counts (inspired by Benner's novice-to-expert model) */
