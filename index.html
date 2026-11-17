@@ -329,6 +329,8 @@ button.chip.now:active{transform:scale(.96)}
 .unitbox .hearts-note{font-size:11px}
 .lvl.locked{opacity:.55}
 .lvl.locked .num{background:#cfd8d5;font-size:15px}
+#ptAv{cursor:pointer}
+.clock.review::after,#clock.review::after{content:"½×";margin-left:5px;font-size:11px;font-weight:800;color:#8a7cc4;vertical-align:middle}
 .hp-tabs{display:flex;gap:6px;margin-bottom:10px}
 .hp-tabs .tab{flex:1;padding:7px 8px;border-radius:10px;background:var(--wall);font-weight:800;font-size:13px;color:var(--muted)}
 .hp-tabs .tab.on{background:var(--accent);color:#fff}
@@ -3123,11 +3125,24 @@ document.addEventListener("visibilitychange", ()=>{ if(document.hidden && playin
 
 /* ---------- loop ---------- */
 let last = 0;
+/* secret review speed: tap the patient's face to play the whole shift at half speed (the snail still slows it further) */
+const REVIEW_RATE = 0.5;
+let reviewSlow = false;
+try{ reviewSlow = localStorage.getItem("fp-review") === "1"; }catch(e){}
+function showReviewBadge(){ document.getElementById("clock").classList.toggle("review", reviewSlow); }
+document.getElementById("ptAv").addEventListener("click", ()=>{
+  reviewSlow = !reviewSlow;
+  try{ localStorage.setItem("fp-review", reviewSlow ? "1" : "0"); }catch(e){}
+  showReviewBadge(); sfx.tap();
+  toast(reviewSlow ? "Review speed on: the whole shift runs at half speed. Tap the face again to turn it off." : "Review speed off: back to normal speed.");
+});
+showReviewBadge();
 function frame(ts){
   const dt = last ? Math.min(0.1, (ts-last)/1000) : 0; last = ts;
   if(playing()){
     let gdt = dt;
     if(G.slowLeft>0){ G.slowLeft = Math.max(0, G.slowLeft - dt); gdt = dt*SLOW_RATE; }
+    if(reviewSlow) gdt *= REVIEW_RATE;
     update(gdt);
     checkCoach();
   }
