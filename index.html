@@ -320,6 +320,15 @@ button.chip.now:active{transform:scale(.96)}
 .rk-sub{font-size:11px;font-weight:700;color:var(--muted)}
 .card button:disabled{opacity:.45;cursor:default}
 .promo{text-align:center;font-weight:800;color:#a8700f;background:#fff4d6;border-radius:12px;padding:6px;margin:6px 0 0}
+.unitbox{border-radius:14px;background:var(--wall);margin:0 0 8px;padding:2px 8px}
+.unitbox>summary{list-style:none;display:flex;align-items:center;gap:8px;padding:9px 4px;cursor:pointer;font-family:var(--display);font-size:16px}
+.unitbox>summary::-webkit-details-marker{display:none}
+.unitbox>summary::after{content:"▾";margin-left:auto;color:var(--muted);transition:transform .2s}
+.unitbox[open]>summary::after{transform:rotate(180deg)}
+.unitbox .ugot{font-family:var(--body,inherit);font-size:12px;font-weight:800;color:#c99a3a}
+.unitbox .hearts-note{font-size:11px}
+.lvl.locked{opacity:.55}
+.lvl.locked .num{background:#cfd8d5;font-size:15px}
 .hp-tabs{display:flex;gap:6px;margin-bottom:10px}
 .hp-tabs .tab{flex:1;padding:7px 8px;border-radius:10px;background:var(--wall);font-weight:800;font-size:13px;color:var(--muted)}
 .hp-tabs .tab.on{background:var(--accent);color:#fff}
@@ -622,7 +631,7 @@ const GIB2 = {t:"Vomiting blood!", d:"Bright red blood. Lightheaded and pale.", 
 const FRIENDS_W = ["Kathryn Nutting","Amanda Mah","Emmy McCluhan","Sharon Prince","Liesl Suandi","Kathy Reed","Afshan Hai","Humaira Ahmed","Anam Rahman","Noreen York","Alisha Kent","Marissa Williams","Sarah Arif","Aafreen Laateef"];
 const FRIENDS_M = ["Ray Calderon","Rocky Calderon","Peji Prince","Matt Ferdinand","Sean Oz","AJ Hai","Haroon Gotham","Khalid Clark","Haroon Ahmed","Jawaad Armstrong","Umar Turing"];
 const sexOf = n => FRIENDS_M.includes(n) ? "man" : FRIENDS_W.includes(n) ? "woman" : /^Mr\./.test(n) ? "man" : "woman";
-const cardName = n => /^(Mrs?\.|Ms\.)\s/.test(n) ? n.replace(/^(Mrs?\.|Ms\.)\s*/,"") : n.split(" ")[0];
+const cardName = n => /^(Mrs?\.|Ms\.)\s/.test(n) ? n.replace(/^(Mrs?\.|Ms\.)\s*/,"") : /^Baby\s/.test(n) ? n.split(" ").pop() : n.split(" ")[0];
 const C = (k,l,b,fx,x) => ({k,l,b,fx,...(x||{})});
 const VT_ARREST = {allHands:1, t:"Code blue!", d:"Found unresponsive by the tech. Not breathing.", code:true, rh:"Unknown: pads not on yet", r:2.4, s:[
   C("assess","Check pulse & breathing","Assess","No pulse. Not breathing. Call for help!"),
@@ -1462,6 +1471,255 @@ const PEDS_LEVELS = [
   pedsLevel(10, {name:"Full peds surgery", blurb:"Everything at once on peds surgery.", first:[PS.appy,PS.tonsil,PS.pyloric,PS.spinal,PS.cleft,PS.burn,PS.elbow], follow:[PSF.pain,PSF.nausea,PSF.is,PSF.pca,PSF.lostiv], urgent:[PSU.tonsilBleed,PSU.compartment,PSU.oversed,PSU.abscess,PSU.hypoK,PSU.seizure], doom:[PSD1,PSD2], drain:1.22, ev:[15,23], stars:[1900,3000]})
 ];
 
+/* ---------- more Med-Surg ---------- */
+const MS = {
+  etoh:{t:"Alcohol withdrawal", d:"Shaky, sweaty and anxious. Last drink 2 days ago.", dx:"Alcohol withdrawal", pmh:"Alcohol use disorder", v:{hr:112,sbp:156,dbp:94}, r:1.2, s:[
+    C("assess","CIWA score","CIWA","CIWA 14: tremor, sweating, anxious (abnormal)."),
+    C("meds","Thiamine before any sugar","Thiamine","Thiamine 100 mg IV."),
+    C("meds","Lorazepam per CIWA","Ativan","Lorazepam 1 mg IV. CIWA down to 6.")]},
+  cdiff:{t:"Diarrhea, 6 times today", d:"On antibiotics for a week. Cramping.", dx:"C. diff colitis", r:1.0, s:[
+    C("hands","Contact precautions","Precautions","Gown and gloves, sign on the door. Wash with soap and water. Sanitizer doesn't kill C. diff."),
+    C("labs","Stool test","C. diff","C. diff positive (abnormal)."),
+    C("meds","Oral vancomycin","Vanco PO","Vancomycin 125 mg by mouth.")]},
+  hipfx:{t:"Hip fracture, post-op day 1", d:"Wants to stay in bed.", dx:"Left hip fracture repair, post-op day 1", surg:true, r:1.0, s:[
+    C("assess","Pulses, feeling & pain","Assess","Foot warm, pulse strong. Pain 5/10."),
+    C("meds","Pain medicine before PT","Oxycodone","Oxycodone 5 mg 30 minutes before PT."),
+    C("hands","Up to the chair with PT","Chair","Up to the chair. Hip precautions taught.")]},
+  highSugar:{t:"Glucose 382", d:"Type 2 diabetes, on steroids for her lungs.", dx:"Steroid-induced high blood sugar", pmh:"Type 2 diabetes", r:1.0, s:[
+    C("labs","Fingerstick","FSBG","Glucose 382 (high). No ketones."),
+    C("meds","Correction insulin","Lispro","Insulin lispro per sliding scale."),
+    C("assess","Teach & plan","Teach","Talked about why steroids raise sugar. Diabetes team consulted.")]},
+  delirium:{t:"Confused at night", d:"Thinks it's 1985 and wants to go home.", dx:"Pneumonia with delirium", pmh:"Dementia", r:1.0, s:[
+    C("assess","Delirium screen (CAM)","CAM","Positive for delirium (abnormal)."),
+    C("hands","Reorient: glasses, lights, family","Reorient","Glasses on, lights on for the day, daughter on speakerphone. Calmer."),
+    C("labs","Look for causes","Labs","Urine sent. Sodium 131 (low).")]},
+  pe:{t:"Blood clot in the lung", d:"Short of breath since yesterday.", dx:"Pulmonary embolism", v:{spo2:92,hr:108}, r:1.2, s:[
+    C("o2","Oxygen","NC 2 L","2 L nasal cannula. SpO₂ 95%."),
+    C("meds","Heparin drip","Heparin","Weight-based heparin bolus and drip."),
+    C("labs","Anti-Xa in 6 hours","Anti-Xa","Lab timed for 6 hours.")]},
+  ileus:{t:"Belly surgery, day 2", d:"Bloated, no gas yet.", dx:"Bowel resection, post-op day 2", surg:true, r:0.9, s:[
+    C("assess","Bowel sounds & belly","Assess","Quiet bowel sounds, a little distended."),
+    C("hands","Walk in the hall","Walk","Walked two laps. Chewing gum helps the gut wake up.")]}
+};
+const MSF = {
+  retention:{t:"Can't pee after surgery", d:"Belly feels full.", r:1.0, s:[C("assess","Bladder scan","Scan","650 mL in the bladder (high)."), C("hands","Straight cath","Cath","650 mL drained. Much more comfortable.")]},
+  pump:{t:"IV pump beeping", d:"Downstream occlusion alarm.", r:0.8, s:[C("iv","Trace the line","Check","Clamp was closed under the blanket. Unclamped, running again.")]},
+  ama:{t:"Wants to leave", d:"\"I'm going home. I've got a dog to feed.\"", r:0.8, s:[C("assess","Listen & update the MD","Listen","Neighbor will feed the dog. Staying for one more night of antibiotics.")]},
+  turn:{t:"Turn & reposition", d:"Every 2 hours.", r:0.7, s:[C("hands","Turn the patient","Turn","Turned, heels floated, skin intact.")]}
+};
+const MSU = {
+  fall:{t:"Found on the floor!", d:"Tried to walk to the bathroom alone.", v:{hr:104}, r:1.8, s:[
+    C("assess","Check for injury before moving","Assess","Hit her head (abnormal). She's on apixaban, a blood thinner."),
+    C("hands","Help up with the lift","Lift","Back to bed with the lift and 3 people."),
+    C("labs","Neuro checks & CT head","CT","CT head: no bleed. Neuro checks every hour, bed alarm on.")]},
+  wdSeizure:{t:"Seizure!", d:"Shaking all over.", v:{hr:138,spo2:88}, r:2.4, only:p=>/Alcohol/.test(p.pmh.join()), s:[
+    C("assess","Safety: side, pad rails, time it","Safety","On her side, rails padded, timer started."),
+    C("meds","Lorazepam IV","Ativan","Lorazepam 2 mg IV. Seizure stopped."),
+    C("o2","Oxygen","NC","Oxygen on, SpO₂ back to 95%.")]},
+  oversed:{t:"Too sleepy!", d:"Hard to wake after pain medicine. RR 8.", v:{rr:8,spo2:86}, r:2.4, s:[
+    C("assess","Sternal rub","Assess","Barely rousable, pinpoint pupils (abnormal)."),
+    C("o2","Oxygen & stay with her","O₂","Oxygen on."),
+    C("meds","Naloxone","Narcan","Naloxone 0.4 mg IV. Awake and breathing 16 a minute.")]},
+  pulling:{t:"Pulling at the IV!", d:"Agitated and confused.", r:1.6, s:[
+    C("assess","Calm & reorient","Calm","Soft voice, told her where she is."),
+    C("hands","Safety: bed low, bed alarm, sitter","Safety","Bed low, alarm on, sitter at the bedside. No restraints needed.")]}
+};
+const SEP1 = {t:"Fever & confused", d:"Temp 38.9 °C, new confusion.", dx:"Urinary tract infection", v:{t:38.9,hr:118,sbp:98,dbp:56}, r:1.6, s:[
+  C("labs","Lactate & cultures","Lactate","Lactate 3.4 (high)."),
+  C("iv","30 mL/kg fluid bolus","Bolus","Fluid bolus running."),
+  C("meds","Antibiotics within the hour","Pip-tazo","Piperacillin-tazobactam IV.")]};
+const SEP2 = {t:"BP 76/40 after fluids!", d:"Mottled knees.", v:{t:39.2,hr:132,sbp:76,dbp:40}, r:2.4, s:[
+  C("assess","Assess","Assess","Mottled knees, cool hands (abnormal)."),
+  C("esc","Call rapid response","","Rapid response: needs a pressor. Moving to the ICU.")]};
+const MS_TOOLS = ["assess","hands","iv","labs","meds","wound","o2"];
+const msLevel = (num, o) => Object.assign({n:10+num, tag:String(num), num, unit:"Med-Surg", mode:"floor", tools:MS_TOOLS}, o);
+const MS_LEVELS = [
+  msLevel(4, {name:"Night shift on 4 West", blurb:"Withdrawal, a fall and a patient who's too sleepy.", first:[P.hgb,P.pna,P.cell,MS.etoh,MS.hipfx,P.lowk], follow:[F.pain,F.lostiv,MSF.retention,MSF.pump,F.nausea], urgent:[U.desat,U.fever,MSU.fall,MSU.wdSeizure,MSU.oversed], doom:[COPD,COPD2,COPD3], drain:1.25, ev:[15,22], stars:[1800,2900]}),
+  msLevel(5, {name:"Isolation hallway", blurb:"C. diff, delirium and contact precautions.", first:[MS.cdiff,MS.delirium,P.dehyd,P.pna,P.hf,P.inc], follow:[F.pain,F.dizzy,MSF.ama,MSF.turn,F.k], urgent:[MSU.pulling,MSU.fall,U.sepsis,U.bpdrop,U.desat], doom:[SEP1,SEP2], drain:1.27, ev:[15,22], stars:[1900,3000]}),
+  msLevel(6, {name:"Post-op Monday", blurb:"Hips, bowels and a bladder that won't empty.", first:[MS.hipfx,MS.ileus,P.kneepain,P.dsg,P.hgb,P.inc], follow:[MSF.retention,F.pain,F.nausea,MSF.pump,F.lostiv], urgent:[U.bleed,U.dehisc,MSU.oversed,U.rxn,MSU.fall], doom:[P.gib,GIB2], drain:1.3, ev:[14,21], stars:[2000,3100]}),
+  msLevel(7, {name:"Sugar and clots", blurb:"Steroid sugars, a pulmonary embolism and a heparin drip.", first:[MS.highSugar,MS.pe,P.hypo,P.hf,P.lowmg,P.cell], follow:[F.lowsugar,F.mg,F.k,MSF.pump,F.sob], urgent:[U.desat,U.afib,U.hyperk,U.stemi,MSU.fall], doom:[SEP1,SEP2], drain:1.33, ev:[14,21], stars:[2100,3250]}),
+  msLevel(8, {name:"Full moon on 4 West", blurb:"Withdrawal, delirium and everyone pulling at their lines.", first:[MS.etoh,MS.delirium,MS.cdiff,P.gib,P.pna,P.dehyd], follow:[MSF.ama,F.pain,MSF.turn,F.lostiv,F.dizzy], urgent:[MSU.wdSeizure,MSU.pulling,MSU.fall,U.stroke,U.unresp], doom:[COPD,COPD2,COPD3], drain:1.37, ev:[13,20], stars:[2200,3400]}),
+  msLevel(9, {name:"Short a nurse", blurb:"Sicker patients, faster. Lean on charge when you need to.", first:[P.hf,P.gib,MS.pe,MS.hipfx,MS.highSugar,P.lowk,P.hgb], follow:[F.pain,F.k,F.mg,MSF.retention,MSF.pump], urgent:[U.sepsis,U.afib,U.rxn,U.stemi,MSU.oversed,U.hyperk], doom:[SEP1,SEP2], drain:1.41, ev:[12,19], stars:[2300,3550]}),
+  msLevel(10, {name:"Charge nurse's nightmare", blurb:"Everything 4 West can throw at you.", first:[MS.etoh,MS.cdiff,MS.delirium,MS.pe,MS.hipfx,MS.ileus,MS.highSugar,P.gib,P.hf,P.pna], follow:[F.pain,F.lostiv,MSF.retention,MSF.pump,MSF.ama,MSF.turn,F.k,F.mg], urgent:[U.sepsis,U.stroke,U.stemi,U.unresp,MSU.wdSeizure,MSU.fall,MSU.oversed,U.rxn,U.desat], doom:[P.gib,GIB2], drain:1.45, ev:[11,18], stars:[2400,3700]})
+];
+
+/* ---------- PICU (plays like the ICU) ---------- */
+Object.assign(DRIPS, {
+  epiP:   {name:"Epinephrine", unit:"mcg/kg/min", min:0, max:0.5, step:0.02, start:0.04, v:"MAP", lo:55, hi:70, base:46, gain:100, noise:1.2, bp:"map", why:"Squeezes the vessels and helps the heart in a child's septic shock. Kids' MAP goals are lower than adults'. Here, 55–70."},
+  dexP:   {name:"Dextrose in IV fluids", unit:"%", min:0, max:12.5, step:2.5, start:0, v:"Glucose", lo:150, hi:250, base:128, gain:18, noise:4, why:"In DKA the insulin keeps running to clear the ketones. Add dextrose to the fluids so the sugar doesn't fall too low (the two-bag system). Goal 150–250."},
+  insP:   {name:"Insulin", unit:"units/kg/hr", fixed:true, start:0.1, note:"until ketones clear", why:"Insulin stays at 0.1 units/kg/hr until the acid clears. Change the dextrose, not the insulin."},
+  dexmed: {name:"Dexmedetomidine", unit:"mcg/kg/hr", min:0, max:1.5, step:0.1, start:0.2, v:"SBS", lo:-1, hi:0, base:1.8, gain:-2.6, noise:0.12, int:true, why:"Calm, gentle sedation for the ventilator. The State Behavioral Scale (SBS) goal is −1 to 0: calm but easy to wake."},
+  htsP:   {name:"3% saline", unit:"mL/hr", min:0, max:50, step:5, start:10, v:"Sodium", lo:145, hi:155, base:139, gain:0.32, noise:0.15, speed:0.25, why:"Raises sodium to pull fluid out of an injured, swollen brain. Goal 145–155."},
+  terb:   {name:"Terbutaline", unit:"mcg/kg/min", min:0, max:4, step:0.4, start:0.4, v:"Asthma score", lo:2, hi:5, base:11.4, gain:-2.2, noise:0.2, int:true, why:"Opens the airways through the IV when nebulizers aren't enough. Lower asthma scores are better. Goal 2–5."},
+  milr:   {name:"Milrinone", unit:"mcg/kg/min", fixed:true, start:0.5, note:"steady after surgery", why:"Helps the heart relax and pump after surgery. Runs at a steady rate."},
+  epiC:   {name:"Epinephrine", unit:"mcg/kg/min", min:0, max:0.3, step:0.02, start:0.02, v:"MAP", lo:45, hi:60, base:36, gain:120, noise:1.1, bp:"map", why:"Supports a baby's heart after surgery. MAP goal 45–60 for a 5-month-old."}
+});
+Object.assign(CARE, {
+  glucoseP:{t:"Hourly glucose", d:"DKA protocol.", r:0.5, s:[C("labs","Fingerstick","FSBG","Glucose checked. Adjust the dextrose to keep it 150–250.")]},
+  neuroP:{t:"Hourly neuro check", d:"Watch for brain swelling.", r:0.6, s:[C("assess","GCS & pupils","Neuro","Awake, talking, pupils equal. No headache.")]},
+  lytes:{t:"Electrolytes every 2 hours", d:"Potassium shifts in DKA.", r:0.5, s:[C("labs","BMP & gas","BMP","Bicarb climbing. Potassium 3.9.")]},
+  asthmaScore:{t:"Asthma score", d:"Every hour.", r:0.5, s:[C("assess","Score the breathing","Score","Retractions, air movement and wheeze scored.")]},
+  ctP:{t:"Chest tube check", d:"After heart surgery.", r:0.6, s:[C("device","Check output","Chest tube","8 mL this hour. No clots.")]}
+});
+Object.assign(EV, {
+  sepDropP:{t:"MAP dropping!", d:"MAP 44. Cool, mottled legs.", r:1.6, hit:{d:"epiP", by:-12}, s:[
+    C("iv","Fluid bolus","20 mL/kg","Normal saline 20 mL/kg. Liver edge checked: not getting bigger."),
+    C("assess","Titrate & reassess","Reassess","Turn up the epinephrine. Cap refill improving.")]},
+  cerebEdema:{t:"Headache, HR dropping!", d:"DKA hour 6. Says her head hurts, then gets sleepy. HR 58.", r:2.4, v:{hr:58,sbp:132,dbp:78}, s:[
+    C("assess","Neuro check","Neuro","Sleepy, new headache, HR down, BP up (abnormal). Brain swelling."),
+    C("assess","Head up 30°, neck straight","Position","Head of bed up."),
+    C("meds","Mannitol or 3% saline","Mannitol","Mannitol 0.5 g/kg IV over 15 minutes."),
+    C("esc","Call the intensivist","","Intensivist at the bedside. Fluids slowed. CT when stable.")]},
+  lowKP:{t:"Potassium 3.1!", d:"Insulin pushed potassium into the cells.", r:1.4, s:[
+    C("labs","Check the labs","BMP","Potassium 3.1 (low)."),
+    C("iv","Add potassium to the fluids","KCl","Potassium added to both bags.")]},
+  icpP:{t:"ICP 26!", d:"Bike crash, day 2.", r:2.2, v:{hr:64,sbp:142,dbp:80}, s:[
+    C("assess","Head up, neck straight","Position","Head of bed 30°, collar loosened, neck midline."),
+    C("device","Open the EVD to drain","Drain","Drained 5 mL. ICP 21."),
+    C("meds","Hyperosmolar bolus","3% bolus","3% saline 5 mL/kg bolus. ICP 17."),
+    C("esc","Call neurosurgery","","Neurosurgery at the bedside.")]},
+  agitP:{t:"Fighting the vent!", d:"Coughing, biting, SpO₂ falling.", r:1.8, hit:{d:"dexmed", by:2}, v:{spo2:88}, s:[
+    C("assess","Check the tube & the child","Assess","Tube still at 18 cm. Scared and coughing."),
+    C("meds","Morphine bolus","Morphine","Morphine 0.05 mg/kg IV. Calmer. Titrate the dexmedetomidine.")]},
+  tiring:{t:"Too tired to breathe!", d:"Asthma hour 8. CO₂ climbing, getting quiet.", r:2.4, v:{spo2:86,rr:12,hr:170}, allHands:1, s:[
+    C("labs","Blood gas","VBG","CO₂ 68 (high). Tiring out."),
+    C("esc","Call the intensivist & RT","","Airway team at the bedside."),
+    C("meds","Ketamine for intubation","Ketamine","Ketamine IV: sedates and opens the airways."),
+    C("md","Intensivist intubates","","Breathing tube placed. Slow breaths to let air out.")]},
+  ptxP:{t:"Pressures up, SpO₂ falling!", d:"Left chest not rising.", r:2.4, v:{spo2:82,hr:178,sbp:78,dbp:40}, allHands:1, s:[
+    C("assess","Listen to both lungs","Assess","No breath sounds on the left (abnormal)."),
+    C("esc","Call the intensivist","","Tension pneumothorax."),
+    C("md","Needle, then chest tube","","Rush of air. Chest tube in. SpO₂ climbing.")]},
+  jet:{t:"Heart rate 210!", d:"Narrow, fast rhythm after heart surgery (JET).", r:2.0, v:{hr:210,sbp:62,dbp:36}, s:[
+    C("labs","12-lead EKG","EKG","Junctional ectopic tachycardia (abnormal)."),
+    C("device","Cooling blanket to 35–36 °C","Cool","Cooling blanket on, warmer off."),
+    C("meds","Amiodarone","Amio","Amiodarone 5 mg/kg IV over an hour. HR 160.")]},
+  bleedC:{t:"Chest tube output jumped!", d:"30 mL in an hour from a 6 kg baby.", r:2.0, v:{hr:176,sbp:58,dbp:32}, s:[
+    C("device","Check the chest tube","Check","30 mL this hour, bright red (high)."),
+    C("labs","CBC & coags","Coags","Platelets 70 (low), fibrinogen low (low)."),
+    C("blood","Platelets & cryo","Platelets","Platelets and cryo given."),
+    C("esc","Call cardiac surgery","","Surgeon updated. Output slowing.")]},
+  feverP:{t:"New fever!", d:"Temp 38.9 °C.", r:1.2, v:{t:38.9,hr:160}, s:[
+    C("labs","Blood cultures","Cultures","Cultures from the line and a peripheral stick."),
+    C("meds","Acetaminophen","Tylenol","Acetaminophen 15 mg/kg.")]}
+});
+const picuLevel = (k, o) => Object.assign(icuLevel(k, o), {n:505+k, tag:"C"+k, unit:"PICU", picu:true});
+const PICU_LEVELS = [
+  picuLevel(1, {name:"PICU: septic shock", blurb:"A 6-year-old with septic shock. Kids crash fast and bounce back fast.", drips:["epiP"],
+    pt:icuPt("Mateo", 6, "man", 21, "Septic shock from pneumonia", ["Asthma"], ["cvc","art","foley"]),
+    cares:[["io",15,6],["neuroP",30,14]], events:[[30,"sepDropP"],[80,"feverP"],[125,"sepDropP"],[160,"foley"]], stars:[3700,5100]}),
+  picuLevel(2, {name:"PICU: DKA", blurb:"Fix the acid, not just the sugar. Watch for brain swelling.", drips:["insP","dexP"],
+    pt:icuPt("Zara", 11, "woman", 36, "Diabetic ketoacidosis, new diagnosis", ["None"], ["art","foley"]),
+    cares:[["glucoseP",15,5],["neuroP",15,9],["lytes",30,20]], events:[[40,"lowKP"],[90,"cerebEdema"],[145,"lowKP"]], stars:[4500,6100]}),
+  picuLevel(3, {name:"PICU: head injury", blurb:"A 14-year-old after a bike crash. ICP, sedation and sodium.", drips:["dexmed","htsP"],
+    pt:icuPt("Kofi", 14, "man", 52, "Traumatic brain injury from a bike crash", ["ADHD"], ["vent","evd","icpMon","cvc","art","collar","foley"]),
+    cares:[["neuro",15,5],["evd",30,12],["sodium",60,30]], events:[[28,"icpP"],[70,"agitP"],[115,"icpP"],[155,"ventHigh"]], stars:[4200,5800]}),
+  picuLevel(4, {name:"PICU: status asthmaticus", blurb:"Continuous albuterol isn't enough. Terbutaline, scores and a tired kid.", drips:["terb"],
+    pt:icuPt("Layla", 8, "woman", 26, "Severe asthma attack", ["Asthma","Eczema"], ["art","cvc"]),
+    cares:[["asthmaScore",15,5],["io",30,15]], events:[[35,"lowKP"],[75,"tiring"],[125,"ptxP"],[160,"feverP"]], stars:[3700,5000]}),
+  picuLevel(5, {name:"PICU: after heart surgery", blurb:"A 5-month-old after a heart repair. Small numbers matter.", drips:["epiC","milr"],
+    pt:icuPt("Baby Leo", 0.4, "man", 6, "Heart surgery (VSD repair), today", ["Down syndrome"], ["vent","cvc","art","ctubes","wires","foley"]),
+    cares:[["ctP",15,6],["pacer",30,12],["io",15,10]], events:[[30,"jet"],[80,"bleedC"],[130,"pace"],[160,"feverP"]], stars:[4600,6200]})
+];
+
+/* ---------- NICU ---------- */
+Object.assign(DRIPS, {
+  iso:{name:"Isolette", unit:"°C", min:28, max:37, step:0.5, start:32, v:"Baby's temp", lo:36.5, hi:37.5, base:25.6, gain:0.35, noise:0.07, dec:1, speed:0.18, why:"Babies lose heat fast. Turn the isolette up if the baby is cold and down if warm. Goal skin temp 36.5–37.5 °C."}
+});
+const NICU_PMH = ["Born at 28 weeks","Born at 32 weeks","Born at 34 weeks","Mom had diabetes","Mom had a fever in labor","Twin B","Mom is Group B strep positive"];
+const NICU_SOCIAL = ["Mom recovering from a C-section upstairs. Dad at the bedside.","First baby. Parents learning kangaroo care.","Parents live 2 hours away. Calls every night at 9.","Mom pumping breast milk, bringing it in every morning.","Grandma is here every afternoon to rock the baby."];
+const NI = {
+  feeder:{t:"Feeder-grower", d:"34 weeks, learning to bottle feed.", dx:"Prematurity, 34 weeks", dol:[5,20], kg:[1.7,2.2], r:0.9, s:[
+    C("baby","Cares: diaper, temp, position","Cares","Diaper changed, swaddled, temp checked."),
+    C("baby","Cue-based bottle feed","Feed","Took 35 mL. Paced feeding with breaks."),
+    C("assess","Daily weight","Weight","Up 20 grams.")]},
+  preemie:{t:"Preemie on CPAP", d:"28 weeks, 900 grams.", dx:"Prematurity, 28 weeks", dol:[3,10], kg:[0.8,1.1], v:{spo2:91,rr:62}, r:1.1, s:[
+    C("o2","Check CPAP fit & nose skin","CPAP","Prongs fit well. Nose skin intact."),
+    C("meds","Caffeine","Caffeine","Caffeine citrate {5 mg/kg} IV. Helps prevent apnea."),
+    C("baby","Kangaroo care with mom","Kangaroo","Skin-to-skin on mom's chest for an hour.")]},
+  bili:{t:"Jaundice", d:"Day 3, getting yellow.", dx:"Newborn jaundice", dol:[2,4], kg:[2.4,3.4], r:0.9, s:[
+    C("labs","Bilirubin level","Bili","Bilirubin above the light level for age (high)."),
+    C("baby","Phototherapy with eye shields","Bili lights","Under the blue lights, eyes covered."),
+    C("baby","Feed often","Feed","Feeding every 3 hours helps clear bilirubin.")]},
+  idm:{t:"Low sugar", d:"Mom has diabetes. Baby is jittery.", dx:"Infant of a diabetic mother", pmh:"Mom had diabetes", dol:[0,0.1], kg:[3.6,4.4], r:1.3, s:[
+    C("labs","Heel stick glucose","Glucose","Glucose 28 (low)."),
+    C("iv","Dextrose bolus","D10","D10 {2 mL/kg} IV, then a dextrose drip."),
+    C("labs","Recheck in 30 minutes","Recheck","Glucose 58. Better.")]},
+  rule:{t:"Sepsis rule-out", d:"Mom had a fever in labor.", dx:"Possible early-onset sepsis", pmh:"Mom had a fever in labor", dol:[0,0.2], kg:[2.8,3.6], v:{t:37.9,hr:168}, r:1.1, s:[
+    C("labs","Blood culture & CBC","Culture","Blood culture and CBC sent."),
+    C("meds","Ampicillin & gentamicin","Amp + gent","Ampicillin {100 mg/kg} and gentamicin {4 mg/kg} IV.")]},
+  nas:{t:"Withdrawal symptoms", d:"Fussy, sneezy, hard to console.", dx:"Neonatal opioid withdrawal", dol:[1,4], kg:[2.6,3.2], r:1.0, s:[
+    C("assess","Eat, Sleep, Console check","ESC","Ate well, slept under an hour, hard to console."),
+    C("baby","Swaddle, dim lights, hold","Console","Swaddled, quiet room, mom doing skin-to-skin. Much calmer."),
+    C("assess","Support mom","Support","Mom says she's scared. You tell her that her being here is the best medicine.")]},
+  rds:{t:"Breathing trouble", d:"32 weeks, grunting and retracting.", dx:"Respiratory distress syndrome", dol:[0,0.1], kg:[1.4,1.8], v:{spo2:86,rr:74}, r:1.4, s:[
+    C("o2","CPAP","CPAP","CPAP on. SpO₂ 90%."),
+    C("md","Team gives surfactant through a tube","","Surfactant given. Lungs opening up."),
+    C("o2","Wean the oxygen","Wean","FiO₂ down to 30%.")]}
+};
+const NIF = {
+  feed:{t:"Feed due", d:"Every 3 hours.", r:0.8, s:[C("baby","Feed","Feed","Fed and burped.")]},
+  cares:{t:"Cares due", d:"Diaper, temp, position.", r:0.7, s:[C("baby","Cares","Cares","Diaper changed, repositioned, mouth care with colostrum.")]},
+  parents:{t:"Parents calling", d:"Asking how the night went.", r:0.6, s:[C("assess","Update the parents","Update","Told them about the feeds and the weight gain. They cried happy tears.")]},
+  carSeat:{t:"Car seat test", d:"Going home soon.", r:0.7, s:[C("assess","90-minute car seat test","Car seat","No drops in SpO₂ or heart rate. Passed!")]},
+  hearing:{t:"Hearing screen", d:"Before discharge.", r:0.6, s:[C("assess","Hearing screen","Hearing","Passed both ears.")]}
+};
+const NIU = {
+  brady:{t:"Brady spell!", d:"HR 72, SpO₂ 78%. Not breathing.", v:{hr:72,spo2:78}, r:2.4, s:[
+    C("hands","Gentle stimulation","Stimulate","Rubbed the back and feet. Breathing again."),
+    C("o2","Reposition & a little oxygen","O₂","Head repositioned, a puff of oxygen. HR 150.")]},
+  feedDesat:{t:"Dropping during a feed!", d:"Gulping, SpO₂ 82%.", v:{spo2:82,hr:110}, r:1.8, s:[
+    C("baby","Pause the feed, sit up","Pause","Bottle out, sitting up. Recovering."),
+    C("baby","Pace the feed","Pace","Breaks every 3 to 5 sucks. Much better.")]},
+  nec:{t:"Belly swollen, bloody stool!", d:"Feeds coming back green.", v:{hr:182,t:36.2}, r:2.2, allHands:1, only:p=>/Prematurity/.test(p.dx), s:[
+    C("baby","Stop feeds (NPO)","NPO","Feeds stopped."),
+    C("o2","Tube to suction the stomach","Replogle","Replogle tube to low suction."),
+    C("labs","Belly X-ray & cultures","X-ray","Air in the bowel wall: NEC (abnormal)."),
+    C("meds","IV antibiotics","Abx","Antibiotics IV. Surgery team aware.")]},
+  ptxN:{t:"Sudden desat!", d:"SpO₂ 70% on CPAP. Chest looks uneven.", v:{spo2:70,hr:96}, r:2.6, allHands:1, only:p=>/28 weeks|Respiratory/.test(p.dx), s:[
+    C("assess","Transilluminate the chest","Light","Right side lights up (abnormal): pneumothorax."),
+    C("esc","Call the neonatologist","","Neonatologist at the bedside."),
+    C("md","Needle aspiration","","Air removed. SpO₂ 92%.")]},
+  hypo:{t:"Jittery, glucose 36!", d:"Before a feed.", v:{hr:170}, r:1.8, s:[
+    C("labs","Heel stick","Glucose","Glucose 36 (low)."),
+    C("baby","Feed now","Feed","Fed 20 mL."),
+    C("labs","Recheck","Recheck","Glucose 61.")]},
+  infiltrate:{t:"IV site puffy", d:"Hand swollen and pale.", r:1.4, s:[
+    C("iv","Stop & elevate","Stop","IV out. Hand elevated. Skin checked."),
+    C("iv","New IV","New IV","New IV in the foot.")]},
+  delivery:{t:"Born floppy, not breathing!", d:"You're at the delivery. Term baby, born limp and blue.", dx:"Newborn resuscitation", dol:[0,0.005], kg:[3.0,3.8], r:2.8, allHands:1, s:[
+    C("baby","Warm, dry, stimulate","Dry","Under the warmer, dried and rubbed. Still not breathing."),
+    C("o2","Bag-mask breaths","PPV","Breaths for 30 seconds. HR 50 (low)."),
+    C("cpr","Chest compressions, 3 to 1","CPR","Compressions with breaths, 3 to 1."),
+    C("meds","Epinephrine","Epi","Epinephrine {0.02 mg/kg} IV through the umbilical line."),
+    C("assess","Heart rate check","HR","HR 140! Pink and crying. Off to the NICU.")]}
+};
+const NID1 = {t:"Not acting right", d:"Temp unstable, more spells.", dx:"Prematurity, 30 weeks", dol:[8,20], kg:[1.2,1.6], v:{hr:186,spo2:88}, r:1.6, s:[
+  C("labs","Blood culture & CBC","Culture","CRP high (high)."),
+  C("meds","Antibiotics","Vanc + gent","Vancomycin and gentamicin IV.")]};
+const NID2 = {t:"More spells, needs help breathing!", d:"Brady spells every few minutes.", v:{hr:80,spo2:80}, r:2.4, allHands:1, s:[
+  C("o2","Bag-mask breaths","PPV","Breaths with the bag. HR up."),
+  C("esc","Call the neonatologist","","Neonatologist at the bedside."),
+  C("md","Team intubates","","Breathing tube in. Stable on the ventilator.")]};
+const NICU_TOOLS = ["assess","baby","hands","o2","labs","meds","iv","cpr"];
+const nicuLevel = (k, o) => Object.assign({n:600+k, tag:"N"+k, unit:"NICU", mode:"floor", nicu:true, beds:2, pmhPool:NICU_PMH, social:NICU_SOCIAL, tools:NICU_TOOLS, doom:[NID1,NID2]}, o);
+const NICU_LEVELS = [
+  nicuLevel(1, {name:"NICU: feeder-growers", blurb:"Keep two babies warm, fed and growing. Watch the isolette temp.", first:[NI.feeder,NI.bili,NI.feeder], follow:[NIF.feed,NIF.cares,NIF.parents,NIF.carSeat], urgent:[NIU.feedDesat,NIU.hypo], drain:0.85, ev:[24,34], stars:[1300,2100]}),
+  nicuLevel(2, {name:"NICU: little lungs", blurb:"A 28-weeker on CPAP. Caffeine, brady spells and kangaroo care.", first:[NI.preemie,NI.feeder,NI.preemie,NI.bili], follow:[NIF.cares,NIF.feed,NIF.parents,NIF.hearing], urgent:[NIU.brady,NIU.feedDesat,NIU.infiltrate], drain:0.95, ev:[20,30], stars:[1400,2300]}),
+  nicuLevel(3, {name:"NICU: first hours", blurb:"Low sugars and a sepsis rule-out.", first:[NI.idm,NI.rule,NI.bili,NI.nas], follow:[NIF.feed,NIF.cares,NIF.parents], urgent:[NIU.hypo,NIU.brady,NIU.infiltrate], drain:1.0, ev:[18,28], stars:[1500,2400]}),
+  nicuLevel(4, {name:"NICU: breathing trouble", blurb:"Surfactant, a pneumothorax and a belly that's not right.", first:[NI.rds,NI.preemie,NI.nas,NI.idm], follow:[NIF.cares,NIF.feed,NIF.parents,NIF.hearing], urgent:[NIU.ptxN,NIU.nec,NIU.brady,NIU.feedDesat], drain:1.1, ev:[17,26], stars:[1600,2600]}),
+  nicuLevel(5, {name:"NICU: full pod", blurb:"Everything at once, plus a resuscitation at delivery.", first:[NIU.delivery,NI.preemie,NI.rds,NIU.delivery,NI.idm,NI.rule,NI.nas,NI.feeder], follow:[NIF.cares,NIF.feed,NIF.parents,NIF.carSeat,NIF.hearing], urgent:[NIU.brady,NIU.nec,NIU.ptxN,NIU.hypo,NIU.feedDesat], drain:1.2, ev:[15,23], stars:[1700,2800]})
+];
+
+/* ER orientation */
+const ER_COACH = [
+  {txt:"Welcome to the ER, new grad! Patients arrive in <b>bays</b> on the right. Do the glowing steps for the patient in front of you.", done:()=>G.discharged + G.rushed >= 1},
+  {txt:"Nice! Patients keep arriving all shift. <b>Tap a bay</b> to switch. If someone waits too long, they leave without being seen.", done:()=>G.discharged + G.rushed >= 3},
+  {txt:"When a patient is in the red, <b>Call for help</b> brings the whole team. In a code, coworkers cover your other bays while you stay in the room.", btn:"Got it", done:()=>G.coachAck===2},
+  {txt:"In real ER shifts you have <b>3 hearts</b>. Losing a patient costs one, and they come back one every 30 minutes. Orientation doesn't use hearts.", btn:"Finish ER orientation", done:()=>G.coachAck===3}
+];
+const ER_ORIENT = {n:100, tag:"EO", unit:"ER", mode:"er", tutorial:true, coach:ER_COACH, beds:2, drain:0.4, cases:["uti","lac","ankle","migraine","asthmaKid","std","wristKid"], stars:[0,0],
+  name:"ER orientation", blurb:"Your first ER shift with a preceptor. Learn bays, arrivals, calling for help and hearts.", tools:ER_TOOLS, ev:[999,999]};
 /* ---------- levels ---------- */
 const LEVELS = [
   {n:0, tag:"O", mode:"tutorial", name:"Orientation: new grad on 4 West", blurb:"Your first day as a new grad, with a preceptor at your side. Learn the tools, the monitor and how to handle an emergency.",
@@ -1479,12 +1737,30 @@ const LEVELS = [
    calls:CALLS, tools:["assess","cpr","shock","meds","o2","labs","iv","wound"], drain:1, ev:[999,999], stars:[1000,1250]}
 ];
 
+MS_LEVELS.forEach(l => LEVELS.push(l));
+LEVELS.push(ER_ORIENT);
 ER_LEVELS.forEach(l => LEVELS.push(l));
 ICU_LEVELS.forEach(l => LEVELS.push(l));
 LD_LEVELS.forEach(l => LEVELS.push(l));
 PP_LEVELS.forEach(l => LEVELS.push(l));
-PEDS_LEVELS.forEach(l => LEVELS.push(l));
+PEDS_LEVELS.filter(l => l.n <= 505).forEach(l => LEVELS.push(l));
+PICU_LEVELS.forEach(l => LEVELS.push(l));
+NICU_LEVELS.forEach(l => LEVELS.push(l));
 LEVELS.forEach(l => { l.mode = l.mode || "floor"; l.unit = l.unit || (l.mode==="rrt" ? "Rapid Response" : "Med-Surg"); });
+const UNIT_ORDER = ["Med-Surg","ER","ICU","Rapid Response","Labor & Delivery","Postpartum","Pediatrics","PICU","NICU"];
+{ const order = LEVELS.map((l,i)=>[UNIT_ORDER.indexOf(l.unit), i, l]).sort((a,b)=>a[0]-b[0] || a[1]-b[1]).map(x=>x[2]); LEVELS.length = 0; order.forEach(l=>LEVELS.push(l)); }
+/* unlocking: first level of each unit is open; the next needs at least 1 star; Rapid Response needs every ER and ICU level */
+const starsFor = l => (saved[l.n] || {}).stars || 0;
+function prevInUnit(l){ const u = LEVELS.filter(x=>x.unit===l.unit); const i = u.indexOf(l); return i > 0 ? u[i-1] : null; }
+function isUnlocked(l){
+  if(l.unit==="Rapid Response") return LEVELS.filter(x=>x.unit==="ER" || x.unit==="ICU").every(x=>starsFor(x) >= 1);
+  const pv = prevInUnit(l); return !pv || starsFor(pv) >= 1;
+}
+function lockReason(l){
+  if(l.unit==="Rapid Response"){ const left = LEVELS.filter(x=>(x.unit==="ER" || x.unit==="ICU") && starsFor(x) < 1).length; return `Earn a star on every ER and ICU level first (${left} to go).`; }
+  const pv = prevInUnit(l); return pv ? `Earn a star on “${pv.name}” first.` : "";
+}
+function nextInUnit(l){ const u = LEVELS.filter(x=>x.unit===l.unit); return u[u.indexOf(l)+1] || null; }
 const NAMES_BASE = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Begay","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
 const NAMES = NAMES_BASE.concat(FRIENDS_W, FRIENDS_M);
 const PMH = ["Hypertension","High cholesterol","Asthma","Hypothyroidism","Atrial fibrillation","Chronic kidney disease, stage 3","Depression","GERD","Osteoarthritis","Sleep apnea"];
@@ -1493,7 +1769,7 @@ const SKIN = ["#f6d5bd","#eab896","#cf9068","#9b6443","#f2c8a6","#b07452","#7a4a
 const HAIR = ["#3b2a20","#7a4b2a","#cfc8bf","#1f1a17","#d9a35b","#ebe6df","#5b3a29"];
 const GOWN = ["#bfe3de","#c9d8f3","#f4d3de","#d6ebc2","#f6e3b3","#dcd3f2"];
 let ROOMS = [412,414,416];
-const roomLabel = i => LV && LV.ld ? `LDR ${i+1}` : LV && LV.mode==="er" ? `Bay ${i+1}` : LV && LV.mode==="icu" ? "ICU bed 7" : `Rm ${ROOMS[i]}`;
+const roomLabel = i => LV && LV.ld ? `LDR ${i+1}` : LV && LV.mode==="er" ? `Bay ${i+1}` : LV && LV.mode==="icu" ? (LV.picu ? "PICU bed 3" : "ICU bed 7") : LV && LV.nicu ? `Isolette ${i+1}` : `Rm ${ROOMS[i]}`;
 const HEART_MS = 30 * 60 * 1000; // one heart back every 30 minutes
 const SHIFT = 180; // real seconds for a 12-hour shift
 const VITAL_EVERY = 7; // monitor auto-refresh, real seconds
@@ -1528,13 +1804,28 @@ const listJoin = a => a.length<2 ? a.join("") : a.slice(0,-1).join(", ") + " and
 const curStep = p => p.state==="needs" ? p.active.steps[p.active.step] : null;
 
 /* ---------- vitals ---------- */
+/* normal ranges by age (years): newborn, infant, toddler, child, teen/adult */
+function band(age){
+  if(age === undefined || age >= 13) return null;
+  if(age < 28/365) return {hr:[100,180], rr:[30,60], sbp:[50,85], tlo:36.5};
+  if(age < 1) return {hr:[100,170], rr:[25,55], sbp:[70,110], tlo:36};
+  if(age < 4) return {hr:[90,150], rr:[20,40], sbp:[72+2*age,115], tlo:35.5};
+  return {hr:[70,125], rr:[18,30], sbp:[70+2*age,125], tlo:35.5};
+}
 const OFF = {
-  hr:  v => v>100 ? "high" : v<55 ? "low" : "",
-  bp:  (s) => s<90 ? "low" : s>160 ? "high" : "",
-  rr:  v => v>22 ? "high" : v<10 ? "low" : "",
+  hr:  (v,p) => { const b = band(p && p.age); return b ? (v>b.hr[1] ? "high" : v<b.hr[0] ? "low" : "") : v>100 ? "high" : v<55 ? "low" : ""; },
+  bp:  (s,p) => { const b = band(p && p.age); return b ? (s<b.sbp[0] ? "low" : s>b.sbp[1] ? "high" : "") : s<90 ? "low" : s>160 ? "high" : ""; },
+  rr:  (v,p) => { const b = band(p && p.age); return b ? (v>b.rr[1] ? "high" : v<b.rr[0] ? "low" : "") : v>22 ? "high" : v<10 ? "low" : ""; },
   spo2:v => v<92 ? "low" : "",
-  t:   v => v>=38 ? "high" : ""
+  t:   (v,p) => { const b = band(p && p.age); return v>=38 ? "high" : b && v<b.tlo ? "low" : ""; }
 };
+/* resting vitals for a child of this age */
+function kidVitals(age){
+  const b = band(age); if(!b) return null;
+  const mid = (r,j) => Math.round((r[0]+r[1])/2 + rand(-j,j));
+  const sbp = mid(b.sbp, 4);
+  return {hr:mid(b.hr,8), rr:mid(b.rr,3), sbp, dbp:Math.round(sbp*0.6), spo2:Math.round(rand(96,99)), t:+rand(36.6,37.2).toFixed(1)};
+}
 function baseVitals(){ return {hr:Math.round(rand(70,88)), sbp:Math.round(rand(116,136)), dbp:Math.round(rand(68,82)), rr:Math.round(rand(14,18)), spo2:Math.round(rand(95,99)), t:+rand(36.6,37.2).toFixed(1)}; }
 function takeVitals(p){
   const b = p.base, out = {...b};
@@ -1548,11 +1839,11 @@ function takeVitals(p){
            spo2:Math.min(100,Math.round(j(out.spo2,0.8))), t:+j(out.t,0.1).toFixed(1), at:clockStr()};
   p.vitTimer = VITAL_EVERY;
 }
-function vitalsSummary(v){
+function vitalsSummary(v, p){
   const parts = [], ok = [];
   const add = (txt, flag) => (flag ? parts : ok).push(flag ? `${txt} (${flag})` : txt);
-  add(`BP ${v.sbp}/${v.dbp}`, OFF.bp(v.sbp)); add(`HR ${v.hr}`, OFF.hr(v.hr)); add(`RR ${v.rr}`, OFF.rr(v.rr));
-  add(`SpO₂ ${v.spo2}%`, OFF.spo2(v.spo2)); add(`Temp ${v.t.toFixed(1)} °C`, OFF.t(v.t));
+  add(`BP ${v.sbp}/${v.dbp}`, OFF.bp(v.sbp,p)); add(`HR ${v.hr}`, OFF.hr(v.hr,p)); add(`RR ${v.rr}`, OFF.rr(v.rr,p));
+  add(`SpO₂ ${v.spo2}%`, OFF.spo2(v.spo2)); add(`Temp ${v.t.toFixed(1)} °C`, OFF.t(v.t,p));
   return parts.length ? parts.join(", ") + "." + (ok.length ? " Everything else normal." : "") : "All vitals normal.";
 }
 
@@ -1586,10 +1877,10 @@ function inst(def, p){
 function admit(i, initial, o){
   o = o || {};
   if(!G.namePool.length) G.namePool = shuffle((LV.names || NAMES).filter(n => !G.beds.some(b => b && b.name===n)));
-  const kidSex = LV.peds ? (Math.random() < 0.5 ? "girl" : "boy") : null;
+  const kidSex = (LV.peds || LV.nicu) ? (Math.random() < 0.5 ? "girl" : "boy") : null;
   const doomed = !o.defs && LV.mode==="floor" && !initial && !G.beds.some(b=>b && b.doomed) && (G.doomSeen===0 ? G.t>35 : Math.random()<0.12);
   const p = {
-    name: o.name || (LV.peds ? kidName(kidSex) : G.namePool.shift()),
+    name: o.name || (LV.nicu ? babyName(kidSex) : LV.peds ? kidName(kidSex) : G.namePool.shift()),
     age: o.age || Math.floor(LV.ages ? rand(LV.ages[0], LV.ages[1]) : doomed ? rand(62,86) : rand(29,89)),
     kg: Math.floor(rand(52,112)),
     look: {skin:pick(SKIN), hair:pick(HAIR), gown:pick(GOWN), style:Math.floor(Math.random()*3)},
@@ -1617,7 +1908,16 @@ function admit(i, initial, o){
   p.social = [pick(["Lives with spouse","Lives alone","Lives with daughter","Lives with partner and two cats"]),
     copd ? "Former smoker, 40 pack-years" : pick(["Never smoker","Never smoker","Former smoker, quit 10 years ago"]),
     etoh ? "Drinks 6 to 8 beers a day" : pick(["Drinks socially","No alcohol"])].join(". ") + ".";
+  if(p.age < 13 && !LV.nicu){ const kv = kidVitals(p.age); if(kv) Object.assign(p.base, kv); }
   if(LV.social) p.social = pick(LV.social);
+  if(LV.nicu){
+    const d0 = defs[0], dol = d0.dol || [3,14], kr = d0.kg || [1.5,3];
+    p.age = rand(dol[0], dol[1]) / 365; p.kg = Math.round(rand(kr[0], kr[1]) * 100) / 100; p.code = "Full code"; p.allergy = "No known allergies";
+    const keep = [...new Set(defs.map(d=>d.pmh).filter(Boolean))]; p.pmh = keep.length ? keep : ["None"];
+    p.iso = newDrip("iso"); p.iso.dist = rand(-1.4, 1.4); p.iso.val = p.iso.def.base + p.iso.def.gain*p.iso.rate + p.iso.dist;
+    p.base.t = Math.round(p.iso.val*10)/10; p.base.hr = Math.round(rand(140,160)); p.base.rr = Math.round(rand(40,55)); p.base.sbp = Math.round(rand(56,68)); p.base.dbp = Math.round(rand(30,40));
+  }
+  if(LV.peds && p.age < 1) p.allergy = "No known allergies";
   p.queue = defs.map(d => inst(d,p));
   if(initial){ p.active = p.queue.shift(); p.state = "needs"; }
   if(LV.mode==="rrt" || LV.mode==="er" || LV.mode==="icu") p.assessed = true;
@@ -1632,7 +1932,7 @@ function newGame(){
   G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:2, chargeCd:0, doomSeen:0, cpr:0, ff:0, badShocks:0, callIdx:0, callsDone:0, coach:0, coachAck:-1,
        discharged:0, transfers:0, expired:0, escalated:0, rushed:0, helps:0, rrUsed:0, slows:1, slowLeft:0, saves:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], all:[], feed:[], namePool:shuffle((LV.names || NAMES).slice())};
   buildTray(LV.tools || ORDER);
-  ROOMS = LV.mode==="er" ? Array.from({length:LV.beds}, (_,i)=>i+1) : LV.mode==="icu" ? [7] : LV.pp ? [512,514,516] : LV.peds ? [612,614,616] : [412,414,416];
+  ROOMS = LV.mode==="er" ? Array.from({length:LV.beds}, (_,i)=>i+1) : LV.mode==="icu" ? [7] : LV.pp ? [512,514,516] : LV.peds ? [612,614,616] : LV.nicu ? [1,2] : [412,414,416];
   buildCards();
   $("#app").classList.toggle("er", LV.mode==="er");
   if(LV.mode==="er"){ G.deck = []; G.lwbs = 0; G.admitted = 0; }
@@ -1647,16 +1947,16 @@ function newGame(){
   else if(LV.mode==="er"){
     for(let i=0;i<LV.beds;i++) G.beds.push(i<(LV.ld ? 1 : 2) ? admitER(i) : emptyBed(LV.ld ? 4 : 3 + i*4));
   }
-  else for(let i=0;i<3;i++) G.beds.push(admit(i,true));
+  else for(let i=0;i<(LV.beds || 3);i++) G.beds.push(admit(i,true));
   buildDrips();
-  $("#unitName").textContent = LV.mode==="icu" ? (LV.tutorial ? "ICU · Orientation" : `ICU · Level ${LV.n-200}`) : LV.mode==="rrt" ? "Rapid Response" : LV.mode==="tutorial" ? "4 West · Orientation" : LV.ld ? `L&D · Level ${LV.n-300}` : LV.pp ? `Mother-Baby · Level ${LV.n-400}` : LV.peds ? `${LV.n<=505 ? "Peds" : "Peds Surgery"} · Level ${LV.n<=505 ? LV.n-500 : LV.n-505}` : LV.mode==="er" ? `ER · Level ${LV.n-100}` : `4 West · Level ${LV.n}`;
+  $("#unitName").textContent = LV.mode==="icu" ? (LV.tutorial ? "ICU · Orientation" : LV.picu ? `PICU · Level ${LV.n-505}` : `ICU · Level ${LV.n-200}`) : LV.mode==="rrt" ? "Rapid Response" : LV.mode==="tutorial" ? "4 West · Orientation" : LV.ld ? `L&D · Level ${LV.n-300}` : LV.pp ? `Mother-Baby · Level ${LV.n-400}` : LV.peds ? `${LV.n<=505 ? "Peds" : "Peds Surgery"} · Level ${LV.n<=505 ? LV.n-500 : LV.n-505}` : LV.mode==="er" ? (LV.tutorial ? "ER · Orientation" : `ER · Level ${LV.n-100}`) : LV.nicu ? `NICU · Level ${LV.n-600}` : `4 West · Level ${LV.num || LV.n}`;
   $("#unitSub").textContent = LV.mode==="rrt" ? `Call 1 of ${LV.calls.length}` : LV.name;
   dirty = true;
 }
 /* ---------- ICU engine ---------- */
 function dripOK(d){ if(d.def.fixed) return true; return d.val >= d.def.lo && d.val <= d.def.hi; }
 function fmtVal(d){ const v = d.val; return d.def.dec ? v.toFixed(d.def.dec) : d.def.int ? ((Math.round(v)>0?"+":"") + Math.round(v)) : String(Math.round(v)); }
-function fmtRate(d){ return (d.def.step % 1 ? d.rate.toFixed(1) : d.rate) + " " + d.def.unit; }
+function fmtRate(d){ const dp = (String(d.def.step).split(".")[1] || "").length; return d.rate.toFixed(dp) + " " + d.def.unit; }
 function newDrip(key){ const def = DRIPS[key]; return {key, def, rate:def.start, dist:0, val:def.fixed ? 0 : def.base + def.gain*def.start}; }
 function icuSetup(){
   G.icu = {drips:LV.drips.map(newDrip), sched:LV.cares.map(([k,every,first])=>({k, every, next:first})),
@@ -1721,11 +2021,13 @@ function passAway(p, why){
   beep(330,0.5,"sine",0.04); beep(262,0.7,"sine",0.035,0.35);
   dirty = true;
 }
+function curDrips(){ if(LV.mode==="icu" && G.icu) return G.icu.drips; if(LV.nicu){ const p = cur(); return p && p.iso && (p.state==="needs"||p.state==="resting") ? [p.iso] : []; } return []; }
 function buildDrips(){
   const box = $("#drips");
-  if(LV.mode!=="icu"){ box.hidden = true; box.innerHTML = ""; return; }
+  const ds = curDrips(); box._k = LV.nicu ? (cur() ? cur().name + cur().state : "") : "icu";
+  if(!ds.length){ box.hidden = true; box.innerHTML = ""; return; }
   box.hidden = false;
-  box.innerHTML = G.icu.drips.map((d,i)=> d.def.fixed ? `<div class="drip fixed" data-i="${i}">
+  box.innerHTML = ds.map((d,i)=> d.def.fixed ? `<div class="drip fixed" data-i="${i}">
       <button class="dn" data-why="${i}"><b>${esc(d.def.name)}</b><small class="dr"></small></button>
       <div class="dv"><small>Protocol</small><b class="val"></b><small class="gl"></small></div></div>` : `<div class="drip" data-i="${i}">
       <button class="dn" data-why="${i}"><b>${esc(d.def.name)}</b><small class="dr"></small></button>
@@ -1738,24 +2040,26 @@ document.getElementById("ptDevs").addEventListener("click", e=>{
   const d = DEV[b.dataset.dev]; toast(`${d.n}: ${d.w}`);
 });
 document.getElementById("drips").addEventListener("click", e=>{
-  if(!G || !G.icu) return;
+  if(!G) return;
   const b = e.target.closest("button"); if(!b) return;
-  if(b.dataset.why !== undefined){ toast(G.icu.drips[+b.dataset.why].def.why); return; }
+  if(b.dataset.why !== undefined){ const w = curDrips()[+b.dataset.why]; if(w) toast(w.def.why); return; }
   if(!playing()) return;
-  const d = G.icu.drips[+b.dataset.d]; if(!d) return;
+  const d = curDrips()[+b.dataset.d]; if(!d) return;
   const before = d.rate;
   d.rate = clamp(+(d.rate + (+b.dataset.s) * d.def.step).toFixed(2), d.def.min, d.def.max);
   if(d.rate !== before){ sfx.tap(); } else { toast(d.rate===d.def.max ? "That's the maximum rate." : "The drip is already off."); }
 });
 function updateDrips(){
-  if(LV.mode!=="icu" || !G.icu) return;
+  if(LV.nicu){ const box = $("#drips"); const k = cur() ? cur().name + cur().state : ""; if(box._k !== k) buildDrips(); }
+  const ds = curDrips(); if(!ds.length) return;
   document.querySelectorAll("#drips .drip").forEach(row=>{
-    const d = G.icu.drips[+row.dataset.i]; if(!d) return;
+    const d = ds[+row.dataset.i]; if(!d) return;
     row.querySelector(".dr").textContent = fmtRate(d);
     if(d.def.fixed){
-      const left = G.icu.sched.find(sc=>sc.k==="amioDown");
-      row.querySelector(".val").textContent = d.rate + " mg/min";
-      row.querySelector(".gl").textContent = left && left.next!==Infinity ? `0.5 in ${Math.max(0,Math.round((left.next-G.t)/1.5)/10)} hr` : "for 18 hours";
+      row.querySelector(".val").textContent = d.rate + " " + d.def.unit;
+      if(d.key==="amio"){ const left = G.icu.sched.find(sc=>sc.k==="amioDown");
+        row.querySelector(".gl").textContent = left && left.next!==Infinity ? `0.5 in ${Math.max(0,Math.round((left.next-G.t)/1.5)/10)} hr` : "for 18 hours"; }
+      else row.querySelector(".gl").textContent = d.def.note || "";
       return;
     }
     row.querySelector(".val").textContent = fmtVal(d);
@@ -1783,6 +2087,13 @@ function updateFetal(p){
   const t = Math.floor(performance.now()/1500);
   if(el._t !== t){ el._t = t; el.querySelector("b").textContent = Math.round(F.rate + (Math.sin(t*1.7)*3) + (pat==="normal" ? Math.sin(t*0.6)*5 : 0)); }
 }
+function babyName(sex){
+  const sur = [...new Set([...NAMES_BASE, ...FRIENDS_W, ...FRIENDS_M].map(n=>n.split(" ").pop()))];
+  const used = G.beds.map(b => b && b.name);
+  const usedSur = used.filter(Boolean).map(n=>n.split(" ").pop());
+  for(let k=0;k<30;k++){ const sn = pick(sur); if(!usedSur.includes(sn)) return `Baby ${sex==="girl" ? "Girl" : "Boy"} ${sn}`; }
+  return `Baby ${sex==="girl" ? "Girl" : "Boy"} ${pick(sur)}`;
+}
 function kidName(sex){ const used = G.beds.map(b => b && b.name); const pool = KID_POOL[sex].filter(n => !used.includes(n)); return pick(pool.length ? pool : KID_POOL[sex]); }
 const pickOf = (st, p) => typeof st.pick === "function" ? st.pick(p) : st.pick;
 function isAllHands(p){ return p && p.state==="needs" && p.active && (p.active.def.code || p.active.def.allHands); }
@@ -1790,6 +2101,31 @@ function blockedByCover(i){
   if(!G.cover || G.beds[i]===G.cover) return false;
   sfx.wrong(); toast(`Stay with ${shortName(G.cover)}. A coworker has ${roomLabel(i)} until the emergency is over.`, "alarm");
   return true;
+}
+function nicuTick(dt){
+  G.nAcc = G.nAcc || 0;
+  G.beds.forEach(p=>{
+    if(!p.iso || !(p.state==="needs" || p.state==="resting") || (G.cover && p!==G.cover)) return;
+    const d = p.iso, def = d.def;
+    d.dist += (Math.random()*2-1) * def.noise * dt * 1.5; d.dist *= Math.pow(0.985, dt);
+    const eq = def.base + def.gain*d.rate + d.dist;
+    d.val += (eq - d.val) * (1 - Math.exp(-def.speed*dt));
+    p.base.t = Math.round(d.val*10)/10;
+    if(dripOK(d)) G.nAcc += 1.5*dt; else p.health -= 0.6*dt;
+  });
+  if(G.nAcc >= 1){ const w = Math.floor(G.nAcc); G.score += w; G.nAcc -= w; }
+}
+function finishErOrientation(){
+  G.over = true; G.running = false;
+  saved[LV.n] = {stars:3, best:Math.max((saved[LV.n]||{}).best||0, G.score)}; save(); addCareer(G.score);
+  ov.hidden = false;
+  ov.innerHTML = `<div class="card"><h1>ER orientation complete</h1><p class="sub">Your preceptor says you're ready for your own bays.</p>
+    <div class="stars">${starsRow(3)}</div>
+    <button class="go" id="nextBtn">Start ER level 1: First night in the ER</button>
+    <button class="toggle" id="listBtn">Main menu</button></div>`;
+  guardReport();
+  $("#nextBtn").addEventListener("click", ()=>startLevel(101));
+  $("#listBtn").addEventListener("click", showStart);
 }
 function finishIcuTutorial(){
   G.over = true; G.running = false;
@@ -1868,14 +2204,14 @@ const COACH = [
   {txt:"Swamped? <b>Call charge</b> does one step for 20 points. <b>Rapid response</b> unlocks when someone is in the red. The <b>snail</b> slows time for 15 seconds.", btn:"Got it", done:()=>G.coachAck===8},
   {txt:"That's the basics. You're ready for your first shift!", btn:"Finish orientation", done:()=>G.coachAck===9}
 ];
-const coachList = () => LV.mode==="tutorial" ? COACH : (LV.mode==="icu" && LV.tutorial) ? ICU_COACH : null;
+const coachList = () => LV.coach || (LV.mode==="tutorial" ? COACH : (LV.mode==="icu" && LV.tutorial) ? ICU_COACH : null);
 function checkCoach(){
   const list = coachList();
   if(!list || G.over) return;
   const c = list[G.coach];
   if(!c || !c.done()) return;
   G.coach++; dirty = true; sfx.ping();
-  if(G.coach >= list.length){ if(LV.mode==="icu") finishIcuTutorial(); else finishTutorial(); return; }
+  if(G.coach >= list.length){ if(LV.mode==="icu") finishIcuTutorial(); else if(LV.mode==="er") finishErOrientation(); else finishTutorial(); return; }
   const n = list[G.coach]; if(n.setup) n.setup();
 }
 function finishTutorial(){
@@ -1897,8 +2233,9 @@ const logIt = (p, text) => p.log.push([clockStr(), text]);
 /* ---------- game logic ---------- */
 function update(dt){
   G.t += dt;
-  if((LV.mode==="floor" || LV.mode==="er" || (LV.mode==="icu" && !LV.tutorial)) && G.t >= (LV.shift || SHIFT)){ endShift(); return; }
+  if((LV.mode==="floor" || (LV.mode==="er" && !LV.tutorial) || (LV.mode==="icu" && !LV.tutorial)) && G.t >= (LV.shift || SHIFT)){ endShift(); return; }
   if(LV.mode==="icu") icuTick(dt);
+  if(LV.nicu) nicuTick(dt);
   const ramp = (LV.mode==="floor" || LV.mode==="er") ? LV.drain * (1 + 0.5*(G.t/SHIFT)) : LV.drain;
   G.chargeCd = Math.max(0, G.chargeCd - dt);
   if(G.cpr>0){ G.cpr = Math.max(0, G.cpr - dt); if(G.cpr===0){ dirty = true; toast("Two minutes of CPR done. Time for a rhythm check.", "alarm"); sfx.ping(); dirty = true; } }
@@ -2026,7 +2363,7 @@ function advance(p, by, fxOverride){
     if(st0 && st0.born && p.fetal){ p.fetal = false; const g = Math.random()<0.5 ? "girl" : "boy"; setTimeout(()=>toast(`It's a ${g}! Welcome to the world.`, "good"), 300); beep(784,0.12,"sine",0.04); beep(988,0.18,"sine",0.04,0.13); } }
   const st = p.active.steps[p.active.step];
   let fx = doseFill(fxOverride || st.fx, p);
-  if(st.k==="vitals" && !st.fx){ takeVitals(p); fx = vitalsSummary(p.vit); }
+  if(st.k==="vitals" && !st.fx){ takeVitals(p); fx = vitalsSummary(p.vit, p); }
   if(st.rh) p.rhythm = st.rh;
   if(st.cpr){ G.cpr = CPR_FOR; }
   if(st.k==="blood" && !/^Stop/.test(st.b)) p.gotBlood = true;
@@ -2121,7 +2458,7 @@ function useSlow(){
 }
 function expire(p){
   p.health = 0; G.expired++; G.cpr = 0;
-  if(LV.mode==="er" || LV.mode==="icu") loseHeart();
+  if((LV.mode==="er" || LV.mode==="icu") && !LV.tutorial) loseHeart();
   if(LV.mode==="icu") setTimeout(()=>{ if(!G.over) endShift(); }, 3500);
   G.score = Math.max(0, G.score - 200);
   const tod = clockStr();
@@ -2148,7 +2485,7 @@ function transfer(p){
     if(p === cur()) floatText("−100", true);
     sfx.wrong(); toast(`${p.name} left without being seen.`, "alarm"); dirty = true; return;
   }
-  if(LV.mode==="floor" && !LV.pp && !LV.peds && p.active && p.active.urgent && Math.random() < 0.2){ expire(p); return; } // rare on the floor
+  if(LV.mode==="floor" && !LV.pp && !LV.peds && !LV.nicu && p.active && p.active.urgent && Math.random() < 0.2){ expire(p); return; } // rare on the floor
   p.health = 0; G.transfers++;
   G.score = Math.max(0, G.score - 150);
   p.state = "leaving"; p.out = "icu"; p.timer = 2.6; p.active = null; p.queue = [];
@@ -2210,7 +2547,7 @@ function tapVitals(){
   if(p.active && p.active.def.code){ toast(`Monitor: ${p.rhythm || p.active.def.rh}.`); return; }
   sfx.tap();
   takeVitals(p); dirty = true;
-  pushFeed(p, "vitals", vitalsSummary(p.vit));
+  pushFeed(p, "vitals", vitalsSummary(p.vit, p));
 }
 function callCharge(){
   const p = cur();
@@ -2443,11 +2780,11 @@ function renderVitals(p){
   box.classList.toggle("off", !show);
   const v = show ? p.vit : null;
   const cell = (id, val, flag) => { const el = $("#"+id); el.querySelector("b").textContent = val; el.classList.toggle("abn", !!flag); };
-  cell("vHR",  v ? v.hr : "--",  v && OFF.hr(v.hr));
-  cell("vBP",  v ? `${v.sbp}/${v.dbp}` : "--/--", v && OFF.bp(v.sbp));
-  cell("vRR",  v ? v.rr : "--",  v && OFF.rr(v.rr));
+  cell("vHR",  v ? v.hr : "--",  v && OFF.hr(v.hr,p));
+  cell("vBP",  v ? `${v.sbp}/${v.dbp}` : "--/--", v && OFF.bp(v.sbp,p));
+  cell("vRR",  v ? v.rr : "--",  v && OFF.rr(v.rr,p));
   cell("vSp",  v ? v.spo2+"%" : "--", v && OFF.spo2(v.spo2));
-  cell("vT",   v ? v.t.toFixed(1) : "--", v && OFF.t(v.t));
+  cell("vT",   v ? v.t.toFixed(1) : "--", v && OFF.t(v.t,p));
   $("#vitAt").textContent = v ? v.at : "";
 }
 function updateLive(){
@@ -2473,7 +2810,7 @@ function updateLive(){
   $("#clock").textContent = clockStr();
   $("#score").textContent = G.score;
   const hb = $("#hearts");
-  if(LV.mode==="er" || (LV.mode==="icu" && !LV.tutorial)){ hb.hidden = false; const hn = heartsNow(), ht = heartRow(hn); if(hb.textContent !== ht) hb.textContent = ht; } else hb.hidden = true;
+  if((LV.mode==="er" || LV.mode==="icu") && !LV.tutorial){ hb.hidden = false; const hn = heartsNow(), ht = heartRow(hn); if(hb.textContent !== ht) hb.textContent = ht; } else hb.hidden = true;
   const st = curStep(p);
   const escNow = !!(st && st.k==="esc"), goNow = !!(st && st.k==="go");
   const ch = $("#charge");
@@ -2483,7 +2820,7 @@ function updateLive(){
   const rrtMode = LV.mode==="rrt";
   const rr = $("#rr"), ready = escNow || (!rrtMode && !goNow && G.rr>0 && p.state==="needs" && p.health<30);
   rr.disabled = !ready; rr.classList.toggle("ready", ready);
-  const erMode = LV.mode==="er" || LV.mode==="icu";
+  const erMode = LV.mode==="er" || LV.mode==="icu" || LV.nicu;
   $("#rrName").textContent = rrtMode ? "Call for more help" : LV.mode==="icu" ? (escNow ? st.l.replace(/ stat$/,"") : "Call intensivist") : erMode ? "Call for help" : "Rapid response";
   $("#rrCount").textContent = rrtMode ? "" : "×"+G.rr;
   const sl = $("#slow"), on = G.slowLeft>0;
@@ -2605,9 +2942,12 @@ function showStart(){
     <p class="sub">A nurse who floats wherever she&rsquo;s needed. New grad? Start with orientation.</p>
     ${rankCard(careerPts())}
     <h3 class="pick">Pick a shift</h3>
-    <div class="levels">${LEVELS.map((l,i)=>{ const s = saved[l.n]||{};
-      const head = (i===0 || LEVELS[i-1].unit!==l.unit) ? `<div class="unit-head"><b>${l.unit}</b>${(l.unit==="ER" || l.unit==="ICU" || l.unit==="Labor & Delivery") ? `<span class="hearts-note">${heartRow(heartsNow())}${heartsNow()<3 ? ` · next heart in ${mmss(nextHeartIn())}` : ""}</span>` : ""}</div>` : "";
-      return head + `<button class="lvl" data-l="${l.n}"><span class="num">${l.tag||l.n}</span><span class="txt"><b>${esc(l.name)}</b><small>${esc(l.blurb)}</small></span><span class="st">${starsRow(s.stars||0)}${s.best?`<small>${s.best} pts</small>`:""}</span></button>`; }).join("")}</div>
+    <div class="levels">${UNIT_ORDER.map(u=>{ const ls = LEVELS.filter(l=>l.unit===u); if(!ls.length) return "";
+      const got = ls.reduce((a,l)=>a+starsFor(l),0), open = (saved.lastUnit || "Med-Surg") === u;
+      const hearts = (u==="ER" || u==="ICU" || u==="Labor & Delivery" || u==="PICU") ? `<span class="hearts-note">${heartRow(heartsNow())}${heartsNow()<3 ? ` · next in ${mmss(nextHeartIn())}` : ""}</span>` : "";
+      const locked = u==="Rapid Response" && !isUnlocked(ls[0]);
+      return `<details class="unitbox"${open?" open":""}><summary><b>${u}${locked?" 🔒":""}</b><span class="ugot">★ ${got}/${ls.length*3}</span>${hearts}</summary>${ls.map(l=>{ const s = saved[l.n]||{}, lk = !isUnlocked(l);
+        return `<button class="lvl${lk?" locked":""}" data-l="${l.n}"><span class="num">${lk ? "🔒" : (l.tag||l.n)}</span><span class="txt"><b>${esc(l.name)}</b><small>${esc(lk ? lockReason(l) : l.blurb)}</small></span><span class="st">${starsRow(s.stars||0)}${s.best?`<small>${s.best} pts</small>`:""}</span></button>`; }).join("")}</details>`; }).join("")}</div>
     <details class="howto"><summary>How to play</summary>
     <ul>
       <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. The next step <b>glows</b>; tap the matching tool at the bottom. The feed lists what everyone needs, but you have to go to each room yourself.</span></li>
@@ -2625,7 +2965,9 @@ function showStart(){
 }
 function startLevel(n){
   const target = LEVELS.find(l=>l.n===n);
-  if((target.mode==="er" || (target.mode==="icu" && !target.tutorial)) && heartsNow() < 1){
+  if(!isUnlocked(target)){ sfx.wrong(); toast(lockReason(target), "alarm"); return; }
+  saved.lastUnit = target.unit; save();
+  if((target.mode==="er" || target.mode==="icu") && !target.tutorial && heartsNow() < 1){
     ov.hidden = false;
     ov.innerHTML = `<div class="card"><h1>Out of hearts</h1><p class="sub">The ER needs you rested. Your next heart comes back in <b id="hTimer">${mmss(nextHeartIn())}</b>.</p>
       <p class="fine">Hearts come back one every 30 minutes, up to 3. Med-Surg, Postpartum, Rapid Response and orientation don&rsquo;t use hearts.</p>
@@ -2675,7 +3017,7 @@ function showChart(){
     <div class="hp-sec"><h3>Home medications</h3><p>${meds.length ? meds.map(esc).join(". ")+"." : "None"}</p></div>
     <div class="hp-sec"><h3>Allergies</h3><p class="${p.allergy.startsWith("No ")?"":"flag"}">${esc(p.allergy)}</p></div>
     <div class="hp-sec"><h3>Social history</h3><p>${esc(p.social)}</p></div>
-    <div class="hp-sec"><h3>Exam</h3><p>${gen} ${lungs}${p.surg?" Surgical incision dressed.":""}</p>${v?`<p>${flagify(vitalsSummary(v))} <span class="at">(${v.at})</span></p>`:""}</div>
+    <div class="hp-sec"><h3>Exam</h3><p>${gen} ${lungs}${p.surg?" Surgical incision dressed.":""}</p>${v?`<p>${flagify(vitalsSummary(v, p))} <span class="at">(${v.at})</span></p>`:""}</div>
     <div class="hp-sec"><h3>Assessment &amp; plan</h3>${plan.length ? `<ol>${plan.map(a=>`<li><b>${esc(a.def.t.replace("!",""))}:</b> ${a.steps.map(s=>esc(s.l)).join(" → ")}</li>`).join("")}</ol>` : `<p>Stable. Plan for discharge.</p>`}</div>
     <h3>This shift</h3>
     ${p.log.length ? `<ul class="log">${p.log.slice().reverse().map(([t,x])=>`<li><time>${t}</time><span>${flagify(x)}</span></li>`).join("")}</ul>` : `<p class="empty">Nothing charted yet.</p>`}
@@ -2724,7 +3066,7 @@ function endShift(reshow){
   const msg = stars===3 ? "Flawless shift. Your patients adore you." : stars===2 ? "Solid shift. Everyone's in good hands." : stars===1 ? "You made it through. Go eat something." : "Tough shift. They happen to everyone.";
   const msg2 = (LV.mode==="icu" && G.icu && G.icu.passed && !G.outOfHearts) ? (stars>=2 ? "You lost a patient tonight, and you still gave everyone excellent care. Take a breath." : "A hard shift, and a patient you couldn't save. That one wasn't on you.") : msg;
   ov.hidden = false;
-  const idx = LEVELS.indexOf(LV), nextL = LEVELS[idx+1];
+  const nxU = nextInUnit(LV), nextL = nxU && isUnlocked(nxU) ? nxU : null;
   const statsHtml = LV.mode==="icu" ? `
       <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
       <div class="stat"><b>${G.inPct}%</b><span>Time with drips in range</span></div>
