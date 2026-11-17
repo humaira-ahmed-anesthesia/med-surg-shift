@@ -8,6 +8,8 @@ A cozy nursing time-management game, in the spirit of cooking games like Cooking
 - You're the nurse on 4 West with 3 patients. A 12-hour shift (07:00–19:00) lasts about 3 minutes.
 - Three levels: Day shift on 4 West, Busy Monday and Short-staffed Saturday, each with its own patients and emergencies.
 - A vitals monitor refreshes on its own. Abnormal numbers turn red, and some emergencies start with a vitals check.
+- Assess every patient once a shift (an orange ring means not yet). Some problems start with an assessment, like a respiratory exam before a neb.
+- Blood is given through the Meds button, which turns into PRBCs when a transfusion is due.
 - Each patient has a problem and a short chain of care (for example, low hemoglobin: type & screen → large-bore IV → hang PRBCs). The next intervention glows.
 - Health bars drain while patients wait. Tap a patient on the right to go to their room.
 - Emergencies happen: desats, bleeding, sepsis, opioid oversedation, A-fib with RVR, allergic and transfusion reactions, hypotension, wound dehiscence, strokes, STEMIs and severe hypoglycemia.
