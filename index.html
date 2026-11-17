@@ -1020,14 +1020,15 @@ function renderFeed(){
   const fe = $("#feed"), top = G.feed[0] ? G.feed[0].ts : 0;
   if(top !== fe._top){ fe._top = top; fe.scrollTop = 0; }
   fe.innerHTML = (latest ? upd(latest) : "") +
-    tasks.map(t=>`<button class="fd task ${t.urgent?"urgent":""} ${t.here?"here":""}" data-i="${t.i}" data-kind="${t.kind}">${ic(t.k)}<span class="tx"><small>Rm ${ROOMS[t.i]} · ${esc(shortName(G.beds[t.i]))}${t.urgent?" · "+esc(t.prob):""}</small>${esc(t.label)}</span><span class="tap">Do it</span></button>`).join("")
+    tasks.map(t=>`<button class="fd task ${t.urgent?"urgent":""} ${t.here?"here":""}" data-i="${t.i}" data-kind="${t.kind}">${ic(t.k)}<span class="tx"><small>Rm ${ROOMS[t.i]} · ${esc(shortName(G.beds[t.i]))}${t.urgent?" · "+esc(t.prob):""}</small>${esc(t.label)}</span><span class="tap">${t.i===G.current ? "Do it" : "Go to room"}</span></button>`).join("")
     + (rest.length ? `<div class="lbl">Earlier</div>` : "")
     + rest.map(upd).join("");
 }
 function doTask(i, kind){
   if(!playing()) return;
   const p = G.beds[i];
-  G.current = i; dirty = true;
+  if(i !== G.current){ G.current = i; dirty = true; sfx.tap(); return; } // other patients: walk to the room first
+  dirty = true;
   if(kind==="shift"){ if(!p.assessed) shiftAssess(p); return; }
   const st = curStep(p); if(!st) return;
   if(st.k==="go") rushTo(p);
@@ -1058,7 +1059,7 @@ function showStart(){
     <h1>Med-Surg Shift</h1>
     <p class="sub">4 West · 3 patients · 07:00 to 19:00</p>
     <ul>
-      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. <b>Tap the glowing step</b>, or any task card in the feed, to do it.</span></li>
+      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. <b>Tap the glowing step</b> to do it. Feed cards show what other patients need; tap one to go to that room.</span></li>
       <li><span class="n">2</span><span><b>Assess</b> every patient once a shift. An orange ring means they haven&rsquo;t been assessed yet. Some problems start with an assessment too.</span></li>
       <li><span class="n">3</span><span>The <b>monitor</b> refreshes vitals on its own. Red numbers mean trouble. Tap <b>Vitals</b> to check now.</span></li>
       <li><span class="n">4</span><span>Tap a patient on the right to go to their room. Tap the <b>H&amp;P</b> folder to read their history. The game pauses while it&rsquo;s open.</span></li>
