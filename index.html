@@ -240,7 +240,9 @@ button.chip.now:active{transform:scale(.96)}
 .codebar .rh.rosc{color:#8ff0b8}
 .codebar .cprt{font-size:12.5px;font-weight:800;color:#a7c9c3;font-variant-numeric:tabular-nums}
 .codebar .cprt.on{color:#fff1a8}
-.codebar .ff{align-self:flex-start;font-size:11.5px;font-weight:800;color:var(--ink);background:#fff1a8;border-radius:99px;padding:4px 10px}
+.codebar .ff{align-self:stretch;font-size:14px;font-weight:800;color:var(--ink);background:#ffd84d;border-radius:12px;padding:8px 10px;box-shadow:0 0 0 3px #fff1a8;animation:ffpulse 1s ease-in-out infinite}
+@keyframes ffpulse{0%,100%{box-shadow:0 0 0 3px #fff1a8,0 0 0 0 rgba(255,216,77,.8)}50%{box-shadow:0 0 0 3px #fff1a8,0 0 0 10px rgba(255,216,77,0)}}
+.orbtn.ffbig{background:#ffd84d;color:var(--ink);box-shadow:0 3px 0 #d6a91c;animation:ffpulse 1s ease-in-out infinite}
 .codebar .ff[hidden]{display:none}
 .tray{grid-template-columns:repeat(var(--n,6),1fr)}
 .tray.many{gap:5px;padding:7px}
@@ -256,6 +258,7 @@ button.chip.now:active{transform:scale(.96)}
 .howto{margin-top:12px;background:var(--wall);border-radius:14px;padding:10px 12px}
 .howto summary{font-family:var(--display);font-weight:600;font-size:15px;cursor:pointer}
 .howto ul{margin:10px 0 2px}
+.order.calm.lost h2{color:var(--ink)}
 /* chart */
 .chart h1{font-size:22px}
 .chart dl{margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px}
@@ -322,7 +325,7 @@ button.chip.now:active{transform:scale(.96)}
     </button>
     <button class="hbtn" id="rr">
       <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg></span>
-      <span><b>Rapid response <span id="rrCount">×2</span></b><small id="rrSub">Unlocks in the red</small></span>
+      <span><b><span id="rrName">Rapid response</span> <span id="rrCount">×2</span></b><small id="rrSub">Unlocks in the red</small></span>
     </button>
     <button class="hbtn snail" id="slow" aria-label="Slow time for 15 seconds">
       <span class="hi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 18.5h14.5a4 4 0 0 0 4-4V10"/><path d="M19.6 10l-1.2-3.2M21.6 10l1-3.3"/><circle cx="10" cy="12" r="5.6"/><path d="M10 12a1.7 1.7 0 1 1 1.7-1.7 3.1 3.1 0 0 1-3.2 3.2"/></svg></span><b id="slowCount">×1</b>
@@ -372,7 +375,8 @@ const ICON = {
 /* Where a patient can be rushed. */
 const DEST = {
   or:   {btn:"Rush to surgery",  out:"Off to surgery",      fx:"Surgeon at the bedside. Consent signed, off to the OR.", toast:"is headed to surgery. Great catch."},
-  ct:   {btn:"Rush to CT",       out:"Off to CT",           fx:"CT shows no bleeding. The stroke team takes it from here for clot-busting or clot retrieval.", toast:"is off to CT with the stroke team."},
+  ct:   {btn:"Rush to CT",       out:"Off to CT",           fx:"CT shows no bleeding. The stroke team takes it from here for clot-busting or clot retrieval.", mid:"Back from CT: no bleeding. Clear for a clot-buster if BP is under 185/110.", toast:"is off to CT with the stroke team."},
+  nicu: {btn:"Take to the neuro ICU", out:"Off to the neuro ICU", fx:"Settled in the neuro ICU with neuro checks every 15 minutes, watching for bleeding.", toast:"is headed to the neuro ICU."},
   icu:  {btn:"Take to the ICU",  out:"Off to the ICU",      fx:"ROSC! The ICU team takes over post-arrest care.", toast:"has a pulse and is headed to the ICU. Great code!"},
   cath: {btn:"Rush to cath lab", out:"Off to the cath lab", fx:"The cath lab team takes over to open the blocked artery.", toast:"is off to the cath lab. Time is muscle."}
 };
@@ -454,7 +458,10 @@ const U = {
   bpdrop:{t:"BP dropping!", d:"Cool, clammy and getting confused.", leaves:true, v:{sbp:78,dbp:40,hr:128,rr:24},
     s:[VIT(), S("assess","Assess","Assess","Cool, clammy, mottled knees. Getting confused."), S("iv","Fluid bolus","1 L LR","1 L lactated Ringer's wide open. BP 80/44, barely budging."), S("labs","Lactate & CBC","Lactate","Lactate 5.2 (high). Hemoglobin stable."), S("esc","Call rapid response","","")], r:2.8},
   stroke:{t:"Suddenly altered!", d:"Face drooping, right arm weak, words slurred. Normal 10 minutes ago.", leaves:true, v:{sbp:186,dbp:98},
-    s:[VIT(), S("assess","Neuro check","Assess","Right facial droop, right arm drift, slurred speech. NIH Stroke Scale 9 (abnormal)."), S("labs","Fingerstick glucose","FSBG","Glucose 112 mg/dL. Not a low blood sugar, so think stroke."), S("esc","Call a stroke alert","","Stroke alert called. The stroke team is on the way."), S("go","Rush to CT","ct","")], r:2.6},
+    s:[VIT(), S("assess","Neuro check","Assess","Right facial droop, right arm drift, slurred speech. NIH Stroke Scale 9 (abnormal)."), S("labs","Fingerstick glucose","FSBG","Glucose 112 mg/dL. Not a low blood sugar, so think stroke."), S("esc","Call a stroke alert","","Stroke alert called. The stroke team is on the way."), S("go","Rush to CT","ct",""),
+      S("meds","Lower the BP","Labetalol","Labetalol 10 mg IV push. BP down to 174/92, under the 185/110 limit for clot-busting."),
+      S("meds","Hang TNK","TNK","Tenecteplase (TNK) 0.25 mg/kg IV push over 5 seconds, max 25 mg. The clock is ticking: time is brain."),
+      S("go","Take to the neuro ICU","nicu","")], r:2.6},
   stemi:{t:"Chest pain!", d:"Crushing chest pain. Sweaty and pale.", leaves:true, v:{hr:104,sbp:148,dbp:90},
     s:[VIT(), S("assess","Chest pain assessment","Assess","Pressure-like pain 8/10 spreading to the left arm and jaw."), S("labs","12-lead EKG","EKG","ST elevation in leads II, III and aVF (abnormal). This is a STEMI."), S("meds","Chewable aspirin","Aspirin","Aspirin 324 mg chewed."), S("esc","Call a STEMI alert","","STEMI alert called. Cath lab team activated."), S("go","Rush to cath lab","cath","")], r:2.6},
   hyperk:{t:"Potassium is high!", d:"Lab called a critical potassium of 6.8. Feels weak.", v:{hr:52},
@@ -517,8 +524,11 @@ const RRT_STROKE = {t:"Rapid response: stroke!", d:"Right side went weak at 14:1
   C("assess","Neuro check","Assess","Right face droop, right arm and leg weak, can't find words. NIH Stroke Scale 12 (abnormal)."),
   C("labs","Fingerstick glucose","FSBG","Glucose 128. Not a low blood sugar, so treat it as a stroke."),
   C("esc","Call a stroke alert","","Stroke alert called. Stroke team and CT notified."),
-  C("labs","Stat labs & EKG","Labs","Labs sent. EKG: atrial fibrillation, rate 96."),
-  C("go","Rush to CT","ct","")]};
+  C("labs","Stat labs & EKG","Labs","Labs sent. EKG: atrial fibrillation, rate 96. Not on blood thinners."),
+  C("go","Rush to CT","ct",""),
+  C("meds","Lower the BP","Labetalol","Labetalol 10 mg IV push. BP down to 176/94, under the 185/110 limit."),
+  C("meds","Hang TNK","TNK","Tenecteplase (TNK) 0.25 mg/kg IV push over 5 seconds, max 25 mg. Door to needle: 38 minutes."),
+  C("go","Take to the neuro ICU","nicu","")]};
 const MTP = {t:"Hemorrhage!", d:"Blood pouring from the abdominal drain. BP 72/38.", v:{sbp:72,dbp:38,hr:142,spo2:94}, r:3.0, s:[
   C("assess","Assess","Assess","Pale, cold and confused. The drain bag is filling with bright red blood."),
   C("wound","Hold pressure","Pressure","Firm pressure on the incision. Transplant surgeon paged stat."),
@@ -555,7 +565,7 @@ const LEVELS = [
   {n:3, name:"Short-staffed Saturday", blurb:"Anything goes. Strokes to CT, chest pain to the cath lab, and patients who won't wake up.",
    first:[P.hf,P.gib,P.pna,P.hypo,P.cell,P.inc,P.lowmg,P.hgb,P.kneepain], follow:[F.pain,F.lostiv,F.mg,F.phos,F.ca,F.lowsugar,F.nausea,F.dizzy,F.sob],
    urgent:[U.stroke,U.stemi,U.unresp,U.bpdrop,U.rxn,U.sleepy,U.afib,U.sepsis,U.dehisc,U.hyperk], doom:[COPD,COPD2,COPD3], drain:1.22, ev:[15,23], stars:[1700,2800]},
-  {n:4, tag:"RR", mode:"rrt", name:"Rapid Response Nurse", blurb:"One patient at a time across the hospital: a VT code, a stroke, an asystole code and a massive hemorrhage.",
+  {n:4, tag:"RR", mode:"rrt", name:"Rapid Response Nurse", blurb:"One patient at a time across the hospital: a VT code, a stroke that needs TNK, an asystole code and a massive hemorrhage.",
    calls:CALLS, tools:["assess","cpr","shock","meds","o2","labs","iv","wound"], drain:1, ev:[999,999], stars:[1000,1250]}
 ];
 
@@ -694,7 +704,7 @@ function admit(i, initial, o){
 }
 function newGame(){
   G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:2, chargeCd:0, doomSeen:0, cpr:0, ff:0, badShocks:0, callIdx:0, callsDone:0, coach:0, coachAck:-1,
-       discharged:0, transfers:0, escalated:0, rushed:0, helps:0, rrUsed:0, slows:1, slowLeft:0, saves:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], all:[], feed:[], namePool:shuffle(NAMES.slice())};
+       discharged:0, transfers:0, expired:0, escalated:0, rushed:0, helps:0, rrUsed:0, slows:1, slowLeft:0, saves:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], all:[], feed:[], namePool:shuffle(NAMES.slice())};
   buildTray(LV.tools || ORDER);
   $("#app").classList.toggle("solo", LV.mode==="rrt");
   if(LV.mode==="rrt"){ G.beds.push(admitCall(0)); }
@@ -763,7 +773,7 @@ function update(dt){
   if(LV.mode==="floor" && G.t >= SHIFT){ endShift(); return; }
   const ramp = LV.mode==="floor" ? LV.drain * (1 + 0.5*(G.t/SHIFT)) : LV.drain;
   G.chargeCd = Math.max(0, G.chargeCd - dt);
-  if(G.cpr>0){ G.cpr = Math.max(0, G.cpr - dt); if(G.cpr===0){ toast("Two minutes of CPR done. Time for a rhythm check.", "alarm"); sfx.ping(); dirty = true; } }
+  if(G.cpr>0){ G.cpr = Math.max(0, G.cpr - dt); if(G.cpr===0){ dirty = true; toast("Two minutes of CPR done. Time for a rhythm check.", "alarm"); sfx.ping(); dirty = true; } }
 
   G.beds.forEach((p,i)=>{
     p.flash = Math.max(0, p.flash - dt);
@@ -833,7 +843,7 @@ function advance(p, by, fxOverride){
   let fx = fxOverride || st.fx;
   if(st.k==="vitals" && !st.fx){ takeVitals(p); fx = vitalsSummary(p.vit); }
   if(st.rh) p.rhythm = st.rh;
-  if(st.cpr) G.cpr = CPR_FOR;
+  if(st.cpr){ G.cpr = CPR_FOR; }
   if(st.k==="blood" && !/^Stop/.test(st.b)) p.gotBlood = true;
   if(/hydromorphone|oxycodone|morphine/i.test(fx)) p.got.opioid = true;
   if(/antibiotic|cefazolin|ceftriaxone|piperacillin|vancomycin/i.test(fx) && !/stopped/i.test(fx)) p.got.abx = true;
@@ -878,6 +888,7 @@ function rushTo(p){
   const st = curStep(p); if(!st || st.k!=="go") return;
   if(cprBlocks(st)) return;
   const d = DEST[st.b];
+  if(p.active.step < p.active.steps.length-1){ sfx.tap(); toast(`${p.name} ${d.toast}`, "good"); advance(p, "you", d.mid || d.fx); return; }
   logIt(p, d.fx); pushFeed(p, "go", d.fx); if(p === cur()) floatText("+200");
   G.score += 200; G.rushed++; earnSlow(); G.cpr = 0;
   p.state = "leaving"; p.out = "go"; p.dest = st.b; p.timer = 3.4; p.active = null; p.queue = [];
@@ -905,7 +916,18 @@ function useSlow(){
   beep(392,0.25,"sine",0.05); beep(330,0.3,"sine",0.04,0.2);
   toast("Slow motion for 15 seconds. Breathe.", "good");
 }
+function expire(p){
+  p.health = 0; G.expired++; G.cpr = 0;
+  G.score = Math.max(0, G.score - 200);
+  const tod = clockStr();
+  logIt(p, `Patient expired. Time of death ${tod}.`); pushFeed(p, "esc", `Patient expired. Time of death ${tod}.`);
+  p.state = "leaving"; p.out = "expired"; p.timer = 4; p.active = null; p.queue = [];
+  if(p === cur()) floatText("−200", true);
+  sfx.wrong(); toast(`${p.name} expired. Time of death ${tod}.`, "alarm");
+  dirty = true;
+}
 function transfer(p){
+  if(LV.mode==="rrt"){ expire(p); return; }
   p.health = 0; G.transfers++;
   G.score = Math.max(0, G.score - 150);
   p.state = "leaving"; p.out = "icu"; p.timer = 2.6; p.active = null; p.queue = [];
@@ -990,10 +1012,10 @@ function callRR(){
     if(cprBlocks(st)) return;
     G.rrUsed++;
     if(p.active.step === p.active.steps.length-1) escalate(p, "rr");
-    else advance(p, "you", st.fx || "Rapid response team at the bedside.");
+    else advance(p, "you", st.fx || (LV.mode==="rrt" ? "More help is on the way." : "Rapid response team at the bedside."));
     return;
   }
-  if(!(G.rr>0 && p.health<30)) return;
+  if(LV.mode==="rrt" || !(G.rr>0 && p.health<30)) return;
   G.rr--; G.rrUsed++;
   p.health = Math.max(p.health, 50);
   logIt(p, "Rapid response team at the bedside: " + p.active.steps.slice(p.active.step).map(s=>s.k==="vitals"?"Vitals rechecked.":s.fx).join(" "));
@@ -1039,7 +1061,7 @@ function bedSVG(p){
     <rect x="12" y="120" width="10" height="50" rx="5" fill="#9fcfc6"/><rect x="178" y="120" width="10" height="50" rx="5" fill="#9fcfc6"/>
     <rect x="34" y="172" width="9" height="12" rx="4" fill="#b8d8d1"/><rect x="157" y="172" width="9" height="12" rx="4" fill="#b8d8d1"/>`;
   if(mood==="empty" || mood==="gone"){
-    const label = mood==="gone" ? (p.out==="go" ? DEST[p.dest].out : "Moving to the ICU") : "Cleaning the room";
+    const label = mood==="gone" ? (p.out==="go" ? DEST[p.dest].out : p.out==="expired" ? "Patient expired" : "Moving to the ICU") : "Cleaning the room";
     return `<svg class="pt" viewBox="0 0 200 186" role="img" aria-label="${label}">${back}
       <path d="M22 140 Q100 130 178 140 L178 154 L22 154Z" fill="#eef4f2"/>${front}
       <text x="100" y="84" text-anchor="middle" font-family="Fredoka,Nunito,sans-serif" font-size="13" font-weight="600" fill="#6d7d86">${label}</text></svg>`;
@@ -1099,7 +1121,8 @@ $("#vitBtn").addEventListener("click", tapVitals);
 $("#slow").addEventListener("click", useSlow);
 $("#pauseBtn").addEventListener("click", ()=>{ if(G.running && !G.over){ G.paused = true; showPause(); } });
 $("#chartBtn").addEventListener("click", showChart);
-$("#ffBtn").addEventListener("click", ()=>{ if(playing() && G.cpr>0){ G.cpr = 0.0001; G.ff++; sfx.tap(); } });
+function fastForward(){ if(playing() && G.cpr>0){ G.cpr = 0.0001; G.ff++; sfx.tap(); dirty = true; } }
+$("#ffBtn").addEventListener("click", fastForward);
 
 let artKey = "";
 function renderAll(){
@@ -1116,7 +1139,8 @@ function renderAll(){
       if(i<a.step) return i===a.step-1 ? `<span class="chip done">✓ ${a.step} done</span>` : "";
       if(i>a.step+2){ const left = a.steps.slice(a.step+3).filter(x=>x.k!=="go").length; return i===a.step+3 && left ? `<span class="chip more">+${left} more</span>` : ""; }
       return `<span class="chip ${i===a.step?"now":""}">${ic}${esc(s.l)}</span>`; }).join("")
-    }</div>${st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
+    }</div>${G.cpr>0 && !st.during && st.k!=="cpr" ? `<button class="orbtn ffbig" id="ffBig">⏩ Fast-forward CPR to the rhythm check</button>` : st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
+    const fb = $("#ffBig"); if(fb) fb.addEventListener("click", fastForward);
     const gb = $("#goBtn"); if(gb) gb.addEventListener("click", ()=>{ if(playing()) rushTo(cur()); });
     const nc = $("#nowChip"); if(nc) nc.addEventListener("click", ()=>doTask(G.current, "step"));
   } else {
@@ -1124,10 +1148,11 @@ function renderAll(){
     let h, d;
     if(p.state==="resting"){ h = p.queue.length ? "Resting comfortably" : "Ready for discharge"; d = p.queue.length ? "Go check on your other patients." : "Paperwork is almost done."; }
     else if(p.state==="leaving"){
-      h = p.out==="home" ? "Going home!" : p.out==="go" ? DEST[p.dest].out : p.out==="esc" ? "Moving to the ICU" : "Transferred to ICU";
-      d = p.out==="home" ? "Great care today." : p.out==="go" ? "The team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : "They'll get closer monitoring there.";
+      h = p.out==="home" ? "Going home!" : p.out==="go" ? DEST[p.dest].out : p.out==="esc" ? "Moving to the ICU" : p.out==="expired" ? "Patient expired" : "Transferred to ICU";
+      d = p.out==="home" ? "Great care today." : p.out==="go" ? "The team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : p.out==="expired" ? "Take a breath. The next call is coming." : "They'll get closer monitoring there.";
     }
     else { h = "Room being cleaned"; d = "A new admission is on the way."; }
+    if(p.out==="expired" && p.state==="leaving") o.classList.add("lost");
     o.innerHTML = `<h2>${h}</h2><p>${d}</p>`;
   }
   G.beds.forEach((b,i)=>{
@@ -1204,14 +1229,16 @@ function updateLive(){
   ch.disabled = !(G.chargeCd<=0 && p.state==="needs");
   ch.classList.toggle("ready", escNow && G.chargeCd<=0);
   $("#chargeSub").textContent = G.chargeCd>0 ? `Dana is busy · ${Math.ceil(G.chargeCd)}s` : escNow ? "Calls for help · −20 pts" : goNow ? "Helps you transport · −20 pts" : "Helps one step · −20 pts";
-  const rr = $("#rr"), ready = escNow || (!goNow && G.rr>0 && p.state==="needs" && p.health<30);
+  const rrtMode = LV.mode==="rrt";
+  const rr = $("#rr"), ready = escNow || (!rrtMode && !goNow && G.rr>0 && p.state==="needs" && p.health<30);
   rr.disabled = !ready; rr.classList.toggle("ready", ready);
-  $("#rrCount").textContent = "×"+G.rr;
+  $("#rrName").textContent = rrtMode ? "Call for more help" : "Rapid response";
+  $("#rrCount").textContent = rrtMode ? "" : "×"+G.rr;
   const sl = $("#slow"), on = G.slowLeft>0;
   sl.disabled = !on && G.slows<=0; sl.classList.toggle("on", on);
   $("#slowCount").textContent = on ? Math.ceil(G.slowLeft)+"s" : "×"+G.slows;
   $("#app").classList.toggle("slowmo", on);
-  $("#rrSub").textContent = escNow ? "Calls the team. Free" : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
+  $("#rrSub").textContent = rrtMode ? (escNow ? "Calls the team you need" : "For codes, stroke alerts, MTP") : escNow ? "Calls the team. Free" : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
 }
 
 let toastT = 0;
@@ -1304,7 +1331,7 @@ function showStart(){
       <li><span class="n">4</span><span>Tap a patient on the right to go to their room. Tap the <b>H&amp;P</b> folder to read their history. The game pauses while it&rsquo;s open.</span></li>
       <li><span class="n">5</span><span>Earn <b>slow moments</b> by sending patients home or getting them where they need to go. Tap the snail to slow time for 15 seconds.</span></li>
       <li><span class="n">6</span><span>When it's beyond you, call <b>rapid response</b> or <b>charge</b>. Some patients need the ICU, OR, CT or cath lab.</span></li>
-      <li><span class="n">7</span><span>In a <b>code</b>, the monitor shows the rhythm. Start CPR, and during each 2-minute cycle you can give meds, breaths and access. Tap <b>⏩</b> to skip ahead to the rhythm check. Never shock asystole or PEA.</span></li>
+      <li><span class="n">7</span><span>In a <b>code</b>, the monitor shows the rhythm. Start CPR, and during each 2-minute cycle you can give meds, breaths and access. Tap the yellow <b>⏩ Fast-forward</b> to skip ahead to the rhythm check. Never shock asystole or PEA. On the Rapid Response level, <b>Call for more help</b> brings the code team, stroke team or blood bank.</span></li>
     </ul>
     </details>
     <p class="fine">A game, not clinical guidance. Time runs fast: one shift is about 3 minutes.</p>
@@ -1368,7 +1395,7 @@ function endShift(reshow){
     const rrt = LV.mode==="rrt";
     const s1 = rrt ? G.callsDone >= LV.calls.length : G.discharged >= 3;
     const s2 = s1 && G.score >= LV.stars[0];
-    const s3 = s2 && G.score >= LV.stars[1] && G.transfers === 0 && (rrt ? G.badShocks===0 : G.assessedN === G.dueN);
+    const s3 = s2 && G.score >= LV.stars[1] && G.transfers === 0 && (rrt ? G.badShocks===0 && G.expired===0 : G.assessedN === G.dueN);
     const stars = s3 ? 3 : s2 ? 2 : s1 ? 1 : 0;
     const prev = saved[LV.n] || {stars:0, best:0};
     const isBest = G.score > (prev.best||0);
@@ -1383,7 +1410,7 @@ function endShift(reshow){
       <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
       <div class="stat"><b>${G.callsDone}/${LV.calls.length}</b><span>Calls answered</span></div>
       <div class="stat"><b>${G.rushed}</b><span>Got to the ICU, OR or CT</span></div>
-      <div class="stat"><b>${G.transfers}</b><span>Taken over by the ICU team</span></div>
+      <div class="stat"><b>${G.expired}</b><span>Patients expired</span></div>
       <div class="stat"><b>${G.badShocks}</b><span>Shocks on a non-shockable rhythm</span></div>
       <div class="stat"><b>${G.ff}</b><span>CPR cycles fast-forwarded</span></div>` : "";
   ov.innerHTML = `<div class="card"><h1>${LV.mode==="rrt"?"Rapid response report":"Shift report"}</h1><p class="sub">${esc(LV.name)}. ${msg}</p>
@@ -1400,7 +1427,7 @@ function endShift(reshow){
     ${nextL ? `<button class="go" id="nextBtn">Next: ${esc(nextL.name)}</button>` : ""}
     <button class="${nextL ? "toggle" : "go"}" id="againBtn">Play this level again</button>
     <button class="toggle" id="listBtn">All shifts</button>
-    <p class="fine">${LV.mode==="rrt" ? `★ answer every call · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody taken over and no wrong shocks` : `★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody moved to ICU too late and every patient assessed`}</p></div>`;
+    <p class="fine">${LV.mode==="rrt" ? `★ answer every call · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody expired and no wrong shocks` : `★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody moved to ICU too late and every patient assessed`}</p></div>`;
   const nb = $("#nextBtn"); if(nb) nb.addEventListener("click", ()=>startLevel(nextL.n));
   $("#againBtn").addEventListener("click", ()=>startLevel(LV.n));
   $("#listBtn").addEventListener("click", showStart);
