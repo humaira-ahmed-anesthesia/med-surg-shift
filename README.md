@@ -13,7 +13,8 @@ A cozy nursing time-management game, in the spirit of cooking games like Cooking
 - Emergencies happen: desats, bleeding, sepsis, opioid oversedation, A-fib with RVR, allergic and transfusion reactions, hypotension, wound dehiscence, strokes, STEMIs and severe hypoglycemia.
 - Some patients need the ICU no matter what. Call the rapid response team or charge to escalate in time.
 - Some emergencies need more than the floor: rush them to the OR, CT or the cath lab.
-- Each patient has a chart with history, allergies, code status and a log of the shift.
+- Each patient has an H&P folder (history of present illness, home meds, allergies, social history, exam, plan) and a log of the shift. The game pauses while it's open.
+- Earn slow moments by sending patients home or getting them where they need to go. Tap the snail to slow time for 15 seconds.
 
 ## Feedback wanted
 What felt too easy or too hard? Which scenarios don't match real practice? What emergencies should come next?
