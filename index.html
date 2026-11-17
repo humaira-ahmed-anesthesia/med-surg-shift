@@ -45,7 +45,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 
 /* stage */
 .stage{flex:1;min-height:0;display:grid;grid-template-columns:1fr 104px;gap:10px}
-.room{position:relative;min-height:0;background:var(--wall);border-radius:22px;padding:12px;display:flex;flex-direction:column;gap:10px;box-shadow:inset 0 0 0 2px var(--line);overflow:hidden}
+.room{position:relative;min-height:0;background:var(--wall);border-radius:22px;padding:10px;display:flex;flex-direction:column;gap:8px;box-shadow:inset 0 0 0 2px var(--line);overflow:hidden}
 .who{display:flex;align-items:baseline;gap:8px}
 .who .nm{font-family:var(--display);font-weight:600;font-size:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .who .rm{font-size:12px;font-weight:800;color:var(--muted);white-space:nowrap}
@@ -64,15 +64,15 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .order.calm p{margin-bottom:0}
 .order.urgent{box-shadow:0 0 0 2px var(--bad),0 2px 0 var(--line)}
 .order.urgent h2{color:#c9483b}
-.steps{display:flex;flex-wrap:wrap;gap:6px}
-.chip{display:flex;align-items:center;gap:5px;padding:4px 8px 4px 5px;border-radius:99px;background:#f1f6f4;font-size:12px;font-weight:800;color:var(--muted);line-height:1.15}
-.chip .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none}
+.steps{display:flex;flex-wrap:wrap;gap:4px 5px}
+.chip{display:flex;align-items:center;gap:4px;padding:3px 7px 3px 4px;border-radius:99px;background:#f1f6f4;font-size:11.5px;font-weight:800;color:var(--muted);line-height:1.15}
+.chip .ic{width:19px;height:19px;border-radius:50%;display:grid;place-items:center;flex:none}
 .chip .ic svg{width:16px;height:16px}
 .chip.done{text-decoration:line-through;opacity:.55}
 .chip.now{background:#fff3cf;color:var(--ink);box-shadow:0 0 0 2px var(--glow)}
 
-.bedwrap{position:relative;flex:1;min-height:120px;display:grid;place-items:end center}
-.bedwrap svg.pt{width:100%;max-width:250px;height:auto;max-height:100%;overflow:visible}
+.bedwrap{position:relative;flex:none;height:76px;display:grid;place-items:end center}
+.bedwrap svg.pt{height:76px;width:auto;overflow:visible}
 .toast{position:absolute;left:50%;top:0;transform:translate(-50%,-6px);background:var(--ink);color:#fff;font-size:12.5px;font-weight:700;padding:7px 12px;border-radius:12px;width:max-content;max-width:94%;text-align:center;opacity:0;transition:opacity .25s,transform .25s;pointer-events:none;z-index:3}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .toast.alarm{background:#c9483b}
@@ -164,7 +164,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .res.out{opacity:0;transform:translateY(-6px);transition:opacity .3s,transform .3s}
 @keyframes resIn{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:none}}
 .flag{color:#c9483b;font-weight:800}
-.toast{top:auto;bottom:0;transform:translate(-50%,6px)}
+.toast{top:auto;bottom:10px;transform:translate(-50%,6px)}
 .toast.show{transform:translate(-50%,0)}
 .tool span.lb{max-width:100%;padding:0 2px;text-align:center;overflow-wrap:anywhere}
 .tool.next span.lb{color:#8a5a00}
@@ -208,6 +208,23 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .unit span{display:block}
 .tool.due::after{content:"";position:absolute;top:5px;right:6px;width:9px;height:9px;border-radius:50%;background:#f1a33a;box-shadow:0 0 0 2px var(--surface)}
 .pt-card.unassessed .av{box-shadow:0 0 0 2px #f1a33a}
+/* feed */
+.feed{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin:0 -4px;padding:2px 4px 40px;-webkit-mask-image:linear-gradient(#000 85%,transparent);mask-image:linear-gradient(#000 85%,transparent)}
+.fd{display:flex;align-items:center;gap:8px;text-align:left;border-radius:12px;padding:5px 8px;font-size:12.5px;font-weight:700;line-height:1.3;width:100%}
+.fd .ic{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;flex:none}
+.fd .ic svg{width:17px;height:17px}
+.fd .tx{flex:1;min-width:0}
+.fd small{display:block;font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.02em}
+.fd.task{background:var(--surface);box-shadow:0 2px 0 var(--line)}
+.fd.task .tap{flex:none;font-size:11px;font-weight:800;color:var(--accent);background:#e2f3ef;border-radius:99px;padding:3px 8px}
+.fd.task.here{box-shadow:0 0 0 2px var(--glow),0 2px 0 var(--line);background:#fffaf0}
+.fd.task.urgent{box-shadow:0 0 0 2px var(--bad),0 2px 0 var(--line)}
+.fd.task.urgent small{color:#c9483b}
+.fd.task.urgent .tap{background:#ffe3df;color:#c9483b}
+.fd.task:active{transform:scale(.98)}
+.fd.res{background:rgba(255,255,255,.55);font-weight:600}
+.fd.res.new{animation:resIn .3s ease-out;background:#fff}
+.feed .lbl{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin:4px 2px 0}
 /* chart */
 .chart h1{font-size:22px}
 .chart dl{margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px}
@@ -256,10 +273,10 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
       </div>
       <div class="order" id="order"></div>
       <div class="bedwrap" id="bedwrap">
-        <div class="results" id="results"></div>
-        <div class="toast" id="toast"></div>
         <div id="ptArt"></div>
       </div>
+      <div class="feed" id="feed" aria-label="Tasks and updates"></div>
+      <div class="toast" id="toast"></div>
     </section>
     <aside class="list" id="list" aria-label="Your patients"></aside>
   </main>
@@ -555,7 +572,7 @@ function admit(i, initial){
 }
 function newGame(){
   G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:2, chargeCd:0, doomSeen:0,
-       discharged:0, transfers:0, escalated:0, rushed:0, helps:0, rrUsed:0, slows:1, slowLeft:0, saves:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], all:[], namePool:shuffle(NAMES.slice())};
+       discharged:0, transfers:0, escalated:0, rushed:0, helps:0, rrUsed:0, slows:1, slowLeft:0, saves:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], all:[], feed:[], namePool:shuffle(NAMES.slice())};
   for(let i=0;i<3;i++) G.beds.push(admit(i,true));
   $("#unitName").textContent = `4 West · Level ${LV.n}`;
   $("#unitSub").textContent = LV.name;
@@ -630,7 +647,7 @@ function advance(p, by, fxOverride){
   if(st.k==="blood" && !/^Stop/.test(st.b)) p.gotBlood = true;
   if(st.k==="assess") p.assessed = true;
   logIt(p, fx + (by==="charge" ? " (charge nurse)" : ""));
-  if(p === cur()) showResult({k:st.k, fx});
+  pushFeed(p, st.k, fx);
   p.active.step++;
   p.health = Math.min(100, p.health + 5);
   if(by==="you") G.score += 10;
@@ -651,7 +668,7 @@ function escalate(p, via){
   const fx = via==="charge" ? "Charge nurse called the ICU. Bed assigned, transferring now." : "Rapid response team (ICU nurses) at the bedside. Transferring to the ICU for closer monitoring.";
   G.score += via==="charge" ? 150 : 200; G.escalated++; earnSlow();
   logIt(p, fx);
-  if(p === cur()){ showResult({k:"esc", fx}); floatText(via==="charge" ? "+150" : "+200"); }
+  pushFeed(p, "esc", fx); if(p === cur()) floatText(via==="charge" ? "+150" : "+200");
   p.state = "leaving"; p.out = "esc"; p.timer = 3.4; p.active = null; p.queue = [];
   sfx.done();
   toast(`${p.name} needs the ICU. You escalated in time.`, "good");
@@ -660,7 +677,7 @@ function escalate(p, via){
 function rushTo(p){
   const st = curStep(p); if(!st || st.k!=="go") return;
   const d = DEST[st.b];
-  logIt(p, d.fx); if(p === cur()){ showResult({k:"go", fx:d.fx}); floatText("+200"); }
+  logIt(p, d.fx); pushFeed(p, "go", d.fx); if(p === cur()) floatText("+200");
   G.score += 200; G.rushed++; earnSlow();
   p.state = "leaving"; p.out = "go"; p.dest = st.b; p.timer = 3.4; p.active = null; p.queue = [];
   sfx.done();
@@ -705,7 +722,7 @@ function headToToe(p){
 function shiftAssess(p){
   p.assessed = true; G.score += 25;
   const fx = headToToe(p);
-  logIt(p, fx); showResult({k:"assess", fx}); floatText("+25"); sfx.tap();
+  logIt(p, fx); pushFeed(p, "assess", fx); if(p === cur()) floatText("+25"); sfx.tap();
   dirty = true;
 }
 function tapTool(key, btn){
@@ -735,7 +752,7 @@ function tapVitals(){
   sfx.tap();
   if(curStep(p) && curStep(p).k==="vitals"){ advance(p, "you"); return; }
   takeVitals(p); dirty = true;
-  showResult({k:"vitals", fx:vitalsSummary(p.vit)});
+  pushFeed(p, "vitals", vitalsSummary(p.vit));
 }
 function callCharge(){
   const p = cur();
@@ -908,6 +925,7 @@ function renderAll(){
     if(st.k==="blood"){ b.ic.innerHTML = ICON.blood; b.style.setProperty("--tint", TOOLS.blood.tint); b.style.setProperty("--tc", TOOLS.blood.c); b.dataset.alt = "1"; }
   }
   $("#vitBtn").classList.toggle("next", !!(st && st.k==="vitals"));
+  renderFeed();
 }
 function renderVitals(p){
   const box = $("#vitals");
@@ -964,17 +982,55 @@ function toast(msg, kind){
   t.textContent = msg; t.className = "toast show " + (kind||"");
   clearTimeout(toastT); toastT = setTimeout(()=>t.className="toast", 2400);
 }
-function showResult(st){
-  const box = $("#results");
-  while(box.children.length >= 2) box.firstElementChild.remove();
-  const r = document.createElement("div");
-  r.className = "res";
-  r.innerHTML = `<span class="ic" style="background:${TOOLS[st.k].tint};color:${TOOLS[st.k].c}">${ICON[st.k]}</span><span>${flagify(st.fx)}</span>`;
-  box.appendChild(r);
-  setTimeout(()=>r.classList.add("out"), 3000);
-  setTimeout(()=>r.remove(), 3350);
+function pushFeed(p, k, fx){
+  G.feed.unshift({at:clockStr(), room:roomOf(p), who:shortName(p), k, fx, ts:performance.now()});
+  if(G.feed.length > 8) G.feed.length = 8;
+  dirty = true;
 }
-function clearResults(){ $("#results").innerHTML = ""; }
+function clearResults(){}
+const shortName = p => p.name.replace(/^(Mrs?\.|Ms\.)\s*/,"");
+/* Task cards: every patient's next step, tappable. Current patient first, then emergencies. */
+function feedTasks(){
+  const out = [];
+  G.beds.forEach((b,i)=>{
+    const st = curStep(b);
+    if(st){
+      const label = st.k==="go" ? DEST[st.b].btn : st.k==="esc" ? st.l.replace(/^Escalate: /,"") : st.l;
+      out.push({i, k:st.k, label, urgent:b.active.urgent, here:i===G.current, prob:b.active.def.t.replace("!",""), kind:"step"});
+    }
+    if((b.state==="needs"||b.state==="resting") && !b.assessed)
+      out.push({i, k:"assess", label:"Shift assessment", urgent:false, here:i===G.current, prob:"Due this shift", kind:"shift"});
+  });
+  const rank = t => (t.here && t.kind==="step" ? 0 : t.urgent ? 1 : t.here ? 2 : t.kind==="step" ? 3 : 4);
+  return out.sort((a,b)=>rank(a)-rank(b));
+}
+function renderFeed(){
+  const tasks = feedTasks(), now = performance.now();
+  const ic = k => `<span class="ic" style="background:${TOOLS[k].tint};color:${TOOLS[k].c}">${ICON[k]}</span>`;
+  const upd = f => `<div class="fd res ${now-f.ts<900?"new":""}">${ic(f.k)}<span class="tx"><small>${f.at} · Rm ${f.room} · ${esc(f.who)}</small>${flagify(f.fx)}</span></div>`;
+  const latest = G.feed[0] && now - G.feed[0].ts < 6000 ? G.feed[0] : null;
+  const rest = latest ? G.feed.slice(1) : G.feed;
+  const fe = $("#feed"), top = G.feed[0] ? G.feed[0].ts : 0;
+  if(top !== fe._top){ fe._top = top; fe.scrollTop = 0; }
+  fe.innerHTML = (latest ? upd(latest) : "") +
+    tasks.map(t=>`<button class="fd task ${t.urgent?"urgent":""} ${t.here?"here":""}" data-i="${t.i}" data-kind="${t.kind}">${ic(t.k)}<span class="tx"><small>Rm ${ROOMS[t.i]} · ${esc(shortName(G.beds[t.i]))}${t.urgent?" · "+esc(t.prob):""}</small>${esc(t.label)}</span><span class="tap">Do it</span></button>`).join("")
+    + (rest.length ? `<div class="lbl">Earlier</div>` : "")
+    + rest.map(upd).join("");
+}
+function doTask(i, kind){
+  if(!playing()) return;
+  const p = G.beds[i];
+  G.current = i; dirty = true;
+  if(kind==="shift"){ if(!p.assessed) shiftAssess(p); return; }
+  const st = curStep(p); if(!st) return;
+  if(st.k==="go") rushTo(p);
+  else if(st.k==="esc") callRR();
+  else { sfx.tap(); advance(p, "you"); }
+}
+document.getElementById("feed").addEventListener("click", e=>{
+  const b = e.target.closest(".fd.task"); if(!b) return;
+  doTask(+b.dataset.i, b.dataset.kind);
+});
 function floatText(txt, minus){
   const f = document.createElement("span");
   f.className = "float" + (minus?" minus":""); f.textContent = txt;
@@ -1107,6 +1163,7 @@ function frame(ts){
   }
   if(dirty){ renderAll(); dirty = false; }
   updateLive();
+  if(G.feed && G.feed[0] && !G.feed[0].aged && performance.now()-G.feed[0].ts > 6000){ G.feed[0].aged = true; dirty = true; }
   requestAnimationFrame(frame);
 }
 newGame(); showStart(); renderAll(); updateLive();
