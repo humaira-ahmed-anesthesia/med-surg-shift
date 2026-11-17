@@ -164,6 +164,36 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .tool.next span.lb{color:#8a5a00}
 .orbtn{margin-top:10px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:14px;background:#4a63c9;color:#fff;font-family:var(--display);font-weight:600;font-size:16px;box-shadow:0 3px 0 #33479a;animation:glow 1s ease-in-out infinite}
 .orbtn svg{width:22px;height:22px}
+/* vitals monitor */
+.vitals{margin-top:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:#22403f;border-radius:14px;padding:5px}
+.vc{padding:3px 7px 4px;border-radius:9px;min-width:0}
+.vc small{display:block;font-size:9.5px;font-weight:800;letter-spacing:.04em;color:#a7c9c3}
+.vc b{display:block;font-family:var(--display);font-weight:600;font-size:16px;line-height:1.1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.vc.hr b{color:#8ff0b8}.vc.bp b{color:#ffd0dc}.vc.sp b{color:#8fe3f5}.vc.rr b{color:#fff1a8}.vc.tp b{color:#e3d6ff}
+.vc.abn{background:rgba(238,116,102,.3);animation:abn 1.1s ease-in-out infinite}
+.vc.abn b{color:#fff}
+.vc.abn small{color:#ffd2cc}
+@keyframes abn{50%{background:rgba(238,116,102,.55)}}
+.vitals.off .vc b{color:#5f7f7c}
+.vitbtn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-radius:9px;background:#e9f6f2;color:var(--ink);font-size:11.5px;font-weight:800;line-height:1.05}
+.vitbtn svg{width:15px;height:15px}
+.vitbtn small{font-size:9px;font-weight:700;color:var(--muted)}
+.vitbtn.next{box-shadow:0 0 0 3px var(--glow);animation:glow 1s ease-in-out infinite;background:#fff3cf}
+/* level picker */
+.card{max-height:100%;overflow:auto}
+.card h3.pick{margin:0 0 8px;font-family:var(--display);font-weight:600;font-size:16px}
+.levels{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.lvl{display:flex;align-items:center;gap:10px;text-align:left;background:var(--wall);border-radius:16px;padding:10px 12px;box-shadow:0 2px 0 var(--line)}
+.lvl:active{transform:scale(.98)}
+.lvl .num{flex:none;width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--display);font-weight:600;display:grid;place-items:center}
+.lvl .txt{flex:1;min-width:0}
+.lvl b{display:block;font-family:var(--display);font-weight:600;font-size:15.5px;line-height:1.2}
+.lvl small{display:block;font-size:12px;font-weight:600;color:var(--muted);line-height:1.3}
+.lvl .st{flex:none;display:flex;flex-wrap:wrap;justify-content:flex-end;width:54px;gap:1px}
+.lvl .st svg{width:17px;height:17px}
+.lvl .st small{width:100%;text-align:right;font-size:10.5px}
+.chart .at{color:var(--muted);font-weight:600}
+.unit span{display:block}
 /* chart */
 .chart h1{font-size:22px}
 .chart dl{margin:0 0 12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13.5px}
@@ -190,7 +220,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 <div class="app" id="app">
   <header class="top">
     <div class="clock" id="clock">07:00</div>
-    <div class="unit"><b>4 West</b>Med-Surg day shift</div>
+    <div class="unit"><b id="unitName">4 West</b><span id="unitSub">Med-Surg day shift</span></div>
     <div class="score"><span id="score">0</span> <small>pts</small></div>
     <button class="pause" id="pauseBtn" aria-label="Pause"><svg viewBox="0 0 16 16"><rect x="3" y="2" width="3.5" height="12" rx="1.5" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" rx="1.5" fill="currentColor"/></svg></button>
   </header>
@@ -201,6 +231,14 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
         <div class="who"><span class="nm" id="ptName">Patient</span>
           <button class="chartbtn" id="chartBtn" aria-label="Open patient chart"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M3 6.5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M8 12h8M8 15.5h5"/></svg>Chart</button></div>
         <div class="hp"><div class="bar" id="ptBar"><i></i></div><span id="ptPct">70%</span></div>
+        <div class="vitals" id="vitals" aria-label="Vital signs monitor">
+          <div class="vc hr" id="vHR"><small>HR</small><b>--</b></div>
+          <div class="vc bp" id="vBP"><small>BP</small><b>--</b></div>
+          <div class="vc sp" id="vSp"><small>SpO₂</small><b>--</b></div>
+          <div class="vc rr" id="vRR"><small>RR</small><b>--</b></div>
+          <div class="vc tp" id="vT"><small>Temp °C</small><b>--</b></div>
+          <button class="vitbtn" id="vitBtn" aria-label="Take vitals now"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>Vitals<small id="vitAt"></small></button>
+        </div>
       </div>
       <div class="order" id="order"></div>
       <div class="bedwrap" id="bedwrap">
@@ -232,7 +270,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 (function(){
 "use strict";
 
-/* ---------- content ---------- */
+/* ---------- tools ---------- */
 const TOOLS = {
   iv:    {name:"IV",     tint:"#e2f0fb", c:"#3f86c8"},
   blood: {name:"Blood",  tint:"#fde3e6", c:"#d0485a"},
@@ -240,14 +278,16 @@ const TOOLS = {
   wound: {name:"Wound",  tint:"#fdebdc", c:"#d27a3c"},
   meds:  {name:"Meds",   tint:"#e0f4e6", c:"#3a9d62"},
   o2:    {name:"O₂",     tint:"#ddf3f6", c:"#2a97a6"},
+  vitals:{name:"Vitals", tint:"#dff3ee", c:"#24484a"},
   esc:   {name:"RRT",    tint:"#ffe3df", c:"#d4503f"},
-  or:    {name:"OR",     tint:"#e3e8fb", c:"#4a63c9"}
+  go:    {name:"Go",     tint:"#e3e8fb", c:"#4a63c9"}
 };
 const ORDER = ["iv","blood","labs","wound","meds","o2"];
 
 const ICON = {
-  or:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="14" height="5" rx="2"/><path d="M6 14v4M14 14v4M17 11.5h4M19 9.5l2 2-2 2"/><circle cx="6.5" cy="6" r="2"/></svg>',
+  vitals:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="3"/><path d="M6 11h3l1.5-3 3 6 1.5-3H18M9 21h6"/></svg>',
   esc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-5 4 10 2-5h6"/></svg>',
+  go:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="14" height="5" rx="2"/><path d="M6 14v4M14 14v4M17 11.5h4M19 9.5l2 2-2 2"/><circle cx="6.5" cy="6" r="2"/></svg>',
   iv:'<svg viewBox="0 0 24 24"><path d="M8 2.5h8a2 2 0 0 1 2 2V12a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V4.5a2 2 0 0 1 2-2z" fill="currentColor" opacity=".18"/><path d="M8 2.5h8a2 2 0 0 1 2 2V12a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V4.5a2 2 0 0 1 2-2zM12 16v3.5M12 21.5v.01M9.5 6.5h5M9.5 9.5h3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   blood:'<svg viewBox="0 0 24 24"><path d="M8 2.5h8a2 2 0 0 1 2 2V12a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V4.5a2 2 0 0 1 2-2z" fill="currentColor"/><path d="M12 6.2c1.4 1.8 2.2 2.9 2.2 4a2.2 2.2 0 0 1-4.4 0c0-1.1.8-2.2 2.2-4z" fill="#fff"/><path d="M12 16v5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>',
   labs:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 3h6M15 5h5"/><path d="M6 3v13.5a2 2 0 0 0 4 0V3M16 5v12a1.75 1.75 0 0 0 3.5 0V5"/><path d="M6.6 12h2.8v4.5a1.4 1.4 0 0 1-2.8 0z" fill="currentColor" stroke="none"/><path d="M16.6 13h2.3v4a1.15 1.15 0 0 1-2.3 0z" fill="currentColor" stroke="none" opacity=".6"/></svg>',
@@ -256,70 +296,114 @@ const ICON = {
   o2:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor" opacity=".16" stroke="currentColor" stroke-width="1.8"/><text x="11" y="15.6" text-anchor="middle" font-size="9.5" font-weight="800" font-family="Nunito,system-ui,sans-serif" fill="currentColor">O</text><text x="16.2" y="17.2" text-anchor="middle" font-size="5.5" font-weight="800" font-family="Nunito,system-ui,sans-serif" fill="currentColor">2</text></svg>'
 };
 
-/* A step: tool, chip label, short button label, what happened (result popup). alt = swap used for a penicillin allergy. */
+/* Where a patient can be rushed. */
+const DEST = {
+  or:   {btn:"Rush to surgery",  out:"Off to surgery",      fx:"Surgeon at the bedside. Consent signed, off to the OR.", toast:"is headed to surgery. Great catch."},
+  ct:   {btn:"Rush to CT",       out:"Off to CT",           fx:"CT shows no bleeding, so the stroke team gives a clot-buster and takes them to the neuro ICU.", toast:"is off to CT with the stroke team."},
+  cath: {btn:"Rush to cath lab", out:"Off to the cath lab", fx:"The cath lab team takes over to open the blocked artery.", toast:"is off to the cath lab. Time is muscle."}
+};
+
+/* ---------- content ----------
+   A step: tool, chip label, short button label, what happened (result popup), alt for a penicillin allergy.
+   Vitals steps generate their result from the monitor. esc = call rapid response or charge. go = rush somewhere (b = DEST key).
+   v = vitals while the problem is active (they drift back to normal as care is given). r = health drain (%/s). */
 const S = (k,l,b,fx,alt) => ({k,l,b,fx,alt});
+const VIT = (l) => S("vitals", l || "Check vitals", "", "");
 
-/* Admitting problems: set the patient's diagnosis. r = health drain (%/s). */
-const FIRST = [
-  {t:"Post-op pain", d:"Day 1 after knee replacement. Pain 8/10.", dx:"Right knee replacement, post-op day 1", surg:true,
-   s:[S("iv","Check the IV","Flush","IV flushes well. No swelling."), S("meds","Give IV pain med","Dilaudid","Hydromorphone (Dilaudid) 0.5 mg IV given. Pain down to 4/10.")], r:1.3},
-  {t:"Low hemoglobin", d:"Pale and dizzy after hip surgery.", dx:"Left hip fracture repair, post-op day 2", surg:true,
-   s:[S("labs","Type & screen","T&S","Hemoglobin 6.8 g/dL (low). Type & screen sent to blood bank."), S("iv","Large-bore IV","18g IV","18-gauge IV placed in the left arm."), S("blood","Hang 1 unit PRBCs","PRBCs","Two-nurse check done. 1 unit PRBCs running with normal saline.")], r:1.5},
-  {t:"Pneumonia", d:"Coughing and feverish. SpO₂ 90% on room air.", dx:"Community-acquired pneumonia",
-   s:[S("o2","Start oxygen","NC 2 L","2 L nasal cannula on. SpO₂ up to 94%."), S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn before antibiotics. WBC 16.2 (high)."), S("meds","Start antibiotics","Rocephin","Ceftriaxone (Rocephin) 1 g IV started.")], r:1.6},
-  {t:"Dressing change", d:"Abdominal incision is due for care.", dx:"Bowel resection, post-op day 3", surg:true,
-   s:[S("wound","Change dressing","Dressing","Incision clean and dry, edges together. New dressing on.")], r:0.9},
-  {t:"Dehydration", d:"Vomiting since last night. Dry lips.", dx:"Gastroenteritis with dehydration",
-   s:[S("labs","Draw a BMP","BMP","Sodium 147 (high), BUN 32 (high). Very dry."), S("iv","Start IV fluids","LR bolus","1 L lactated Ringer's bolus running."), S("meds","Anti-nausea med","Zofran","Ondansetron (Zofran) 4 mg IV given.")], r:1.4},
-  {t:"Cellulitis", d:"Red, warm, swollen left leg.", dx:"Cellulitis of the left leg",
-   s:[S("wound","Mark the redness","Marker","Edge of the redness outlined so the team can track it."), S("meds","IV antibiotics","Cefazolin","Cefazolin 2 g IV started.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin IV started instead."})], r:1.2},
-  {t:"Severe low blood sugar", d:"Drowsy, sweaty and hard to wake.", dx:"Diabetic foot ulcer", pmh:"Type 1 diabetes (on insulin)",
-   s:[S("labs","Fingerstick glucose","FSBG","Glucose 42 mg/dL (critically low)."), S("meds","Give IV dextrose","D50","Too drowsy to swallow, so dextrose 50% 25 g IV push given. Awake and talking now.")], r:1.9},
-  {t:"Infected incision", d:"Redness and cloudy drainage at the incision.", dx:"Appendectomy, post-op day 4", surg:true,
-   s:[S("wound","Swab & clean wound","Culture","Wound culture sent. Wound cleaned and packed."), S("meds","Antibiotics","Cefazolin","Cefazolin 2 g IV given.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin IV given instead."})], r:1.2},
-  {t:"Low potassium", d:"Peeing a lot after diuretics. Leg cramps.", dx:"Heart failure flare", pmh:"Heart failure",
-   s:[S("labs","Draw a BMP","BMP","Potassium 3.1 mEq/L (low)."), S("meds","Replace potassium","KCl","Potassium chloride 20 mEq by mouth given.")], r:1.1}
-];
-/* Things that come up later in a stay, for any patient. */
-const FOLLOW = [
-  {t:"Pain", d:"Pain 7/10. Grimacing in bed.", s:[S("meds","Give pain med","Oxycodone","Oxycodone 5 mg by mouth given. Pain down to 3/10.")], r:1.1},
-  {t:"Lost IV", d:"IV came out during the gown change.", s:[S("iv","Place a new IV","20g IV","20-gauge IV placed. Flushes well."), S("meds","Restart IV meds","Restart","Scheduled IV medication restarted on time.")], r:1.1},
-  {t:"Nausea", d:"Queasy. Can't keep breakfast down.", s:[S("meds","Anti-nausea med","Zofran","Ondansetron (Zofran) 4 mg IV given.")], r:1.0},
-  {t:"Pressure injury", d:"Red spot on the tailbone that doesn't blanch.", s:[S("wound","Clean & protect skin","Barrier","Stage 1 pressure injury. Barrier cream on, turned to the left side.")], r:0.8},
-  {t:"Low blood sugar", d:"Shaky and sweaty, but awake.", pmh:"Type 2 diabetes (on insulin)",
-   s:[S("labs","Fingerstick glucose","FSBG","Glucose 58 mg/dL (low)."), S("meds","Give oral glucose","Glucose","Awake and can swallow, so 15 g oral glucose given. Recheck in 15 minutes.")], r:1.6},
-  {t:"Morning labs", d:"CBC due this morning.", s:[S("labs","Draw a CBC","CBC","Hemoglobin 10.8, WBC 8.1. All stable.")], r:0.7}
-];
-/* Sudden drops. surg = only for surgical patients. */
-const URGENT = [
-  {t:"Desatting!", d:"SpO₂ dropped to 86% after walking to the bathroom.",
-   s:[S("o2","Apply oxygen","NC 4 L","4 L nasal cannula on. SpO₂ back up to 93%."), S("labs","Blood gas","ABG","ABG: pH 7.38, PaO₂ 66 (low). Improving on oxygen.")], r:2.4},
-  {t:"Bleeding!", d:"Blood is soaking through the surgical dressing.", surg:true,
-   s:[S("wound","Pressure dressing","Pressure","Firm pressure held and dressing reinforced. Surgeon paged."), S("labs","Stat CBC","CBC","Hemoglobin 7.1 g/dL (dropped from 9.4)."), S("blood","Hang blood","PRBCs","Two-nurse check done. 1 unit PRBCs running.")], r:2.6},
-  {t:"New fever!", d:"Temp 39.2 °C with shaking chills.",
-   s:[S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn. Lactate 2.6 (high)."), S("meds","Fever med","Tylenol","Acetaminophen (Tylenol) 650 mg by mouth given.")], r:2.2},
-  {t:"Too sleepy to breathe!", d:"Hard to wake after pain meds. Breathing 6 times a minute.",
-   s:[S("o2","Apply oxygen","NC 4 L","4 L nasal cannula on. SpO₂ 85%, pupils pinpoint."), S("meds","Reverse the opioid","Narcan","Naloxone (Narcan) 0.4 mg IV given. Awake and breathing 14/min.")], r:2.6},
-  {t:"Racing heart!", d:"Palpitations. Heart rate 148 and irregular.",
-   s:[S("labs","Stat EKG & labs","EKG","EKG: atrial fibrillation, rate 148 (high). Magnesium 1.6 (low)."), S("meds","Slow the heart rate","Dilt","Diltiazem 10 mg IV push given. Heart rate down to 96.")], r:2.3},
-  {t:"Hives during antibiotic!", d:"Itchy red welts spreading up the arm.",
-   s:[S("iv","Stop the infusion","Stop","Antibiotic stopped and line flushed with saline."), S("meds","Antihistamine","Benadryl","Diphenhydramine (Benadryl) 25 mg IV given. Hives fading. Allergy added to chart.")], r:2.0},
-  {t:"Possible sepsis!", d:"BP 84/46, heart rate 122, confused.",
-   s:[S("labs","Lactate & cultures","Lactate","Lactate 4.1 (high). Blood cultures drawn."), S("iv","IV fluid bolus","LR bolus","Lactated Ringer's bolus running wide open. BP up to 102/60."), S("meds","Broad antibiotics","Zosyn","Piperacillin-tazobactam (Zosyn) IV started within the hour.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin and aztreonam started instead."})], r:2.7},
-  {t:"Wound popped open!", d:"Felt a pop while coughing. The incision has split open.", surg:true,
-   s:[S("wound","Cover the wound","NS gauze","Sterile saline-soaked gauze over the wound. Knees bent to ease tension. Surgeon paged."), S("labs","Pre-op labs","T&S","CBC and type & screen sent. Hemoglobin 9.9."), S("iv","IV fluids, NPO","IV fluids","Nothing by mouth. Maintenance IV fluids running."), S("or","Rush to surgery","","")], r:2.6},
-  {t:"Bleeding from infection!", d:"The infected wound is oozing bright red blood.", surg:true,
-   s:[S("wound","Hold pressure","Pressure","Firm pressure held with gauze. Surgeon paged stat."), S("labs","Stat CBC & T&S","CBC","Hemoglobin 7.4 g/dL (low). Type & screen sent."), S("blood","Hang blood","PRBCs","Two-nurse check done. 1 unit PRBCs running."), S("or","Rush to surgery","","")], r:2.8}
-];
-/* A patient who will need the ICU no matter what. Good care = escalated in time. */
-const COPD = {t:"COPD flare", d:"Wheezing and short of breath. SpO₂ 86%.", dx:"COPD flare with pneumonia", pmh:"COPD (home oxygen 2 L)",
+/* admitting problems */
+const P = {
+  kneepain:{t:"Post-op pain", d:"Day 1 after knee replacement. Pain 8/10.", dx:"Right knee replacement, post-op day 1", surg:true, v:{hr:98,sbp:152,dbp:88},
+    s:[S("iv","Check the IV","Flush","IV flushes well. No swelling."), S("meds","Give IV pain med","Dilaudid","Hydromorphone (Dilaudid) 0.5 mg IV given. Pain down to 4/10.")], r:1.3},
+  hgb:{t:"Low hemoglobin", d:"Pale and dizzy after hip surgery.", dx:"Left hip fracture repair, post-op day 2", surg:true, v:{hr:106,sbp:102,dbp:60},
+    s:[S("labs","Type & screen","T&S","Hemoglobin 6.8 g/dL (low). Type & screen sent to blood bank."), S("iv","Large-bore IV","18g IV","18-gauge IV placed in the left arm."), S("blood","Hang 1 unit PRBCs","PRBCs","Two-nurse check done. 1 unit PRBCs running with normal saline.")], r:1.5},
+  pna:{t:"Pneumonia", d:"Coughing and feverish. SpO₂ 90% on room air.", dx:"Community-acquired pneumonia", v:{spo2:90,t:38.4,hr:104,rr:24},
+    s:[S("o2","Start oxygen","NC 2 L","2 L nasal cannula on. SpO₂ up to 94%."), S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn before antibiotics. WBC 16.2 (high)."), S("meds","Start antibiotics","Rocephin","Ceftriaxone (Rocephin) 1 g IV started.")], r:1.6},
+  dsg:{t:"Dressing change", d:"Abdominal incision is due for care.", dx:"Bowel resection, post-op day 3", surg:true,
+    s:[S("wound","Change dressing","Dressing","Incision clean and dry, edges together. New dressing on.")], r:0.9},
+  dehyd:{t:"Dehydration", d:"Vomiting since last night. Dry lips.", dx:"Gastroenteritis with dehydration", v:{hr:112,sbp:98,dbp:60},
+    s:[S("labs","Draw a BMP","BMP","Sodium 147 (high), BUN 32 (high). Very dry."), S("iv","Start IV fluids","LR bolus","1 L lactated Ringer's bolus running."), S("meds","Anti-nausea med","Zofran","Ondansetron (Zofran) 4 mg IV given.")], r:1.4},
+  cell:{t:"Cellulitis", d:"Red, warm, swollen left leg.", dx:"Cellulitis of the left leg", v:{t:38.2,hr:98},
+    s:[S("wound","Mark the redness","Marker","Edge of the redness outlined so the team can track it."), S("meds","IV antibiotics","Cefazolin","Cefazolin 2 g IV started.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin IV started instead."})], r:1.2},
+  hypo:{t:"Severe low blood sugar", d:"Drowsy, sweaty and hard to wake.", dx:"Diabetic foot ulcer", pmh:"Type 1 diabetes (on insulin)", v:{hr:114},
+    s:[S("labs","Fingerstick glucose","FSBG","Glucose 42 mg/dL (critically low)."), S("meds","Give IV dextrose","D50","Too drowsy to swallow, so dextrose 50% 25 g IV push given. Awake and talking now.")], r:1.9},
+  inc:{t:"Infected incision", d:"Redness and cloudy drainage at the incision.", dx:"Appendectomy, post-op day 4", surg:true, v:{t:38.3,hr:102},
+    s:[S("wound","Swab & clean wound","Culture","Wound culture sent. Wound cleaned and packed."), S("meds","Antibiotics","Cefazolin","Cefazolin 2 g IV given.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin IV given instead."})], r:1.2},
+  lowk:{t:"Low potassium", d:"Peeing a lot after diuretics. Leg cramps.", dx:"Heart failure flare", pmh:"Heart failure",
+    s:[S("labs","Draw a BMP","BMP","Potassium 3.1 mEq/L (low)."), S("meds","Replace potassium","KCl","Potassium chloride 20 mEq by mouth given.")], r:1.1},
+  lowmg:{t:"Low magnesium", d:"Muscle twitches and an irregular pulse.", dx:"Alcohol withdrawal", pmh:"Alcohol use disorder",
+    s:[S("labs","Draw a magnesium","Mag level","Magnesium 1.3 mg/dL (low)."), S("meds","Replace magnesium","Mag","Magnesium sulfate 2 g IV running over 2 hours.")], r:1.2},
+  gib:{t:"GI bleed", d:"Black, tarry stools since this morning.", dx:"Upper GI bleed", v:{hr:112,sbp:100,dbp:58},
+    s:[S("labs","Stat CBC & T&S","CBC","Hemoglobin 7.2 g/dL (low). Type & screen sent."), S("iv","Two large-bore IVs","2× 18g","Two 18-gauge IVs placed."), S("meds","IV acid blocker","Protonix","Pantoprazole (Protonix) 80 mg IV given. GI paged for a scope.")], r:1.5},
+  hf:{t:"Fluid overload", d:"Short of breath, swollen legs, crackles in both lungs.", dx:"Heart failure flare", pmh:"Heart failure", v:{spo2:91,rr:24,sbp:158,dbp:92},
+    s:[S("o2","Start oxygen","NC 2 L","2 L nasal cannula on. SpO₂ 95%."), S("meds","IV diuretic","Lasix","Furosemide (Lasix) 40 mg IV given. Strict ins and outs started.")], r:1.4}
+};
+/* later in a stay */
+const F = {
+  pain:{t:"Pain", d:"Pain 7/10. Grimacing in bed.", s:[S("meds","Give pain med","Oxycodone","Oxycodone 5 mg by mouth given. Pain down to 3/10.")], r:1.1},
+  lostiv:{t:"Lost IV", d:"IV came out during the gown change.", s:[S("iv","Place a new IV","20g IV","20-gauge IV placed. Flushes well."), S("meds","Restart IV meds","Restart","Scheduled IV medication restarted on time.")], r:1.1},
+  nausea:{t:"Nausea", d:"Queasy. Can't keep breakfast down.", s:[S("meds","Anti-nausea med","Zofran","Ondansetron (Zofran) 4 mg IV given.")], r:1.0},
+  pressure:{t:"Pressure injury", d:"Red spot on the tailbone that doesn't blanch.", s:[S("wound","Clean & protect skin","Barrier","Stage 1 pressure injury. Barrier cream on, turned to the left side.")], r:0.8},
+  lowsugar:{t:"Low blood sugar", d:"Shaky and sweaty, but awake.", pmh:"Type 2 diabetes (on insulin)", v:{hr:104},
+    s:[S("labs","Fingerstick glucose","FSBG","Glucose 58 mg/dL (low)."), S("meds","Give oral glucose","Glucose","Awake and can swallow, so 15 g oral glucose given. Recheck in 15 minutes.")], r:1.6},
+  am:{t:"Morning labs", d:"CBC due this morning.", s:[S("labs","Draw a CBC","CBC","Hemoglobin 10.8, WBC 8.1. All stable.")], r:0.7},
+  mg:{t:"Low magnesium", d:"Morning labs are back.", s:[S("labs","Check the labs","Mag level","Magnesium 1.5 mg/dL (low)."), S("meds","Replace magnesium","Mag","Magnesium sulfate 2 g IV running over 2 hours.")], r:0.9},
+  k:{t:"Low potassium", d:"Morning labs are back.", s:[S("labs","Check the labs","BMP","Potassium 3.2 mEq/L (low)."), S("meds","Replace potassium","KCl","Potassium chloride 20 mEq by mouth given.")], r:0.9}
+};
+/* sudden events. surg = surgical patients only; blood = only after a transfusion; leaves = patient leaves the unit at the end */
+const U = {
+  desat:{t:"Desatting!", d:"SpO₂ dropped to 86% after walking to the bathroom.", v:{spo2:86,rr:26,hr:108},
+    s:[S("o2","Apply oxygen","NC 4 L","4 L nasal cannula on. SpO₂ back up to 93%."), S("labs","Blood gas","ABG","ABG: pH 7.38, PaO₂ 66 (low). Improving on oxygen.")], r:2.4},
+  bleed:{t:"Bleeding!", d:"Blood is soaking through the surgical dressing.", surg:true, v:{hr:118,sbp:96,dbp:58},
+    s:[S("wound","Pressure dressing","Pressure","Firm pressure held and dressing reinforced. Surgeon paged."), S("labs","Stat CBC","CBC","Hemoglobin 7.1 g/dL (dropped from 9.4)."), S("blood","Hang blood","PRBCs","Two-nurse check done. 1 unit PRBCs running.")], r:2.6},
+  fever:{t:"New fever!", d:"Shaking chills.", v:{t:39.2,hr:112},
+    s:[VIT(), S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn. Lactate 1.6, normal."), S("meds","Fever med","Tylenol","Acetaminophen (Tylenol) 650 mg by mouth given.")], r:2.2},
+  sleepy:{t:"Too sleepy to breathe!", d:"Hard to wake after pain meds. Pinpoint pupils.", v:{rr:6,spo2:85,hr:56},
+    s:[VIT(), S("o2","Apply oxygen","NC 4 L","4 L nasal cannula on. Sternal rub, still barely responds."), S("meds","Reverse the opioid","Narcan","Naloxone (Narcan) 0.4 mg IV given. Awake and breathing 14/min.")], r:2.6},
+  hives:{t:"Hives during antibiotic!", d:"Itchy red welts spreading up the arm.", v:{hr:104},
+    s:[S("iv","Stop the infusion","Stop","Antibiotic stopped and line flushed with saline."), S("meds","Antihistamine","Benadryl","Diphenhydramine (Benadryl) 25 mg IV given. Hives fading. Allergy added to chart.")], r:2.0},
+  dehisc:{t:"Wound popped open!", d:"Felt a pop while coughing. The incision has split open.", surg:true, leaves:true, v:{hr:104},
+    s:[S("wound","Cover the wound","NS gauze","Sterile saline-soaked gauze over the wound. Knees bent to ease tension. Surgeon paged."), S("labs","Pre-op labs","T&S","CBC and type & screen sent. Hemoglobin 9.9."), S("iv","IV fluids, NPO","IV fluids","Nothing by mouth. Maintenance IV fluids running."), S("go","Rush to surgery","or","")], r:2.6},
+  infbleed:{t:"Bleeding from infection!", d:"The infected wound is oozing bright red blood.", surg:true, leaves:true, v:{hr:116,sbp:98,dbp:60},
+    s:[S("wound","Hold pressure","Pressure","Firm pressure held with gauze. Surgeon paged stat."), S("labs","Stat CBC & T&S","CBC","Hemoglobin 7.4 g/dL (low). Type & screen sent."), S("blood","Hang blood","PRBCs","Two-nurse check done. 1 unit PRBCs running."), S("go","Rush to surgery","or","")], r:2.8},
+  afib:{t:"Racing heart!", d:"Palpitations and lightheaded.", v:{hr:148,sbp:104,dbp:64},
+    s:[VIT(), S("labs","Stat EKG & labs","EKG","EKG: atrial fibrillation, rate 148 (high). Magnesium 1.6 (low)."), S("meds","Slow the heart rate","Dilt","Diltiazem 10 mg IV push given. Heart rate down to 96.")], r:2.3},
+  sepsis:{t:"Possible sepsis!", d:"Confused and warm to the touch.", v:{sbp:84,dbp:46,hr:122,t:38.9,rr:24},
+    s:[VIT(), S("labs","Lactate & cultures","Lactate","Lactate 4.1 (high). Blood cultures drawn."), S("iv","IV fluid bolus","LR bolus","Lactated Ringer's bolus running wide open. BP up to 102/60."), S("meds","Broad antibiotics","Zosyn","Piperacillin-tazobactam (Zosyn) IV started within the hour.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin and aztreonam started instead."})], r:2.7},
+  rxn:{t:"Reaction to blood!", d:"Chills and back pain 15 minutes into the transfusion.", blood:true, v:{t:38.6,hr:116,sbp:98,dbp:58},
+    s:[S("blood","Stop the transfusion","Stop","Transfusion stopped. Bag and tubing saved for the blood bank."), S("iv","New tubing, saline","NS","New tubing hung with normal saline to keep the vein open."), VIT("Recheck vitals"), S("labs","Reaction labs","Rxn labs","Blood bank notified. Reaction labs and a urine sample sent.")], r:2.4},
+  bpdrop:{t:"BP dropping!", d:"Cool, clammy and getting confused.", leaves:true, v:{sbp:78,dbp:40,hr:128,rr:24},
+    s:[VIT(), S("iv","Fluid bolus","1 L LR","1 L lactated Ringer's wide open. BP 80/44, barely budging."), S("labs","Lactate & CBC","Lactate","Lactate 5.2 (high). Hemoglobin stable."), S("esc","Call rapid response","","")], r:2.8},
+  stroke:{t:"Suddenly altered!", d:"Face drooping, right arm weak, words slurred. Normal 10 minutes ago.", leaves:true, v:{sbp:186,dbp:98},
+    s:[VIT(), S("labs","Fingerstick glucose","FSBG","Glucose 112 mg/dL. Not a low blood sugar, so think stroke."), S("esc","Call a stroke alert","","Stroke alert called. The stroke team is on the way."), S("go","Rush to CT","ct","")], r:2.6},
+  stemi:{t:"Chest pain!", d:"Crushing chest pain. Sweaty and pale.", leaves:true, v:{hr:104,sbp:148,dbp:90},
+    s:[VIT(), S("labs","12-lead EKG","EKG","ST elevation in leads II, III and aVF (abnormal). This is a STEMI."), S("meds","Chewable aspirin","Aspirin","Aspirin 324 mg chewed."), S("esc","Call a STEMI alert","","STEMI alert called. Cath lab team activated."), S("go","Rush to cath lab","cath","")], r:2.6},
+  unresp:{t:"Suddenly unresponsive!", d:"Won't wake to voice or a sternal rub. Skin cold and clammy.", v:{hr:116,rr:12},
+    s:[VIT(), S("labs","Fingerstick glucose","FSBG","Glucose 34 mg/dL (critically low)."), S("meds","IV dextrose","D50","Dextrose 50% 25 g IV push given. Eyes open, asking what happened.")], r:2.9}
+};
+/* patients who will need the ICU no matter what */
+const COPD = {t:"COPD flare", d:"Wheezing and short of breath.", dx:"COPD flare with pneumonia", pmh:"COPD (home oxygen 2 L)", v:{spo2:86,rr:28,hr:110},
    s:[S("o2","Start oxygen","NC 2 L","2 L nasal cannula. SpO₂ 89%. Goal for COPD is 88–92%."), S("meds","Breathing treatment","DuoNeb","Albuterol-ipratropium (DuoNeb) nebulizer given."), S("meds","IV steroids","Steroid","Methylprednisolone (Solu-Medrol) 40 mg IV given.")], r:1.7};
-const DOOM1 = {t:"Breathing harder!", d:"SpO₂ 85%. Using neck muscles to breathe.",
+const COPD2 = {t:"Breathing harder!", d:"Using neck muscles to breathe.", v:{spo2:85,rr:30,hr:118},
    s:[S("o2","Venturi mask","Venturi","Venturi mask at 35%. SpO₂ only 87%."), S("labs","Blood gas","ABG","ABG: pH 7.29 (low), PaCO₂ 58 (high). Tiring out.")], r:2.5};
-const DOOM2 = {t:"Still desatting!", d:"SpO₂ 83%. Drowsy and confused.",
+const COPD3 = {t:"Still desatting!", d:"Drowsy and confused.", v:{spo2:83,rr:32,hr:124},
    s:[S("o2","Start BiPAP","BiPAP","Respiratory therapy starts BiPAP. SpO₂ 88%, still working hard."), S("labs","Repeat blood gas","ABG","ABG: pH 7.22 (low), PaCO₂ 68 (high). Needs ICU-level care."), S("esc","Escalate: call rapid response or charge","","")], r:2.9};
+const GIB2 = {t:"Vomiting blood!", d:"Bright red blood. Lightheaded and pale.", v:{hr:126,sbp:82,dbp:48},
+   s:[VIT(), S("blood","Hang 2 units fast","2 units","Two-nurse check done. 2 units PRBCs running on a pressure bag."), S("labs","Repeat CBC","CBC","Hemoglobin 6.1 g/dL (critically low). Still bleeding."), S("esc","Escalate: call rapid response or charge","","")], r:2.9};
 
-const NAMES = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Begay","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park"];
+/* ---------- levels ---------- */
+const LEVELS = [
+  {n:1, name:"Day shift on 4 West", blurb:"Learn the ropes. Pain, wounds, blood and a COPD flare who needs the ICU.",
+   first:[P.kneepain,P.hgb,P.pna,P.dsg,P.dehyd,P.cell,P.hypo,P.inc,P.lowk], follow:[F.pain,F.lostiv,F.nausea,F.pressure,F.lowsugar,F.am],
+   urgent:[U.desat,U.bleed,U.fever,U.sleepy,U.hives,U.dehisc], doom:[COPD,COPD2,COPD3], drain:1, ev:[20,30], stars:[1500,2400]},
+  {n:2, name:"Busy Monday", blurb:"Sicker patients. Sepsis, A-fib, blood reactions and BP drops that need a rapid response.",
+   first:[P.gib,P.hgb,P.pna,P.dehyd,P.cell,P.inc,P.lowmg,P.hf], follow:[F.pain,F.lostiv,F.nausea,F.mg,F.lowsugar,F.k],
+   urgent:[U.afib,U.sepsis,U.rxn,U.bpdrop,U.infbleed,U.desat,U.hives], doom:[P.gib,GIB2], drain:1.12, ev:[17,26], stars:[1600,2600]},
+  {n:3, name:"Short-staffed Saturday", blurb:"Anything goes. Strokes to CT, chest pain to the cath lab, and patients who won't wake up.",
+   first:[P.hf,P.gib,P.pna,P.hypo,P.cell,P.inc,P.lowmg,P.hgb,P.kneepain], follow:[F.pain,F.lostiv,F.mg,F.lowsugar,F.nausea,F.pressure],
+   urgent:[U.stroke,U.stemi,U.unresp,U.bpdrop,U.rxn,U.sleepy,U.afib,U.sepsis,U.dehisc], doom:[COPD,COPD2,COPD3], drain:1.22, ev:[15,23], stars:[1700,2800]}
+];
+
+const NAMES = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Begay","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
 const PMH = ["Hypertension","High cholesterol","Asthma","Hypothyroidism","Atrial fibrillation","Chronic kidney disease, stage 3","Depression","GERD","Osteoarthritis","Sleep apnea"];
 const ALLERGIES = [["No known allergies",10],["Penicillin (anaphylaxis)",3],["Sulfa drugs (rash)",2],["Morphine (itching)",2],["Latex (rash)",1],["Codeine (nausea)",1]];
 const SKIN = ["#f6d5bd","#eab896","#cf9068","#9b6443","#f2c8a6","#b07452","#7a4a33"];
@@ -327,6 +411,7 @@ const HAIR = ["#3b2a20","#7a4b2a","#cfc8bf","#1f1a17","#d9a35b","#ebe6df","#5b3a
 const GOWN = ["#bfe3de","#c9d8f3","#f4d3de","#d6ebc2","#f6e3b3","#dcd3f2"];
 const ROOMS = [412,414,416];
 const SHIFT = 180; // real seconds for a 12-hour shift
+const VITAL_EVERY = 7; // monitor auto-refresh, real seconds
 
 /* ---------- helpers ---------- */
 const $ = s => document.querySelector(s);
@@ -337,8 +422,38 @@ const shuffle = a => { for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.ran
 const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
 const tier = h => h>=60 ? "" : h>=30 ? "warn" : "bad";
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const flagify = s => esc(s).replace(/\((critically low|low|high|dropped[^)]*)\)/g, '<span class="flag">($1)</span>');
+const flagify = s => esc(s).replace(/\((critically low|low|high|abnormal|dropped[^)]*)\)/g, '<span class="flag">($1)</span>');
 function clockStr(){ const mins = Math.floor((Math.min(G.t,SHIFT)/SHIFT)*720), hh = 7 + Math.floor(mins/60), mm = mins%60; return String(hh).padStart(2,"0")+":"+String(mm).padStart(2,"0"); }
+const curStep = p => p.state==="needs" ? p.active.steps[p.active.step] : null;
+
+/* ---------- vitals ---------- */
+const OFF = {
+  hr:  v => v>100 ? "high" : v<55 ? "low" : "",
+  bp:  (s) => s<90 ? "low" : s>160 ? "high" : "",
+  rr:  v => v>22 ? "high" : v<10 ? "low" : "",
+  spo2:v => v<92 ? "low" : "",
+  t:   v => v>=38 ? "high" : ""
+};
+function baseVitals(){ return {hr:Math.round(rand(70,88)), sbp:Math.round(rand(116,136)), dbp:Math.round(rand(68,82)), rr:Math.round(rand(14,18)), spo2:Math.round(rand(95,99)), t:+rand(36.6,37.2).toFixed(1)}; }
+function takeVitals(p){
+  const b = p.base, out = {...b};
+  if(p.state==="needs" && p.active.def.v){
+    const n = p.active.steps.length, done = p.active.step;
+    const frac = p.active.def.s.some(s=>s.k==="esc") ? done/n*0.35 : done/n*0.85;
+    for(const k in p.active.def.v){ const v = p.active.def.v[k]; out[k] = v + (b[k]-v)*frac; }
+  }
+  const j = (x,a) => x + rand(-a,a);
+  p.vit = {hr:Math.round(j(out.hr,3)), sbp:Math.round(j(out.sbp,4)), dbp:Math.round(j(out.dbp,3)), rr:Math.max(4,Math.round(j(out.rr,1))),
+           spo2:Math.min(100,Math.round(j(out.spo2,0.8))), t:+j(out.t,0.1).toFixed(1), at:clockStr()};
+  p.vitTimer = VITAL_EVERY;
+}
+function vitalsSummary(v){
+  const parts = [], ok = [];
+  const add = (txt, flag) => (flag ? parts : ok).push(flag ? `${txt} (${flag})` : txt);
+  add(`BP ${v.sbp}/${v.dbp}`, OFF.bp(v.sbp)); add(`HR ${v.hr}`, OFF.hr(v.hr)); add(`RR ${v.rr}`, OFF.rr(v.rr));
+  add(`SpO₂ ${v.spo2}%`, OFF.spo2(v.spo2)); add(`Temp ${v.t.toFixed(1)} °C`, OFF.t(v.t));
+  return parts.length ? parts.join(", ") + "." + (ok.length ? " Everything else normal." : "") : "All vitals normal.";
+}
 
 /* ---------- sound ---------- */
 let ac = null, soundOn = true;
@@ -361,31 +476,31 @@ const sfx = {
 };
 
 /* ---------- state ---------- */
-let G, dirty = true;
+let G, LV = LEVELS[0], dirty = true;
 function inst(def, p){
   const pcn = p.allergy.startsWith("Penicillin");
-  return {def, urgent:/!$/.test(def.t), escalate:!!def.escalate, step:0,
+  return {def, urgent:/!$/.test(def.t), step:0,
           steps: def.s.map(st => (st.alt && pcn) ? {...st, b:st.alt.b, fx:st.alt.fx} : st)};
 }
 function admit(i, initial){
   if(!G.namePool.length) G.namePool = shuffle(NAMES.slice());
-  const doomed = !initial && !G.beds.some(b=>b && b.doomed) && (G.doomSeen===0 ? G.t>35 : Math.random()<0.15);
+  const doomed = !initial && !G.beds.some(b=>b && b.doomed) && (G.doomSeen===0 ? G.t>35 : Math.random()<0.12);
   const p = {
     name: G.namePool.shift(),
-    age: Math.floor(doomed ? rand(68,86) : rand(29,89)),
+    age: Math.floor(doomed ? rand(62,86) : rand(29,89)),
     kg: Math.floor(rand(52,112)),
     look: {skin:pick(SKIN), hair:pick(HAIR), gown:pick(GOWN), style:Math.floor(Math.random()*3)},
     allergy: wpick(ALLERGIES),
     code: Math.random()<0.85 ? "Full code" : "DNR (do not resuscitate)",
     health: initial ? rand(64,80) : rand(58,74),
-    active:null, state:"resting", timer:1.5, flash:0, out:null, log:[], doomed
+    active:null, state:"resting", timer:1.5, flash:0, out:null, log:[], doomed, base:baseVitals(), gotBlood:false
   };
   let defs;
-  if(doomed){ G.doomSeen++; defs = [COPD, DOOM1, DOOM2]; }
+  if(doomed){ G.doomSeen++; defs = LV.doom.slice(); }
   else{
-    const first = pick(FIRST);
+    const first = pick(LV.first);
     const n = initial ? 1 : (Math.random()<0.55 ? 1 : 2);
-    defs = [first, ...shuffle(FOLLOW.slice()).slice(0,n)];
+    defs = [first, ...shuffle(LV.follow.slice()).slice(0,n)];
   }
   p.dx = defs[0].dx; p.surg = !!defs[0].surg;
   const hist = new Set(shuffle(PMH.slice()).slice(0, 1 + Math.floor(Math.random()*2)));
@@ -393,12 +508,15 @@ function admit(i, initial){
   p.pmh = [...hist];
   p.queue = defs.map(d => inst(d,p));
   if(initial){ p.active = p.queue.shift(); p.state = "needs"; }
+  takeVitals(p); p.vitTimer = rand(1,VITAL_EVERY);
   return p;
 }
 function newGame(){
   G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:2, chargeCd:0, doomSeen:0,
-       discharged:0, transfers:0, escalated:0, surgery:0, helps:0, rrUsed:0, nextEvent:rand(24,32), beds:[], namePool:shuffle(NAMES.slice())};
+       discharged:0, transfers:0, escalated:0, rushed:0, helps:0, rrUsed:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], namePool:shuffle(NAMES.slice())};
   for(let i=0;i<3;i++) G.beds.push(admit(i,true));
+  $("#unitName").textContent = `4 West · Level ${LV.n}`;
+  $("#unitSub").textContent = LV.name;
   dirty = true;
 }
 const cur = () => G.beds[G.current];
@@ -409,11 +527,12 @@ const logIt = (p, text) => p.log.push([clockStr(), text]);
 function update(dt){
   G.t += dt;
   if(G.t >= SHIFT){ endShift(); return; }
-  const ramp = 1 + 0.5*(G.t/SHIFT);
+  const ramp = LV.drain * (1 + 0.5*(G.t/SHIFT));
   G.chargeCd = Math.max(0, G.chargeCd - dt);
 
   G.beds.forEach((p,i)=>{
     p.flash = Math.max(0, p.flash - dt);
+    if(p.state!=="empty" && p.state!=="leaving"){ p.vitTimer -= dt; if(p.vitTimer<=0) takeVitals(p); }
     if(p.state === "needs"){
       p.health -= p.active.def.r * ramp * dt;
       if(p.health <= 0) transfer(p);
@@ -425,6 +544,7 @@ function update(dt){
           p.active = p.queue.shift(); p.state = "needs";
           if(p.active.urgent) alarmFor(p);
           else if(i!==G.current) sfx.ping();
+          takeVitals(p);
           dirty = true;
         } else discharge(p);
       }
@@ -439,7 +559,7 @@ function update(dt){
 
   G.nextEvent -= dt;
   if(G.nextEvent <= 0){
-    G.nextEvent = rand(20,30) / ramp;
+    G.nextEvent = rand(LV.ev[0],LV.ev[1]) / (1 + 0.5*(G.t/SHIFT));
     const opts = G.beds.filter(p => (p.state==="needs" || p.state==="resting") && !p.doomed && !(p.active && p.active.urgent));
     if(opts.length) suddenDrop(pick(opts));
   }
@@ -448,21 +568,26 @@ function alarmFor(p){
   p.health = Math.max(12, p.health - 25);
   p.flash = 4; sfx.alarm();
   toast(`Rm ${roomOf(p)}: ${p.name}, ${p.active.def.t.replace("!","").toLowerCase()}`, "alarm");
-  logIt(p, p.active.def.t.replace("!","") + ". " + p.active.def.d);
+  logIt(p, p.active.def.t.replace("!","") + " " + p.active.def.d);
 }
 function suddenDrop(p){
-  const def = pick(URGENT.filter(u => !u.surg || p.surg));
-  if(p.active) p.queue.unshift(p.active);
+  const pool = LV.urgent.filter(u => (!u.surg || p.surg) && (!u.blood || p.gotBlood));
+  const def = pick(pool);
+  if(def.leaves) p.queue = [];
+  else if(p.active) p.queue.unshift(p.active);
   p.active = inst(def, p); p.state = "needs";
   p.health = Math.max(12, p.health - 5);
-  alarmFor(p);
+  alarmFor(p); takeVitals(p);
   dirty = true;
 }
 
-function advance(p, by){
+function advance(p, by, fxOverride){
   const st = p.active.steps[p.active.step];
-  logIt(p, st.fx + (by==="charge" ? " (charge nurse)" : ""));
-  if(p === cur()) showResult(st);
+  let fx = fxOverride || st.fx;
+  if(st.k==="vitals"){ takeVitals(p); fx = vitalsSummary(p.vit); }
+  if(st.k==="blood" && !/^Stop/.test(st.b)) p.gotBlood = true;
+  logIt(p, fx + (by==="charge" ? " (charge nurse)" : ""));
+  if(p === cur()) showResult({k:st.k, fx});
   p.active.step++;
   p.health = Math.min(100, p.health + 5);
   if(by==="you") G.score += 10;
@@ -476,28 +601,27 @@ function complete(p, via){
   if(p === cur()) floatText("+"+pts);
   p.active = null; p.state = "resting";
   p.timer = p.queue.length ? (p.queue[0].urgent ? rand(3,5) : rand(5,8)) : 2.5;
+  takeVitals(p);
   sfx.done(); dirty = true;
 }
 function escalate(p, via){
   const fx = via==="charge" ? "Charge nurse called the ICU. Bed assigned, transferring now." : "Rapid response team (ICU nurses) at the bedside. Transferring to the ICU for closer monitoring.";
   G.score += via==="charge" ? 150 : 200; G.escalated++;
   logIt(p, fx);
-  if(p === cur()) showResult({k:"esc", fx});
+  if(p === cur()){ showResult({k:"esc", fx}); floatText(via==="charge" ? "+150" : "+200"); }
   p.state = "leaving"; p.out = "esc"; p.timer = 3.4; p.active = null; p.queue = [];
-  if(p === cur()) floatText(via==="charge" ? "+150" : "+200");
   sfx.done();
   toast(`${p.name} needs the ICU. You escalated in time.`, "good");
   dirty = true;
 }
-function sendToOR(){
-  const p = cur();
-  if(!G.running || G.paused || p.state!=="needs" || p.active.steps[p.active.step].k!=="or") return;
-  const fx = "Surgeon at the bedside. Consent signed, off to the OR.";
-  logIt(p, fx); showResult({k:"or", fx});
-  G.score += 200; G.surgery++;
-  p.state = "leaving"; p.out = "or"; p.timer = 3.4; p.active = null; p.queue = [];
-  floatText("+200"); sfx.done();
-  toast(`${p.name} is headed to surgery. Great catch.`, "good");
+function rushTo(p){
+  const st = curStep(p); if(!st || st.k!=="go") return;
+  const d = DEST[st.b];
+  logIt(p, d.fx); if(p === cur()){ showResult({k:"go", fx:d.fx}); floatText("+200"); }
+  G.score += 200; G.rushed++;
+  p.state = "leaving"; p.out = "go"; p.dest = st.b; p.timer = 3.4; p.active = null; p.queue = [];
+  sfx.done();
+  toast(`${p.name} ${d.toast}`, "good");
   dirty = true;
 }
 function discharge(p){
@@ -518,16 +642,18 @@ function transfer(p){
   dirty = true;
 }
 
+const playing = () => G.running && !G.paused && !G.over;
 function tapTool(key, btn){
-  if(!G.running || G.paused || G.over) return;
+  if(!playing()) return;
   const p = cur();
   if(p.state !== "needs"){
     toast(p.state==="resting" ? `${p.name} is resting. Check your other patients.` : "No patient in this room right now.");
     return;
   }
-  const want = p.active.steps[p.active.step].k;
-  if(want === "or"){ sfx.wrong(); toast("Tap “Rush to surgery” in the order card."); return; }
-  if(want === "esc"){ sfx.wrong(); toast("This patient needs the ICU. Call the rapid response team or charge."); return; }
+  const want = curStep(p).k;
+  if(want === "go"){ sfx.wrong(); toast(`Tap “${DEST[curStep(p).b].btn}” in the order card.`); return; }
+  if(want === "esc"){ sfx.wrong(); toast("Time to call for help. Tap Rapid response or Call charge."); return; }
+  if(want === "vitals"){ sfx.wrong(); toast("Check vitals first. Tap the Vitals button on the monitor."); return; }
   if(key === want){ sfx.tap(); advance(p, "you"); }
   else{
     sfx.wrong();
@@ -536,23 +662,43 @@ function tapTool(key, btn){
     toast("Not that one. Tap the glowing button.");
   }
 }
+function tapVitals(){
+  if(!playing()) return;
+  const p = cur();
+  if(p.state==="empty" || p.state==="leaving") return;
+  sfx.tap();
+  if(curStep(p) && curStep(p).k==="vitals"){ advance(p, "you"); return; }
+  takeVitals(p); dirty = true;
+  showResult({k:"vitals", fx:vitalsSummary(p.vit)});
+}
 function callCharge(){
   const p = cur();
-  if(!G.running || G.paused || G.chargeCd>0 || p.state!=="needs") return;
-  if(p.active.steps[p.active.step].k === "or"){ sendToOR(); return; }
+  if(!playing() || G.chargeCd>0 || p.state!=="needs") return;
   G.score = Math.max(0, G.score - 20); G.helps++; G.chargeCd = 10;
-  if(p.active.steps[p.active.step].k === "esc"){ escalate(p, "charge"); return; }
+  const st = curStep(p);
+  if(st.k === "go"){ rushTo(p); return; }
+  if(st.k === "esc"){
+    if(p.active.step === p.active.steps.length-1){ escalate(p, "charge"); return; }
+    floatText("−20", true); advance(p, "charge", (st.fx || "Charge nurse called for help.")); return;
+  }
   floatText("−20", true);
   advance(p, "charge");
 }
 function callRR(){
   const p = cur();
-  if(p.state==="needs" && p.active.steps[p.active.step].k==="or") return;
-  if(G.running && !G.paused && p.state==="needs" && p.active.steps[p.active.step].k==="esc"){ G.rrUsed++; escalate(p, "rr"); return; }
-  if(!G.running || G.paused || !(G.rr>0 && p.state==="needs" && p.health<30)) return;
+  if(!playing() || p.state!=="needs") return;
+  const st = curStep(p);
+  if(st.k === "go") return;
+  if(st.k === "esc"){
+    G.rrUsed++;
+    if(p.active.step === p.active.steps.length-1) escalate(p, "rr");
+    else advance(p, "you", st.fx || "Rapid response team at the bedside.");
+    return;
+  }
+  if(!(G.rr>0 && p.health<30)) return;
   G.rr--; G.rrUsed++;
   p.health = Math.max(p.health, 50);
-  logIt(p, "Rapid response team at the bedside: " + p.active.steps.slice(p.active.step).map(s=>s.fx).join(" "));
+  logIt(p, "Rapid response team at the bedside: " + p.active.steps.slice(p.active.step).map(s=>s.k==="vitals"?"Vitals rechecked.":s.fx).join(" "));
   toast(`Rapid response team took over ${p.name}'s care.`, "good");
   complete(p, "rr");
 }
@@ -587,7 +733,6 @@ function headParts(p, mood, sleeping){
   const sweat = mood==="bad" ? `<path d="M134 56 q5 8 0 11 q-5 -3 0 -11z" fill="#8fd0f2"/>` : "";
   return `<circle cx="100" cy="76" r="35" fill="${L.skin}"/>${hair}${cheeks}${eyes}${mouths[mood]||mouths.ok}${sweat}`;
 }
-/* Front view from the foot of the bed: head of bed raised, patient sitting up with arms resting on the blanket. */
 function bedSVG(p){
   const mood = moodOf(p);
   const back = `<rect x="34" y="30" width="132" height="120" rx="22" fill="#cfe7e1"/>
@@ -596,7 +741,7 @@ function bedSVG(p){
     <rect x="12" y="120" width="10" height="50" rx="5" fill="#9fcfc6"/><rect x="178" y="120" width="10" height="50" rx="5" fill="#9fcfc6"/>
     <rect x="34" y="172" width="9" height="12" rx="4" fill="#b8d8d1"/><rect x="157" y="172" width="9" height="12" rx="4" fill="#b8d8d1"/>`;
   if(mood==="empty" || mood==="gone"){
-    const label = mood==="gone" ? (p.out==="or" ? "Off to surgery" : "Moving to the ICU") : "Cleaning the room";
+    const label = mood==="gone" ? (p.out==="go" ? DEST[p.dest].out : "Moving to the ICU") : "Cleaning the room";
     return `<svg class="pt" viewBox="0 0 200 186" role="img" aria-label="${label}">${back}
       <path d="M22 140 Q100 130 178 140 L178 154 L22 154Z" fill="#eef4f2"/>${front}
       <text x="100" y="84" text-anchor="middle" font-family="Fredoka,Nunito,sans-serif" font-size="13" font-weight="600" fill="#6d7d86">${label}</text></svg>`;
@@ -604,14 +749,12 @@ function bedSVG(p){
   const L = p.look, sleeping = p.state==="resting" && p.health>=60;
   const heart = mood==="joy" ? `<path d="M156 30 c-6 -8 -18 -2 -12 8 l12 12 l12 -12 c6 -10 -6 -16 -12 -8z" fill="#f07b8a"/>` : "";
   const zz = sleeping ? `<text x="142" y="40" font-family="Fredoka,sans-serif" font-size="15" font-weight="600" fill="#7fb6ad">z<tspan font-size="11" dy="-7">z</tspan></text>` : "";
-  const onO2 = p.active && p.active.steps.some((s,k)=>s.k==="o2" && k<p.active.step);
-  const o2 = onO2 ? `<path d="M90 92 Q100 96 110 92 M90 92 Q70 98 68 116 M110 92 Q130 98 132 116" stroke="#8fd3de" stroke-width="2.6" fill="none" stroke-linecap="round"/>` : "";
-  const onIV = p.active && p.active.steps.some((s,k)=>(s.k==="iv"||s.k==="blood") && k<p.active.step);
-  const iv = onIV ? `<rect x="170" y="14" width="4" height="120" rx="2" fill="#b8c8cc"/><path d="M160 22h22v24a6 6 0 0 1-6 6h-10a6 6 0 0 1-6-6z" fill="${p.active.steps.some((s,k)=>s.k==="blood"&&k<p.active.step)?"#e57584":"#cfe6f7"}" stroke="#9fb9c6" stroke-width="1.5"/><path d="M171 52 Q170 110 140 138" stroke="#b8c8cc" stroke-width="2" fill="none"/>` : "";
+  const did = k => p.active && p.active.steps.some((s,i)=>s.k===k && i<p.active.step);
+  const o2 = did("o2") ? `<path d="M90 92 Q100 96 110 92 M90 92 Q70 98 68 116 M110 92 Q130 98 132 116" stroke="#8fd3de" stroke-width="2.6" fill="none" stroke-linecap="round"/>` : "";
+  const iv = (did("iv")||did("blood")) ? `<rect x="170" y="14" width="4" height="120" rx="2" fill="#b8c8cc"/><path d="M160 22h22v24a6 6 0 0 1-6 6h-10a6 6 0 0 1-6-6z" fill="${did("blood")?"#e57584":"#cfe6f7"}" stroke="#9fb9c6" stroke-width="1.5"/><path d="M171 52 Q170 110 140 138" stroke="#b8c8cc" stroke-width="2" fill="none"/>` : "";
   return `<svg class="pt" viewBox="0 0 200 186" role="img" aria-label="${esc(p.name)}, feeling ${mood}">${iv}${back}
     <path d="M52 152 Q50 110 100 104 Q150 110 148 152Z" fill="${L.gown}"/>
     <path d="M86 106 Q100 116 114 106" stroke="#ffffff" stroke-width="3" fill="none" opacity=".7" stroke-linecap="round"/>
-    <g fill="${L.gown}" opacity=".85"><circle cx="70" cy="112" r="3"/><circle cx="128" cy="124" r="3"/><circle cx="96" cy="132" r="3"/></g>
     ${headParts(p,mood,sleeping)}${o2}
     <path d="M22 140 Q100 128 178 140 L178 154 L22 154Z" fill="#ffffff"/>
     <path d="M22 140 Q100 128 178 140" stroke="#e4eef0" stroke-width="3" fill="none"/>
@@ -649,6 +792,7 @@ ROOMS.forEach((r,i)=>{
 });
 $("#charge").addEventListener("click", callCharge);
 $("#rr").addEventListener("click", callRR);
+$("#vitBtn").addEventListener("click", tapVitals);
 $("#pauseBtn").addEventListener("click", ()=>{ if(G.running && !G.over){ G.paused = true; showPause(); } });
 $("#chartBtn").addEventListener("click", showChart);
 
@@ -660,19 +804,19 @@ function renderAll(){
   const o = $("#order");
   o.className = "order";
   if(p.state==="needs"){
-    const a = p.active;
+    const a = p.active, st = a.steps[a.step];
     if(a.urgent) o.classList.add("urgent");
     o.innerHTML = `<h2>${esc(a.def.t)}</h2><p>${esc(a.def.d)}</p><div class="steps">${
-      a.steps.map((st,i)=>st.k==="or"?"":`<span class="chip ${i<a.step?"done":i===a.step?"now":""}"><span class="ic" style="background:${TOOLS[st.k].tint};color:${TOOLS[st.k].c}">${ICON[st.k]}</span>${esc(st.l)}</span>`).join("")
-    }</div>${a.steps[a.step].k==="or" ? `<button class="orbtn" id="orBtn">${ICON.or} Rush to surgery</button>` : ""}`;
-    const ob = $("#orBtn"); if(ob) ob.addEventListener("click", sendToOR);
+      a.steps.map((s,i)=>s.k==="go"?"":`<span class="chip ${i<a.step?"done":i===a.step?"now":""}"><span class="ic" style="background:${TOOLS[s.k].tint};color:${TOOLS[s.k].c}">${ICON[s.k]}</span>${esc(s.l)}</span>`).join("")
+    }</div>${st.k==="go" ? `<button class="orbtn" id="goBtn">${ICON.go} ${DEST[st.b].btn}</button>` : ""}`;
+    const gb = $("#goBtn"); if(gb) gb.addEventListener("click", ()=>{ if(playing()) rushTo(cur()); });
   } else {
     o.classList.add("calm");
     let h, d;
     if(p.state==="resting"){ h = p.queue.length ? "Resting comfortably" : "Ready for discharge"; d = p.queue.length ? "Go check on your other patients." : "Paperwork is almost done."; }
     else if(p.state==="leaving"){
-      h = p.out==="home" ? "Going home!" : p.out==="or" ? "Off to the OR" : p.out==="esc" ? "Moving to the ICU" : "Transferred to ICU";
-      d = p.out==="home" ? "Great care today." : p.out==="or" ? "The surgical team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : "They'll get closer monitoring there.";
+      h = p.out==="home" ? "Going home!" : p.out==="go" ? DEST[p.dest].out : p.out==="esc" ? "Moving to the ICU" : "Transferred to ICU";
+      d = p.out==="home" ? "Great care today." : p.out==="go" ? "The team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : "They'll get closer monitoring there.";
     }
     else { h = "Room being cleaned"; d = "A new admission is on the way."; }
     o.innerHTML = `<h2>${h}</h2><p>${d}</p>`;
@@ -681,16 +825,31 @@ function renderAll(){
     const c = cards[i];
     c.el.classList.toggle("cur", i===G.current);
     c.nm.textContent = b.state==="empty" ? "Empty" : b.name.replace(/^(Mrs?\.|Ms\.)\s*/,"");
-    const nk = b.state==="needs" ? b.active.steps[b.active.step].k : "";
+    const nk = b.state==="needs" ? curStep(b).k : "";
     c.need.innerHTML = nk ? ICON[nk] : "";
     c.need.style.background = nk ? TOOLS[nk].tint : ""; c.need.style.color = nk ? TOOLS[nk].c : "";
-    c.st.textContent = b.state==="needs" ? b.active.def.t.replace("!","") : b.state==="resting" ? (b.queue.length?"Resting":"Discharge soon") : b.state==="leaving" ? (b.out==="home"?"Going home":b.out==="or"?"To OR":"To ICU") : "New admit soon";
+    c.st.textContent = b.state==="needs" ? b.active.def.t.replace("!","") : b.state==="resting" ? (b.queue.length?"Resting":"Discharge soon") : b.state==="leaving" ? (b.out==="home"?"Going home":b.out==="go"?DEST[b.dest].out.replace("Off ","Off "):"To ICU") : "New admit soon";
   });
   ORDER.forEach(k=>{ toolBtns[k].classList.remove("next"); toolBtns[k].lb.textContent = TOOLS[k].name; toolBtns[k].setAttribute("aria-label", TOOLS[k].name); });
-  if(p.state==="needs"){
-    const st = p.active.steps[p.active.step], b = toolBtns[st.k];
-    if(b){ b.classList.add("next"); b.lb.textContent = st.b; b.setAttribute("aria-label", `${TOOLS[st.k].name}: ${st.l}`); }
+  const st = curStep(p);
+  if(st && toolBtns[st.k]){
+    const b = toolBtns[st.k];
+    b.classList.add("next"); b.lb.textContent = st.b; b.setAttribute("aria-label", `${TOOLS[st.k].name}: ${st.l}`);
   }
+  $("#vitBtn").classList.toggle("next", !!(st && st.k==="vitals"));
+}
+function renderVitals(p){
+  const box = $("#vitals");
+  const show = p.state!=="empty" && p.state!=="leaving" && p.vit;
+  box.classList.toggle("off", !show);
+  const v = show ? p.vit : null;
+  const cell = (id, val, flag) => { const el = $("#"+id); el.querySelector("b").textContent = val; el.classList.toggle("abn", !!flag); };
+  cell("vHR",  v ? v.hr : "--",  v && OFF.hr(v.hr));
+  cell("vBP",  v ? `${v.sbp}/${v.dbp}` : "--/--", v && OFF.bp(v.sbp));
+  cell("vRR",  v ? v.rr : "--",  v && OFF.rr(v.rr));
+  cell("vSp",  v ? v.spo2+"%" : "--", v && OFF.spo2(v.spo2));
+  cell("vT",   v ? v.t.toFixed(1) : "--", v && OFF.t(v.t));
+  $("#vitAt").textContent = v ? v.at : "";
 }
 function updateLive(){
   const p = cur();
@@ -701,6 +860,7 @@ function updateLive(){
   $("#ptPct").textContent = p.state==="empty" ? "" : Math.round(h)+"%";
   const ak = G.current+"|"+p.name+"|"+p.state+"|"+moodOf(p)+"|"+(p.state==="resting"&&p.health>=60)+"|"+(p.active?p.active.def.t+p.active.step:"");
   if(ak!==artKey){ artKey = ak; $("#ptArt").innerHTML = bedSVG(p); }
+  renderVitals(p);
   G.beds.forEach((b,i)=>{
     const c = cards[i], bh = clamp(b.health,0,100);
     c.fill.style.width = (b.state==="empty"?0:bh)+"%";
@@ -711,15 +871,16 @@ function updateLive(){
   });
   $("#clock").textContent = clockStr();
   $("#score").textContent = G.score;
-  const escNow = p.state==="needs" && p.active.steps[p.active.step].k==="esc";
+  const st = curStep(p);
+  const escNow = !!(st && st.k==="esc"), goNow = !!(st && st.k==="go");
   const ch = $("#charge");
   ch.disabled = !(G.chargeCd<=0 && p.state==="needs");
   ch.classList.toggle("ready", escNow && G.chargeCd<=0);
-  $("#chargeSub").textContent = G.chargeCd>0 ? `Dana is busy · ${Math.ceil(G.chargeCd)}s` : escNow ? "Calls the ICU for a bed · −20 pts" : "Helps one step · −20 pts";
-  const rr = $("#rr"), ready = escNow || (G.rr>0 && p.state==="needs" && p.health<30);
+  $("#chargeSub").textContent = G.chargeCd>0 ? `Dana is busy · ${Math.ceil(G.chargeCd)}s` : escNow ? "Calls for help · −20 pts" : goNow ? "Helps you transport · −20 pts" : "Helps one step · −20 pts";
+  const rr = $("#rr"), ready = escNow || (!goNow && G.rr>0 && p.state==="needs" && p.health<30);
   rr.disabled = !ready; rr.classList.toggle("ready", ready);
   $("#rrCount").textContent = "×"+G.rr;
-  $("#rrSub").textContent = escNow ? "ICU nurses can transfer. Free" : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
+  $("#rrSub").textContent = escNow ? "ICU nurses respond. Free" : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
 }
 
 let toastT = 0;
@@ -747,39 +908,50 @@ function floatText(txt, minus){
 
 /* ---------- overlays ---------- */
 const ov = $("#overlay");
-let best = 0;
-try{ best = +localStorage.getItem("medsurg-best") || 0; }catch(e){}
+let saved = {};
+try{ saved = JSON.parse(localStorage.getItem("medsurg-levels") || "{}") || {}; }catch(e){ saved = {}; }
+const save = () => { try{ localStorage.setItem("medsurg-levels", JSON.stringify(saved)); }catch(e){} };
+const STAR = on => `<svg viewBox="0 0 24 24"><path d="M12 2.8l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.6l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="${on?"#ffcf5c":"#e6eeeb"}" stroke="${on?"#e8a92a":"#cfe3dc"}" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
+function starsRow(n){ return STAR(n>=1)+STAR(n>=2)+STAR(n>=3); }
+
 function showStart(){
   ov.hidden = false;
   ov.innerHTML = `<div class="card">
-    <h1>Med-Surg Day Shift</h1>
+    <h1>Med-Surg Shift</h1>
     <p class="sub">4 West · 3 patients · 07:00 to 19:00</p>
     <ul>
-      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. The next intervention <b>glows</b> and shows exactly what to give. Tap it.</span></li>
-      <li><span class="n">2</span><span>Health bars drain while patients wait. Tap a patient on the right to go to their room. Tap <b>Chart</b> to read their history and allergies.</span></li>
-      <li><span class="n">3</span><span>Watch for sudden drops. When someone hits the red, a <b>rapid response</b> can finish their care for you.</span></li>
-      <li><span class="n">4</span><span>Some patients will need the ICU no matter what. When it's time, call the <b>rapid response</b> team (ICU nurses) or <b>charge</b> to get them moved before they crash.</span></li>
+      <li><span class="n">1</span><span>Each patient has a problem and a short recipe of care. The next step <b>glows</b>. Tap it.</span></li>
+      <li><span class="n">2</span><span>The <b>monitor</b> refreshes vitals on its own. Red numbers mean trouble. Tap <b>Vitals</b> to check now.</span></li>
+      <li><span class="n">3</span><span>Tap a patient on the right to go to their room. Tap <b>Chart</b> for history and allergies.</span></li>
+      <li><span class="n">4</span><span>When it's beyond you, call <b>rapid response</b> or <b>charge</b>. Some patients need the ICU, OR, CT or cath lab.</span></li>
     </ul>
-    <button class="go" id="startBtn">Start shift</button>
-    ${best?`<p class="fine">Best shift so far: ${best} pts</p>`:""}
+    <h3 class="pick">Pick a shift</h3>
+    <div class="levels">${LEVELS.map(l=>{ const s = saved[l.n]||{}; return `<button class="lvl" data-l="${l.n}"><span class="num">${l.n}</span><span class="txt"><b>${esc(l.name)}</b><small>${esc(l.blurb)}</small></span><span class="st">${starsRow(s.stars||0)}${s.best?`<small>${s.best} pts</small>`:""}</span></button>`; }).join("")}</div>
     <p class="fine">A game, not clinical guidance. Time runs fast: one shift is about 3 minutes.</p>
   </div>`;
-  $("#startBtn").addEventListener("click", start);
+  ov.querySelectorAll(".lvl").forEach(b=>b.addEventListener("click", ()=>startLevel(+b.dataset.l)));
+}
+function startLevel(n){
+  LV = LEVELS[n-1];
+  newGame(); clearResults(); start();
 }
 function showPause(){
   ov.hidden = false;
   ov.innerHTML = `<div class="card"><h1>Paused</h1><p class="sub">Your patients will wait.</p>
     <button class="go" id="resumeBtn">Back to the floor</button>
-    <button class="toggle" id="soundBtn">${soundOn?"Turn sound off":"Turn sound on"}</button></div>`;
+    <button class="toggle" id="soundBtn">${soundOn?"Turn sound off":"Turn sound on"}</button>
+    <button class="toggle" id="quitBtn">Quit to shift list</button></div>`;
   $("#resumeBtn").addEventListener("click", ()=>{ G.paused = false; ov.hidden = true; });
   $("#soundBtn").addEventListener("click", e=>{ soundOn = !soundOn; e.target.textContent = soundOn?"Turn sound off":"Turn sound on"; });
+  $("#quitBtn").addEventListener("click", ()=>{ G.running = false; showStart(); });
 }
 function showChart(){
   const p = cur();
   if(p.state==="empty") return;
-  const wasRunning = G.running && !G.paused && !G.over;
+  const wasRunning = playing();
   if(G.running) G.paused = true;
   const now = p.state==="needs" ? `${p.active.def.t.replace("!","")}: ${p.active.def.d}` : null;
+  const v = p.vit;
   ov.hidden = false;
   ov.innerHTML = `<div class="card chart" role="dialog" aria-label="Chart for ${esc(p.name)}">
     <h1>${esc(p.name)}</h1><p class="sub">Rm ${roomOf(p)} · ${p.age} years · ${p.kg} kg</p>
@@ -788,6 +960,7 @@ function showChart(){
       <dt>History</dt><dd>${p.pmh.map(esc).join(", ")}</dd>
       <dt>Allergies</dt><dd class="${p.allergy.startsWith("No ")?"":"allergy"}">${esc(p.allergy)}</dd>
       <dt>Code status</dt><dd>${esc(p.code)}</dd>
+      ${v?`<dt>Last vitals</dt><dd>${flagify(vitalsSummary(v))} <span class="at">(${v.at})</span></dd>`:""}
       ${now?`<dt>Right now</dt><dd>${esc(now)}</dd>`:""}
     </dl>
     <h3>This shift</h3>
@@ -796,50 +969,54 @@ function showChart(){
   </div>`;
   $("#closeChart").addEventListener("click", ()=>{
     if(wasRunning){ G.paused = false; ov.hidden = true; }
-    else if(G.over){ ov.hidden = true; endShift(true); }
+    else if(G.over){ endShift(true); }
     else if(!G.running){ showStart(); }
     else { showPause(); }
   });
 }
-const STAR = on => `<svg viewBox="0 0 24 24"><path d="M12 2.8l2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.6l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8z" fill="${on?"#ffcf5c":"#e6eeeb"}" stroke="${on?"#e8a92a":"#cfe3dc"}" stroke-width="1.4" stroke-linejoin="round"/></svg>`;
 let lastReport = null;
 function endShift(reshow){
   if(!reshow){
     G.over = true; G.running = false;
-    const s1 = G.discharged >= 3, s2 = s1 && G.score >= 1500, s3 = s2 && G.score >= 2400 && G.transfers === 0;
-    const isBest = G.score > best;
-    if(isBest){ best = G.score; try{ localStorage.setItem("medsurg-best", String(best)); }catch(e){} }
-    lastReport = {s1,s2,s3,isBest};
+    const s1 = G.discharged >= 3, s2 = s1 && G.score >= LV.stars[0], s3 = s2 && G.score >= LV.stars[1] && G.transfers === 0;
+    const stars = s3 ? 3 : s2 ? 2 : s1 ? 1 : 0;
+    const prev = saved[LV.n] || {stars:0, best:0};
+    const isBest = G.score > (prev.best||0);
+    saved[LV.n] = {stars:Math.max(prev.stars||0, stars), best:Math.max(prev.best||0, G.score)}; save();
+    lastReport = {stars, isBest};
   }
-  const {s1,s2,s3,isBest} = lastReport;
-  const msg = s3 ? "Flawless shift. Your patients adore you." : s2 ? "Solid shift. Everyone's in good hands." : s1 ? "You made it through. Go eat something." : "Tough shift. They happen to everyone.";
+  const {stars, isBest} = lastReport;
+  const msg = stars===3 ? "Flawless shift. Your patients adore you." : stars===2 ? "Solid shift. Everyone's in good hands." : stars===1 ? "You made it through. Go eat something." : "Tough shift. They happen to everyone.";
   ov.hidden = false;
-  ov.innerHTML = `<div class="card"><h1>Shift report</h1><p class="sub">${msg}</p>
-    <div class="stars">${STAR(s1)}${STAR(s2)}${STAR(s3)}</div>
+  ov.innerHTML = `<div class="card"><h1>Shift report</h1><p class="sub">Level ${LV.n}: ${esc(LV.name)}. ${msg}</p>
+    <div class="stars">${starsRow(stars)}</div>
     <div class="stats">
       <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
       <div class="stat"><b>${G.discharged}</b><span>Sent home</span></div>
       <div class="stat"><b>${G.escalated}</b><span>Escalated to ICU in time</span></div>
+      <div class="stat"><b>${G.rushed}</b><span>Rushed to OR, CT or cath lab</span></div>
       <div class="stat"><b>${G.transfers}</b><span>Moved to ICU too late</span></div>
-      <div class="stat"><b>${G.surgery}</b><span>Rushed to surgery</span></div>
       <div class="stat"><b>${G.helps}</b><span>Times you called charge</span></div>
-      <div class="stat"><b>${G.rrUsed}</b><span>Rapid responses called</span></div>
     </div>
-    <button class="go" id="againBtn">Work another shift</button>
-    <p class="fine">★ 3 patients home · ★★ 1,500 pts · ★★★ 2,400 pts and nobody moved to ICU too late</p></div>`;
-  $("#againBtn").addEventListener("click", ()=>{ newGame(); clearResults(); start(); });
+    ${LV.n < LEVELS.length ? `<button class="go" id="nextBtn">Next shift: ${esc(LEVELS[LV.n].name)}</button>` : ""}
+    <button class="${LV.n < LEVELS.length ? "toggle" : "go"}" id="againBtn">Work this shift again</button>
+    <button class="toggle" id="listBtn">All shifts</button>
+    <p class="fine">★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts and nobody moved to ICU too late</p></div>`;
+  const nb = $("#nextBtn"); if(nb) nb.addEventListener("click", ()=>startLevel(LV.n+1));
+  $("#againBtn").addEventListener("click", ()=>startLevel(LV.n));
+  $("#listBtn").addEventListener("click", showStart);
 }
 function start(){
   try{ if(!ac) ac = new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); }catch(e){ ac = null; }
-  G.running = true; G.paused = false; ov.hidden = true; dirty = true;
+  G.running = true; G.paused = false; G.over = false; ov.hidden = true; dirty = true;
 }
-document.addEventListener("visibilitychange", ()=>{ if(document.hidden && G.running && !G.paused && !G.over){ G.paused = true; showPause(); } });
+document.addEventListener("visibilitychange", ()=>{ if(document.hidden && playing()){ G.paused = true; showPause(); } });
 
 /* ---------- loop ---------- */
 let last = 0;
 function frame(ts){
   const dt = last ? Math.min(0.1, (ts-last)/1000) : 0; last = ts;
-  if(G.running && !G.paused && !G.over) update(dt);
+  if(playing()) update(dt);
   if(dirty){ renderAll(); dirty = false; }
   updateLive();
   requestAnimationFrame(frame);
