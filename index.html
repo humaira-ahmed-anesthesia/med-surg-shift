@@ -1261,6 +1261,19 @@ function fhrPath(pat){
 }
 
 /* ---------- Pediatrics ---------- */
+const CHILD_LIFE = [
+  "Child life read an I Spy book together the whole time.",
+  "Child life used a Buzzy vibrating ice pack to block the poke.",
+  "Child life set up a comfort hold on dad's lap.",
+  "Child life played a favorite cartoon on the tablet.",
+  "Child life practiced on a stuffed bear first so it wasn't a surprise.",
+  "Numbing cream went on 30 minutes before. Barely a flinch.",
+  "Child life taught belly breathing with a pinwheel.",
+  "Child life let the kiddo pick which arm and which bandage. Dinosaurs, obviously.",
+  "Child life made it a game: count the fish on the ceiling tiles.",
+  "Child life brought a light-up spinner to watch.",
+  "Child life sang a favorite song with mom.",
+  "Child life used a squishy stress ball and a countdown from 10."];
 const KID_POOL = {girl:["Ava","Sofia","Amara","Lucia","Mei","Zara","Hana","Priya","Nia","Isla","Rosie","Layla","Maya","Chloe"], boy:["Mateo","Liam","Kofi","Ethan","Arjun","Theo","Jamal","Noah","Diego","Kenji","Omar","Finn","Leo","Eli"]};
 const PEDS_PMH = ["Asthma","Eczema","Born at 32 weeks","ADHD","Autism","Seizure disorder","Peanut allergy","Reflux as a baby"];
 const PEDS_SOCIAL = ["Lives with mom and dad. Dad is staying overnight.","Lives with mom and grandma. Grandma is at the bedside.","Lives with dad and two big brothers.","Lives with two moms and a cat named Pickles.","Foster family, very involved. Caseworker updated.","Lives with mom. Mom works nights and visits after school."];
@@ -1294,12 +1307,12 @@ const PK = {
   t1dNew:{t:"New diabetes", d:"Always thirsty, peeing all night, lost 4 pounds.", dx:"New-onset type 1 diabetes", age:[6,12], pmh:"Type 1 diabetes", r:1.0, s:[
     C("labs","Fingerstick & ketones","FSBG","Glucose 386 (high), small ketones."),
     C("meds","Insulin with dinner","Insulin","Insulin lispro by carb count plus a correction dose."),
-    C("assess","Teach the family","Teach","Checking sugars, counting carbs and giving insulin, with the diabetes educator.")]},
+    C("assess","Teach the family","Teach",["Checking sugars, counting carbs and giving insulin, with the diabetes educator.","Mom gave the first insulin shot herself. Dad practiced on an orange.","Taught carb counting with favorite snacks. Already a pro at reading labels.","Practiced a fingerstick together. Wants to do the next one solo.","Made a plan for school: the school nurse gets a copy of the insulin schedule."])]},
   t1dTeen:{t:"Sugar 420, missed insulin", d:"Tired of diabetes and skipped doses all week.", dx:"Type 1 diabetes with ketones", age:[13,16], pmh:"Type 1 diabetes", v:{hr:118,rr:24}, r:1.3, s:[
     C("labs","Glucose, ketones & BMP","BMP","Glucose 420 (high), bicarb 19 (low): mild DKA."),
     C("iv","Fluid bolus","Bolus","{10 mL/kg max 1000} normal saline bolus."),
     C("meds","Insulin drip per protocol","Insulin","Insulin drip at 0.05 units/kg/hr. Glucose falling slowly."),
-    C("assess","Talk privately","Talk","Asked privately and without judgment. Diabetes burnout is real. Psychology consult placed.")]},
+    C("assess","Talk privately","Talk",["Asked privately and without judgment. Checking sugars at school has been embarrassing.","Asked privately. Wants to try a continuous glucose monitor to poke less.","Talked privately. Soccer practice led to skipped doses. Made a plan with the coach.","Asked without judgment. Just kept forgetting. Set phone reminders together.","Talked privately. Diabetes is a lot to manage at 15. Social work will check in."])]},
   bronch:{t:"RSV bronchiolitis", d:"Runny nose, wheezy and not feeding well.", dx:"RSV bronchiolitis", age:[0.1,0.8], v:{spo2:89,rr:58,hr:164}, r:1.2, s:[
     C("o2","Suction the nose","Suction","Nasal suction: lots of mucus. Breathing easier."),
     C("o2","High-flow oxygen","High flow","High-flow nasal cannula. SpO₂ 94%."),
@@ -1338,7 +1351,7 @@ const PK = {
 const PKF = {
   fever:{t:"Fever 39.1 °C", d:"Flushed and cranky.", r:0.9, s:[C("meds","Fever medicine","Tylenol","Acetaminophen {15 mg/kg max 1000} by mouth.")]},
   scared:{t:"Scared of the IV", d:"Crying and hiding under the blanket.", r:0.8, s:[
-    C("assess","Child life: bubbles & numbing cream","Child life","Child life brought bubbles and an iPad. Numbing cream on."),
+    C("assess","Child life & numbing cream","Child life",["Child life brought bubbles and an iPad. Numbing cream on.","Child life read a favorite book together. Numbing cream on.","Child life did medical play with a doll's IV first. Numbing cream on.","Child life brought a Buzzy vibrating ice pack and a sticker chart."]),
     C("iv","Place the IV","IV","IV in on the first try. Brave sticker earned.")]},
   infiltrate:{t:"IV site puffy", d:"Hand is swollen and cool around the IV.", r:1.0, s:[
     C("iv","Check & stop the IV","Stop","Infiltrated (abnormal). IV out, hand elevated."),
@@ -1424,7 +1437,7 @@ const PSF = {
   nausea:{t:"Nausea", d:"Threw up after anesthesia.", r:0.9, s:[C("meds","Anti-nausea medicine","Zofran","Ondansetron {0.15 mg/kg max 4} IV.")]},
   is:{t:"Won't use the spirometer", d:"Says it's boring.", r:0.7, s:[C("assess","Make it a game","Game","Pinwheels and blowing bubbles count too! 10 big breaths.")]},
   pca:{t:"Grandpa pressing the PCA", d:"Trying to help.", r:0.9, s:[C("assess","Teach the family","Teach","Only the patient presses the button. Grandpa understands now.")]},
-  lostiv:{t:"Lost IV", d:"Pulled it out during a nap.", r:1.0, s:[C("assess","Child life first","Child life","Distraction with a light-up wand."), C("iv","New IV","IV","IV in.")]},
+  lostiv:{t:"Lost IV", d:"Pulled it out during a nap.", r:1.0, s:[C("assess","Child life first","Child life",["Distraction with a light-up wand.","Child life played I Spy.","Comfort hold on grandma's lap with a cartoon on.","Child life used a pinwheel for belly breathing."]), C("iv","New IV","IV","IV in.")]},
   fever:PKF.fever, family:PKF.family
 };
 const PSU = {
@@ -1490,7 +1503,7 @@ const MS = {
   highSugar:{t:"Glucose 382", d:"Type 2 diabetes, on steroids for her lungs.", dx:"Steroid-induced high blood sugar", pmh:"Type 2 diabetes", r:1.0, s:[
     C("labs","Fingerstick","FSBG","Glucose 382 (high). No ketones."),
     C("meds","Correction insulin","Lispro","Insulin lispro per sliding scale."),
-    C("assess","Teach & plan","Teach","Talked about why steroids raise sugar. Diabetes team consulted.")]},
+    C("assess","Teach & plan","Teach",["Talked about why steroids raise sugar. She'll need more insulin until the steroids stop.","Explained the sugars should come down as the steroids taper.","Reviewed her insulin pen technique. She's been injecting into the same spot every time.","Updated the MD. Insulin doses adjusted for the steroids."])]},
   delirium:{t:"Confused at night", d:"Thinks it's 1985 and wants to go home.", dx:"Pneumonia with delirium", pmh:"Dementia", r:1.0, s:[
     C("assess","Delirium screen (CAM)","CAM","Positive for delirium (abnormal)."),
     C("hands","Reorient: glasses, lights, family","Reorient","Glasses on, lights on for the day, daughter on speakerphone. Calmer."),
@@ -2364,7 +2377,10 @@ function advance(p, by, fxOverride){
   { const st0 = p.active && p.active.steps[p.active.step];
     if(st0 && st0.born && p.fetal){ p.fetal = false; const g = Math.random()<0.5 ? "girl" : "boy"; setTimeout(()=>toast(`It's a ${g}! Welcome to the world.`, "good"), 300); beep(784,0.12,"sine",0.04); beep(988,0.18,"sine",0.04,0.13); } }
   const st = p.active.steps[p.active.step];
-  let fx = doseFill(fxOverride || st.fx, p);
+  let fx = fxOverride || st.fx;
+  if(Array.isArray(fx)) fx = pick(fx);
+  fx = doseFill(fx, p);
+  if(st.k==="iv" && p.age < 13 && /(^IV\b|New IV|Place the IV|IV &|IV in)/.test(st.l) && Math.random() < 0.5) fx += " " + pick(CHILD_LIFE);
   if(st.k==="vitals" && !st.fx){ takeVitals(p); fx = vitalsSummary(p.vit, p); }
   if(st.rh) p.rhythm = st.rh;
   if(st.cpr){ G.cpr = CPR_FOR; }
@@ -2587,7 +2603,7 @@ function callRR(){
   if(LV.mode==="rrt" || !(G.rr>0 && p.health<30)) return;
   G.rr--; G.rrUsed++;
   p.health = Math.max(p.health, 50);
-  logIt(p, "Rapid response team at the bedside: " + p.active.steps.slice(p.active.step).map(s=>s.k==="vitals"?"Vitals rechecked.":s.fx).join(" "));
+  logIt(p, "Rapid response team at the bedside: " + p.active.steps.slice(p.active.step).map(s=>s.k==="vitals"?"Vitals rechecked.":Array.isArray(s.fx)?pick(s.fx):s.fx).join(" "));
   toast(`Rapid response team took over ${p.name}'s care.`, "good");
   complete(p, "rr");
 }
