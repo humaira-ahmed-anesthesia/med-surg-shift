@@ -968,7 +968,7 @@ const ICU_LEVELS = [
     pt:icuPt("Mrs. Rossi", 45, "woman", 68, "Cervical spinal cord injury after a fall", ["Hypothyroidism"], ["vent","cvc","art","collar","foley"]),
     cares:[["motor",15,6],["turn",30,13],["oral",30,22]], events:[[30,"brady"],[78,"mapDrop"],[120,"foley"],[158,"ventHigh"]], stars:[4100,5700]}),
   icuLevel(5, {name:"Neuro ICU", blurb:"A bleed in the brain with an EVD. Some nights, everything isn't enough.", drips:["nicard"],
-    pt:icuPt("Mr. Begay", 71, "man", 80, "Large bleed in the brain", ["Hypertension","Atrial fibrillation"], ["evd","icpMon","art","foley"]),
+    pt:icuPt("Mr. Moreno", 71, "man", 80, "Large bleed in the brain", ["Hypertension","Atrial fibrillation"], ["evd","icpMon","art","foley"]),
     next:Object.assign(icuPt("Ms. Brooks", 59, "woman", 66, "Bleed in the brain from high blood pressure", ["Hypertension"], ["evd","icpMon","art","foley"]), {prn:true}), nextDrips:[],
     cares:[["neuro",15,5],["evd",30,12],["turn",30,24]], events:[[22,"icp"],[52,"herniate"],[110,"sbpUp"],[150,"evdStop"]], stars:[3600,5000]}),
   icuLevel(6, {name:"Neuro ICU 2", blurb:"Brain aneurysm bleed: hypertonic saline, seizures and vasospasm on day 7.", drips:["nicard","hts"],
@@ -1311,7 +1311,7 @@ const PK = {
   gastro:{t:"Vomiting & diarrhea", d:"Can't keep anything down since yesterday.", dx:"Gastroenteritis with dehydration", age:[1,6], v:{hr:148}, r:1.1, s:[
     C("assess","Dehydration check","Assess","Dry lips, no tears, sunken eyes. 1 wet diaper today (low)."),
     C("iv","Fluid bolus","Bolus","{20 mL/kg max 1000} normal saline bolus."),
-    C("meds","Anti-nausea medicine","Zofran","",{pick:dosePick("Ondansetron",0.15,"mg","IV",4), q:"Which dose?"}),
+    C("meds","Anti-nausea medicine","Zofran","Ondansetron {0.15 mg/kg max 4} IV."),
     C("assess","Oral rehydration","Sips","Small sips every 5 minutes. Keeping it down!")]},
   febInfant:{t:"Fever in a newborn", d:"Only 2 weeks old. Temp 38.3 °C.", dx:"Fever in a newborn", age:[0.04,0.07], v:{t:38.3,hr:178}, r:1.3, s:[
     C("labs","Blood & urine cultures","Cultures","Blood and urine cultures sent."),
@@ -1320,7 +1320,7 @@ const PK = {
   sickle:{t:"Pain crisis", d:"Legs and back hurt 9/10.", dx:"Sickle cell pain crisis", age:[8,16], pmh:"Sickle cell disease", v:{hr:124}, r:1.2, s:[
     C("assess","Pain score","Assess","Pain 9/10 in both legs and lower back."),
     C("iv","IV fluids","Fluids","IV fluids at maintenance."),
-    C("meds","IV morphine","Morphine","",{pick:dosePick("Morphine",0.1,"mg","IV",4), q:"Which dose?"}),
+    C("meds","IV morphine","Morphine","Morphine {0.1 mg/kg max 4} IV."),
     C("assess","Incentive spirometer","IS","10 breaths an hour to protect the lungs.")]},
   pna:{t:"Pneumonia", d:"Fever and fast breathing.", dx:"Pneumonia", age:[2,8], v:{spo2:91,rr:38,t:38.9}, r:1.1, s:[
     C("o2","Oxygen","NC 2 L","2 L nasal cannula. SpO₂ 95%."),
@@ -1336,7 +1336,7 @@ const PK = {
     C("meds","Antibiotic","Ceftriaxone","Ceftriaxone {50 mg/kg max 2000} IV.")]}
 };
 const PKF = {
-  fever:{t:"Fever 39.1 °C", d:"Flushed and cranky.", r:0.9, s:[C("meds","Fever medicine","Tylenol","",{pick:dosePick("Acetaminophen",15,"mg","by mouth",1000), q:"Which dose?"})]},
+  fever:{t:"Fever 39.1 °C", d:"Flushed and cranky.", r:0.9, s:[C("meds","Fever medicine","Tylenol","Acetaminophen {15 mg/kg max 1000} by mouth.")]},
   scared:{t:"Scared of the IV", d:"Crying and hiding under the blanket.", r:0.8, s:[
     C("assess","Child life: bubbles & numbing cream","Child life","Child life brought bubbles and an iPad. Numbing cream on."),
     C("iv","Place the IV","IV","IV in on the first try. Brave sticker earned.")]},
@@ -1361,7 +1361,7 @@ const PKU = {
   seizure:{t:"Seizure!", d:"Stiff, then jerking arms and legs.", v:{spo2:88,hr:160}, r:2.4, s:[
     C("assess","Safety: on her side, time it","Safety","On her side, rails padded, timer running."),
     C("o2","Oxygen & suction","O₂","Blow-by oxygen and suction."),
-    C("meds","Stop the seizure","Midazolam","",{pick:dosePick("Midazolam",0.2,"mg","in the nose",10), q:"Which dose?"}),
+    C("meds","Stop the seizure","Midazolam","Midazolam {0.2 mg/kg max 10} in the nose."),
     C("labs","Fingerstick glucose","FSBG","Glucose 98, normal.")]},
   hypo:{t:"Shaky and sweaty!", d:"Says she feels funny.", v:{hr:128}, r:2.0, only:p=>/diabetes/i.test(p.pmh.join()), s:[
     C("labs","Fingerstick","FSBG","Glucose 58 (low)."),
@@ -1395,7 +1395,7 @@ const PS = {
     C("assess","Walk & incentive spirometer","Walk","Walked to the playroom!")]},
   tonsil:{t:"Tonsillectomy, post-op", d:"Throat really sore. Doesn't want to drink.", dx:"Tonsillectomy, post-op day 0", age:[4,8], surg:true, r:1.0, s:[
     C("assess","Pain & swallowing","Assess","Throat pain 7/10. Swallowing small sips."),
-    C("meds","Pain medicine","Tylenol","",{pick:dosePick("Acetaminophen",15,"mg","by mouth",1000), q:"Which dose?"}),
+    C("meds","Pain medicine","Tylenol","Acetaminophen {15 mg/kg max 1000} by mouth."),
     C("assess","Cold fluids & popsicles","Popsicle","Two popsicles down. Staying hydrated.")]},
   pyloric:{t:"Pyloric stenosis", d:"Projectile vomiting after every feed. Surgery tomorrow.", dx:"Pyloric stenosis, before surgery", age:[0.06,0.12], v:{hr:168}, r:1.1, s:[
     C("labs","Electrolytes","BMP","Chloride 88 (low), potassium 3.2 (low), bicarb 32 (high)."),
@@ -1420,7 +1420,7 @@ const PS = {
     C("wound","Dressing change","Dressing","Burns cleaned and covered. Room kept warm.")]}
 };
 const PSF = {
-  pain:{t:"Pain 8/10", d:"Points to the crying face.", r:1.0, s:[C("assess","FACES pain score","FACES","Face 8 of 10."), C("meds","Pain medicine","Morphine","",{pick:dosePick("Morphine",0.05,"mg","IV",2), q:"Which dose?"})]},
+  pain:{t:"Pain 8/10", d:"Points to the crying face.", r:1.0, s:[C("assess","FACES pain score","FACES","Face 8 of 10."), C("meds","Pain medicine","Morphine","Morphine {0.05 mg/kg max 2} IV.")]},
   nausea:{t:"Nausea", d:"Threw up after anesthesia.", r:0.9, s:[C("meds","Anti-nausea medicine","Zofran","Ondansetron {0.15 mg/kg max 4} IV.")]},
   is:{t:"Won't use the spirometer", d:"Says it's boring.", r:0.7, s:[C("assess","Make it a game","Game","Pinwheels and blowing bubbles count too! 10 big breaths.")]},
   pca:{t:"Grandpa pressing the PCA", d:"Trying to help.", r:0.9, s:[C("assess","Teach the family","Teach","Only the patient presses the button. Grandpa understands now.")]},
@@ -1763,7 +1763,7 @@ function lockReason(l){
   const pv = prevInUnit(l); return pv ? `Earn a star on “${pv.name}” first.` : "";
 }
 function nextInUnit(l){ const u = LEVELS.filter(x=>x.unit===l.unit); return u[u.indexOf(l)+1] || null; }
-const NAMES_BASE = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Begay","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
+const NAMES_BASE = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Moreno","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
 const NAMES = NAMES_BASE.concat(FRIENDS_W, FRIENDS_M);
 const PMH = ["Hypertension","High cholesterol","Asthma","Hypothyroidism","Atrial fibrillation","Chronic kidney disease, stage 3","Depression","GERD","Osteoarthritis","Sleep apnea"];
 const ALLERGIES = [["No known allergies",10],["Penicillin (anaphylaxis)",3],["Sulfa drugs (rash)",2],["Morphine (itching)",2],["Latex (rash)",1],["Codeine (nausea)",1]];
