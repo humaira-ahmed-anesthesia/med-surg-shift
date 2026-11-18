@@ -331,6 +331,10 @@ button.chip.now:active{transform:scale(.96)}
 .lvl.locked .num{background:#cfd8d5;font-size:15px}
 #ptAv{cursor:pointer}
 .clock.review::after,#clock.review::after{content:"½×";margin-left:5px;font-size:11px;font-weight:800;color:#8a7cc4;vertical-align:middle}
+.who .nmwrap{display:flex;flex-direction:column;min-width:0;line-height:1.1}
+.who .meta{font-size:11px;font-weight:800;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .meta .alg{color:#c9483b}
+.who .meta .dnr{color:#6a4fb3}
 .hp-tabs{display:flex;gap:6px;margin-bottom:10px}
 .hp-tabs .tab{flex:1;padding:7px 8px;border-radius:10px;background:var(--wall);font-weight:800;font-size:13px;color:var(--muted)}
 .hp-tabs .tab.on{background:var(--accent);color:#fff}
@@ -427,7 +431,7 @@ button.chip.now:active{transform:scale(.96)}
   <main class="stage">
     <section class="room" aria-live="polite">
       <div>
-        <div class="who"><span class="whoav" id="ptAv"></span><span class="nm" id="ptName">Patient</span><span class="devs" id="ptDevs"></span>
+        <div class="who"><span class="whoav" id="ptAv"></span><span class="nmwrap"><span class="nm" id="ptName">Patient</span><small class="meta" id="ptMeta"></small></span><span class="devs" id="ptDevs"></span>
           <button class="chartbtn" id="chartBtn" aria-label="Open H&amp;P (pauses the game)"><svg viewBox="0 0 24 24"><path d="M3 6.5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#f3d58e" stroke="#c99a3a" stroke-width="1.6" stroke-linejoin="round"/><rect x="6.5" y="9.5" width="11" height="8" rx="1" fill="#fff" stroke="#c99a3a" stroke-width="1.2"/><path d="M8.5 12h7M8.5 14.5h4.5" stroke="#9aa6ad" stroke-width="1.3" stroke-linecap="round"/></svg>H&amp;P</button></div>
         <div class="hp"><div class="bar" id="ptBar"><i></i></div><span id="ptPct">70%</span></div>
         <div class="vitals" id="vitals" aria-label="Vital signs monitor">
@@ -1394,6 +1398,55 @@ const PKU = {
     C("meds","Antibiotics","Ceftriaxone","Ceftriaxone and azithromycin IV."),
     C("blood","Transfusion","PRBCs","Simple transfusion running.")]}
 };
+
+Object.assign(PK, {
+  cellulitis:{t:"Red, swollen leg", d:"Scraped a knee at the park. Now hot and spreading.", dx:"Cellulitis with an abscess", age:[3,12], v:{t:38.4}, r:1.0, s:[
+    C("wound","Mark the edges","Mark","Red area outlined with a marker and timed, to see if it spreads."),
+    C("meds","IV antibiotic","Clinda","Clindamycin {10 mg/kg max 600} IV."),
+    C("wound","Warm compress","Warm","Warm compress for 15 minutes. A little relief already.")]},
+  concussion:{t:"Head bump, keeps throwing up", d:"Fell off the monkey bars.", dx:"Concussion, overnight observation", age:[5,12], r:1.0, s:[
+    C("assess","Neuro check","Neuro","Knows name, place and the day. Pupils equal. Headache 5/10."),
+    C("meds","Anti-nausea medicine","Zofran","Ondansetron {0.15 mg/kg max 4} IV."),
+    C("assess","Quiet, dim room, screens off","Rest","Lights down, no tablet for now. Napping, waking to voice.")]},
+  cf:{t:"Cystic fibrosis flare", d:"More coughing and mucus, losing weight.", dx:"Cystic fibrosis exacerbation", age:[8,16], pmh:"Cystic fibrosis", v:{spo2:92,rr:28}, r:1.1, s:[
+    C("o2","Airway clearance vest","Vest","30 minutes of vest therapy. Coughed up a lot of thick mucus."),
+    C("meds","IV antibiotics","Tobra","Tobramycin and ceftazidime IV. Tobra level timed."),
+    C("meds","Enzymes with meals","Enzymes","Pancreatic enzymes with the first bite of lunch.")]},
+  neutroFever:{t:"Fever during chemo", d:"On chemo for leukemia. Temp 38.5 °C.", dx:"Fever with low white cells (neutropenia)", age:[3,14], pmh:"Leukemia, on chemo", v:{t:38.5,hr:136}, r:1.4, s:[
+    C("labs","Cultures from the port","Cultures","Blood cultures from the port. ANC 200 (low): neutropenic."),
+    C("meds","Antibiotics within 60 minutes","Cefepime","Cefepime {50 mg/kg max 2000} IV. Given in 38 minutes."),
+    C("assess","Neutropenic precautions","Precautions","Private room, hand hygiene, no fresh flowers. Mask for visitors who are sick.")]},
+  febSz:{t:"Seizure with a fever", d:"Shook for 2 minutes at home. Sleepy now.", dx:"Febrile seizure", age:[1,4], v:{t:39.0}, r:0.9, s:[
+    C("assess","Post-seizure neuro check","Neuro","Waking up, crying for mom, moving everything. Back to normal."),
+    C("meds","Fever medicine","Tylenol","Acetaminophen {15 mg/kg max 1000} by mouth."),
+    C("assess","Teach the family","Teach","These usually stop on their own and don't cause brain damage. What to do next time.")]},
+  migraine:{t:"Migraine", d:"Teen with a pounding headache for 2 days.", dx:"Migraine", age:[13,16], r:0.9, s:[
+    C("assess","Dark, quiet room","Room","Lights off, blinds down, ice pack."),
+    C("iv","IV fluid bolus","Bolus","{20 mL/kg max 1000} normal saline."),
+    C("meds","Migraine medicine","Ketorolac","Ketorolac {0.5 mg/kg max 30} and prochlorperazine IV. Headache 2/10.")]},
+  ftt:{t:"Not gaining weight", d:"4 months old, tiny for age.", dx:"Poor weight gain (failure to thrive)", age:[0.25,0.5], r:0.8, s:[
+    C("assess","Watch a feed","Feed","Watched a full feed. Tires out quickly."),
+    C("assess","Weigh before & after the feed","Weight","Took 70 mL. Calorie count started."),
+    C("assess","Dietitian plan","Plan","Higher-calorie formula. Weight check every morning.")]}
+});
+/* allergic reactions: different triggers */
+const anaphSteps = trigger => [
+  C("meds","IM epinephrine now","Epi","Epinephrine {0.01 mg/kg max 0.5} IM in the thigh."),
+  C("o2","Oxygen","NRB","Oxygen on. Lips less swollen."),
+  C("meds","Antihistamine","Benadryl","Diphenhydramine {1 mg/kg max 50} IV."),
+  C("assess","Find the cause","Ask", trigger)];
+Object.assign(PKU, {
+  anaphAbx:{t:"Hives & wheezing during the antibiotic!", d:"Ten minutes into a new IV antibiotic.", v:{spo2:90,hr:158,sbp:84,dbp:46}, r:2.6, s:[
+    C("iv","Stop the infusion","Stop","Antibiotic stopped, line flushed with saline."),
+    ...anaphSteps(["New allergy: ceftriaxone. Red allergy band on and the pharmacy updated.","New allergy: amoxicillin. Allergy band on, the chart updated.","New allergy: vancomycin reaction. Pharmacy will give it slower with Benadryl first."])]},
+  anaphFood:{t:"Hives & lip swelling!", d:"Right after a snack from a visitor.", v:{spo2:91,hr:156,sbp:84,dbp:46}, r:2.6, s:anaphSteps([
+    "Tree nuts in a cookie from the bake sale. Allergy added to the chart.",
+    "Shrimp fried rice from a relative's takeout. Shellfish allergy added.",
+    "Peanut butter crackers. New peanut allergy added to the chart.",
+    "Scrambled eggs at breakfast. Egg allergy added.",
+    "Sesame in a hummus snack. Sesame allergy added."])},
+  anaphLatex:{t:"Itchy, swelling and wheezing!", d:"Right after a balloon from the gift shop.", v:{spo2:91,hr:150,sbp:86,dbp:48}, r:2.4, s:anaphSteps("Latex balloon. Latex allergy band on, balloons out of the room.")}
+});
 const PKD1 = {t:"Can't stop wheezing", d:"Third albuterol and still tight.", dx:"Severe asthma exacerbation", age:[6,12], pmh:"Asthma", v:{spo2:89,rr:46,hr:156}, r:1.8, s:[
   C("meds","Continuous albuterol","Albuterol","Continuous albuterol."),
   C("meds","IV steroid","Methylpred","Methylprednisolone {1 mg/kg max 60} IV.")]};
@@ -1474,11 +1527,11 @@ const PSD2 = {t:"Septic shock!", d:"Mottled, BP falling.", v:{hr:172,sbp:78,dbp:
 const pedsLevel = (k, o) => Object.assign({n:500+k, tag:(k<=5?"K":"S")+(k<=5?k:k-5), unit:k<=5 ? "Pediatrics" : "Pediatric Surgery", mode:"floor", peds:true,
   pmhPool:PEDS_PMH, social:PEDS_SOCIAL, tools:["assess","labs","meds","iv","wound","o2"]}, o);
 const PEDS_LEVELS = [
-  pedsLevel(1, {name:"Peds floor day shift", blurb:"Wheezy kids, a barky cough and weight-based doses.", first:[PK.asthma,PK.croup,PK.gastro,PK.pna,PK.uti], follow:[PKF.fever,PKF.scared,PKF.family,PKF.vitals], urgent:[PKU.asthmaWorse,PKU.stridor,PKU.anaph], doom:[PKD1,PKD2], drain:0.9, ev:[22,32], stars:[1500,2400]}),
-  pedsLevel(2, {name:"Sugar and spice", blurb:"Two kids with type 1 diabetes, a lot of teaching and a low sugar.", first:[PK.t1dNew,PK.t1dTeen,PK.asthma,PK.gastro,PK.pna], follow:[PKF.fever,PKF.flacc,PKF.family,PKF.infiltrate], urgent:[PKU.hypo,PKU.asthmaWorse,PKU.seizure], doom:[PKD1,PKD2], drain:1, ev:[20,30], stars:[1600,2600]}),
-  pedsLevel(3, {name:"Tiny lungs", blurb:"RSV babies, a fever in a newborn and a baby who stops breathing.", first:[PK.bronch,PK.febInfant,PK.croup,PK.uti,PK.bronch], follow:[PKF.fever,PKF.flacc,PKF.infiltrate,PKF.family], urgent:[PKU.apnea,PKU.stridor,PKU.seizure], doom:[PKD1,PKD2], drain:1.1, ev:[18,27], stars:[1700,2700]}),
-  pedsLevel(4, {name:"Crisis and clues", blurb:"Sickle cell pain, acute chest, and a fever that turns out to be Kawasaki disease.", first:[PK.sickle,PK.kawasaki,PK.t1dNew,PK.asthma,PK.pna], follow:[PKF.fever,PKF.scared,PKF.flacc,PKF.vitals], urgent:[PKU.chest,PKU.hypo,PKU.anaph,PKU.asthmaWorse], doom:[PKD1,PKD2], drain:1.15, ev:[16,25], stars:[1800,2800]}),
-  pedsLevel(5, {name:"Full peds floor", blurb:"Everything at once. Double-check every dose.", first:[PK.asthma,PK.t1dTeen,PK.sickle,PK.bronch,PK.febInfant,PK.kawasaki,PK.gastro], follow:[PKF.fever,PKF.scared,PKF.flacc,PKF.infiltrate,PKF.family], urgent:[PKU.asthmaWorse,PKU.hypo,PKU.seizure,PKU.anaph,PKU.apnea,PKU.chest,PKU.stridor], doom:[PKD1,PKD2], drain:1.22, ev:[15,23], stars:[1900,3000]}),
+  pedsLevel(1, {name:"Peds floor day shift", blurb:"Wheezy kids, a barky cough and weight-based doses.", first:[PK.asthma,PK.croup,PK.gastro,PK.pna,PK.uti,PK.cellulitis,PK.concussion,PK.febSz], follow:[PKF.fever,PKF.scared,PKF.family,PKF.vitals], urgent:[PKU.asthmaWorse,PKU.stridor,PKU.anaphFood,PKU.anaphAbx], doom:[PKD1,PKD2], drain:0.9, ev:[22,32], stars:[1500,2400]}),
+  pedsLevel(2, {name:"Sugar and spice", blurb:"Two kids with type 1 diabetes, a lot of teaching and a low sugar.", first:[PK.t1dNew,PK.t1dTeen,PK.asthma,PK.gastro,PK.migraine,PK.cellulitis,PK.concussion], follow:[PKF.fever,PKF.flacc,PKF.family,PKF.infiltrate], urgent:[PKU.hypo,PKU.asthmaWorse,PKU.seizure,PKU.anaphLatex], doom:[PKD1,PKD2], drain:1, ev:[20,30], stars:[1600,2600]}),
+  pedsLevel(3, {name:"Tiny lungs", blurb:"RSV babies, a fever in a newborn and a baby who stops breathing.", first:[PK.bronch,PK.febInfant,PK.croup,PK.uti,PK.ftt,PK.febSz,PK.gastro], follow:[PKF.fever,PKF.flacc,PKF.infiltrate,PKF.family], urgent:[PKU.apnea,PKU.stridor,PKU.seizure,PKU.anaphAbx], doom:[PKD1,PKD2], drain:1.1, ev:[18,27], stars:[1700,2700]}),
+  pedsLevel(4, {name:"Crisis and clues", blurb:"Sickle cell pain, a fever during chemo, cystic fibrosis and a few mystery fevers.", first:[PK.sickle,PK.kawasaki,PK.neutroFever,PK.cf,PK.t1dNew,PK.asthma,PK.cellulitis,PK.pna], follow:[PKF.fever,PKF.scared,PKF.flacc,PKF.vitals], urgent:[PKU.chest,PKU.hypo,PKU.anaphAbx,PKU.anaphFood,PKU.asthmaWorse], doom:[PKD1,PKD2], drain:1.15, ev:[16,25], stars:[1800,2800]}),
+  pedsLevel(5, {name:"Full peds floor", blurb:"Everything at once on the peds floor.", first:[PK.asthma,PK.t1dTeen,PK.sickle,PK.bronch,PK.febInfant,PK.kawasaki,PK.gastro,PK.neutroFever,PK.cf,PK.migraine,PK.concussion,PK.ftt], follow:[PKF.fever,PKF.scared,PKF.flacc,PKF.infiltrate,PKF.family], urgent:[PKU.asthmaWorse,PKU.hypo,PKU.seizure,PKU.anaphAbx,PKU.anaphFood,PKU.anaphLatex,PKU.apnea,PKU.chest,PKU.stridor], doom:[PKD1,PKD2], drain:1.22, ev:[15,23], stars:[1900,3000]}),
   pedsLevel(6, {name:"Peds surgery day shift", blurb:"Appendix, tonsils and a broken elbow.", first:[PS.appy,PS.tonsil,PS.elbow,PS.intuss], follow:[PSF.pain,PSF.nausea,PSF.is,PSF.family], urgent:[PSU.tonsilBleed,PSU.compartment,PSU.anaph], doom:[PSD1,PSD2], drain:0.9, ev:[22,32], stars:[1500,2400]}),
   pedsLevel(7, {name:"Little patients", blurb:"Pyloric stenosis, a cleft lip repair and an intussusception.", first:[PS.pyloric,PS.cleft,PS.intuss,PS.tonsil,PS.elbow], follow:[PSF.pain,PSF.nausea,PSF.lostiv,PSF.fever], urgent:[PSU.hypoK,PSU.tonsilBleed,PSU.seizure], doom:[PSD1,PSD2], drain:1, ev:[20,30], stars:[1600,2600]}),
   pedsLevel(8, {name:"Teens and PCAs", blurb:"Spinal fusion, PCAs and a kid who's too sleepy.", first:[PS.spinal,PS.appy,PS.tonsil,PS.elbow,PS.burn], follow:[PSF.pca,PSF.pain,PSF.is,PSF.nausea], urgent:[PSU.oversed,PSU.abscess,PSU.compartment], doom:[PSD1,PSD2], drain:1.1, ev:[18,27], stars:[1700,2700]}),
@@ -2716,6 +2769,14 @@ let artKey = "";
 function renderAll(){
   const p = cur();
   $("#ptName").textContent = p.state==="empty" ? "Empty bed" : p.name;
+  const meta = $("#ptMeta");
+  if(p.state==="empty" || !p.allergy){ meta.innerHTML = ""; }
+  else {
+    const ag = p.age < 1 ? ageStr(p).replace(/ days?/," d").replace(/ months?/," mo") : `${Math.floor(p.age)} y`;
+    const code = /DNR/.test(p.code) ? "DNR" : "Full code";
+    const al = /^No known/.test(p.allergy) ? "NKA" : p.allergy.replace(/\s*\(.*\)/,"");
+    meta.innerHTML = `${ag} · <span class="${/DNR/.test(code)?"dnr":""}">${code}</span> · <span class="${al==="NKA"?"":"alg"}">${al==="NKA" ? "NKA" : "Allergy: " + esc(al)}</span>`;
+  }
   $("#chartBtn").hidden = p.state==="empty";
   const devKey = p.state!=="empty" && p.devices ? p.devices.join() : "";
   const dv = $("#ptDevs");
