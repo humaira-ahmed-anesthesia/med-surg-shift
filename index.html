@@ -634,8 +634,8 @@ const GIB2 = {t:"Vomiting blood!", d:"Bright red blood. Lightheaded and pale.", 
 
 /* ---------- codes and rapid response calls ---------- */
 /* easter eggs: friends and family */
-const FRIENDS_W = ["Kathryn Nutting","Amanda Mah","Emmy McCluhan","Sharon Prince","Liesl Suandi","Kathy Reed","Afshan Hai","Humaira Ahmed","Anam Rahman","Noreen York","Alisha Kent","Marissa Williams","Sarah Arif","Aafreen Laateef"];
-const FRIENDS_M = ["Ray Calderon","Rocky Calderon","Peji Prince","Matt Ferdinand","Sean Oz","AJ Hai","Haroon Gotham","Khalid Clark","Haroon Ahmed","Jawaad Armstrong","Umar Turing"];
+const FRIENDS_W = ["Kathryn Nutting","Amanda Mah","Emmy McCluhan","Sharon Prince","Liesl Suandi","Kathy Reed","Afshan Hai","Humaira Ahmed","Anam Rahman","Noreen York","Alisha Kent","Marissa Williams","Sarah Arif","Aafreen Laateef","Susana Bannana Glass"];
+const FRIENDS_M = ["Ray Calderon","Rocky Calderon","Peji Prince","Matt Ferdinand","Sean Oz","AJ Hai","Haroon Gotham","Khalid Clark","Haroon Ahmed","Jawaad Armstrong","Umar Turing","Brian Glasses"];
 const sexOf = n => FRIENDS_M.includes(n) ? "man" : FRIENDS_W.includes(n) ? "woman" : /^Mr\./.test(n) ? "man" : "woman";
 const cardName = n => /^(Mrs?\.|Ms\.)\s/.test(n) ? n.replace(/^(Mrs?\.|Ms\.)\s*/,"") : /^Baby\s/.test(n) ? n.split(" ").pop() : n.split(" ")[0];
 const C = (k,l,b,fx,x) => ({k,l,b,fx,...(x||{})});
