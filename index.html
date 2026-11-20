@@ -135,7 +135,7 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @keyframes rrpulse{50%{background:#fff0ee}}
 
 /* overlay */
-.splash{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:#fff3e2;overflow:hidden}
+.splash{position:absolute;inset:0;z-index:50;display:flex;flex-direction:column;background:#fff3e2;overflow:hidden}
 .splash .scene{flex:1 1 auto;width:100%;min-height:0;display:block}
 .splash-ui{flex:none;text-align:center;padding:10px 22px calc(18px + env(safe-area-inset-bottom));background:#fff3e2}
 .splash-ui h1{font-family:var(--display);font-weight:600;font-size:44px;margin:0;color:#2f3d47;letter-spacing:.5px}
@@ -2122,10 +2122,11 @@ function admit(i, initial, o){
     kg: Math.floor(rand(52,112)),
     look: {skin:pick(SKIN), hair:pick(HAIR), gown:pick(GOWN), style:Math.floor(Math.random()*3)},
     allergy: wpick(ALLERGIES),
-    code: Math.random()<0.85 ? "Full code" : "DNR (do not resuscitate)",
+    code: "Full code",
     health: initial ? rand(64,80) : rand(58,74),
     active:null, state:"resting", timer:1.5, flash:0, out:null, log:[], doomed, base:baseVitals(), gotBlood:false, got:{}, assessed:false, admittedAt:G.t
   };
+  if(p.age > 75 && Math.random() < 0.18) p.code = "DNR (do not resuscitate)"; // only older patients, and fewer than 1 in 5 of them
   let defs;
   if(o.defs) defs = o.defs.slice();
   else if(doomed){ G.doomSeen++; defs = LV.doom.slice(); }
