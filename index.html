@@ -135,6 +135,34 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @keyframes rrpulse{50%{background:#fff0ee}}
 
 /* overlay */
+.splash{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;background:#fff3e2;overflow:hidden}
+.splash .scene{flex:1 1 auto;width:100%;min-height:0;display:block}
+.splash-ui{flex:none;text-align:center;padding:10px 22px calc(18px + env(safe-area-inset-bottom));background:#fff3e2}
+.splash-ui h1{font-family:var(--display);font-weight:600;font-size:44px;margin:0;color:#2f3d47;letter-spacing:.5px}
+.splash-ui .tag{margin:2px 0 14px;font-weight:800;color:#a8700f}
+.splash-ui .go{opacity:0;animation:splashIn .5s ease 2.4s forwards;max-width:340px;margin:0 auto}
+.splash-ui .disc{font-size:12.5px;font-weight:700;color:#7a8790;margin:14px auto 0;max-width:320px;line-height:1.35}
+@keyframes splashIn{to{opacity:1}}
+.splash .amb.a1{animation:driveL 2.3s cubic-bezier(.2,.7,.3,1) forwards;transform:translate(-120px,214px)}
+.splash .amb.a2{animation:driveR 2.6s cubic-bezier(.2,.7,.3,1) .25s forwards;transform:translate(420px,214px)}
+@keyframes driveL{to{transform:translate(86px,214px)}}
+@keyframes driveR{to{transform:translate(236px,214px)}}
+.splash .lt1{fill:#e0675a;animation:blink .5s steps(1) infinite}
+.splash .lt2{fill:#5b8fd6;animation:blink .5s steps(1) .25s infinite}
+@keyframes blink{50%{opacity:.25}}
+.splash .cloud{animation:drift 14s ease-in-out infinite alternate}
+.splash .cloud.c2{animation-duration:18s}
+@keyframes drift{to{transform:translateX(26px)}}
+.splash.out{animation:splashOut .45s ease forwards}
+.splash[hidden],.adcard[hidden]{display:none}
+@keyframes splashOut{to{opacity:0;visibility:hidden}}
+.adcard{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(30,38,44,.82)}
+.adcard .box{background:#fffdf8;border-radius:18px;padding:22px 20px;width:min(320px,86vw);text-align:center}
+.adcard .box b{display:block;font-family:var(--display);font-size:20px;margin-bottom:6px}
+.adcard .box p{margin:0 0 12px;color:var(--muted);font-weight:700;font-size:13px}
+.adcard .count{font-family:var(--display);font-size:34px;color:var(--accent)}
+.menu-sound{display:flex;gap:8px;justify-content:center;margin:6px 0 2px}
+.menu-sound button{flex:1;padding:8px;border-radius:12px;background:var(--wall);font-weight:800;font-size:13px;color:var(--ink)}
 .overlay{position:absolute;inset:0;display:grid;place-items:center;padding:20px;background:rgba(47,61,71,.35);z-index:10}
 .overlay[hidden]{display:none}
 .card{background:var(--surface);border-radius:26px;padding:22px 20px 20px;max-width:360px;width:100%;box-shadow:0 10px 30px rgba(47,61,71,.25)}
@@ -473,6 +501,54 @@ button.chip.now:active{transform:scale(.96)}
   </div>
 
   <div class="overlay" id="overlay"></div>
+  <div class="splash" id="splash">
+    <svg class="scene" viewBox="0 0 400 300" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd9b8"/><stop offset="1" stop-color="#fff3e2"/></linearGradient>
+        <g id="amb">
+          <rect x="0" y="10" width="58" height="26" rx="5" fill="#fffdf8" stroke="#c9bfae" stroke-width="1.2"/>
+          <path d="M58 16h14l8 10v10H58z" fill="#fffdf8" stroke="#c9bfae" stroke-width="1.2"/>
+          <path d="M61 19h9l5 7H61z" fill="#bfe3f0"/>
+          <rect x="0" y="27" width="80" height="4" fill="#e0675a"/>
+          <rect x="18" y="14" width="12" height="12" rx="1.5" fill="#fff"/><path d="M24 15.5v9M19.5 20h9" stroke="#e0675a" stroke-width="2.6"/>
+          <rect x="8" y="5" width="8" height="5" rx="1.5" class="lt1"/><rect x="40" y="5" width="8" height="5" rx="1.5" class="lt2"/>
+          <circle cx="16" cy="38" r="6" fill="#3a4750"/><circle cx="16" cy="38" r="2.4" fill="#cfd8dc"/>
+          <circle cx="64" cy="38" r="6" fill="#3a4750"/><circle cx="64" cy="38" r="2.4" fill="#cfd8dc"/>
+        </g>
+      </defs>
+      <rect width="400" height="300" fill="url(#sky)"/>
+      <circle cx="330" cy="62" r="24" fill="#ffe7a8"/>
+      <g class="cloud c1"><ellipse cx="70" cy="55" rx="26" ry="10" fill="#fff"/><ellipse cx="88" cy="49" rx="16" ry="10" fill="#fff"/></g>
+      <g class="cloud c2"><ellipse cx="250" cy="38" rx="22" ry="8" fill="#fff"/><ellipse cx="236" cy="33" rx="12" ry="8" fill="#fff"/></g>
+      <rect x="0" y="232" width="400" height="68" fill="#cfe6d5"/>
+      <rect x="0" y="246" width="400" height="34" fill="#b9c4c9"/>
+      <path d="M10 263h30M70 263h30M130 263h30M190 263h30M250 263h30M310 263h30M370 263h30" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+      <rect x="100" y="92" width="200" height="140" rx="6" fill="#f6efe4" stroke="#d9cdb9" stroke-width="2"/>
+      <rect x="160" y="64" width="80" height="34" rx="5" fill="#f6efe4" stroke="#d9cdb9" stroke-width="2"/>
+      <rect x="187" y="70" width="26" height="22" rx="4" fill="#e0675a"/><path d="M200 74v14M193 81h14" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+      <g fill="#bfe3f0" stroke="#d9cdb9" stroke-width="1">
+        <rect x="116" y="106" width="22" height="18" rx="3"/><rect x="148" y="106" width="22" height="18" rx="3"/><rect x="230" y="106" width="22" height="18" rx="3"/><rect x="262" y="106" width="22" height="18" rx="3"/>
+        <rect x="116" y="136" width="22" height="18" rx="3"/><rect x="148" y="136" width="22" height="18" rx="3"/><rect x="230" y="136" width="22" height="18" rx="3"/><rect x="262" y="136" width="22" height="18" rx="3"/>
+        <rect x="180" y="106" width="40" height="48" rx="3"/>
+      </g>
+      <rect x="148" y="166" width="104" height="14" rx="3" fill="#2f8f83"/>
+      <text x="200" y="176.5" text-anchor="middle" font-size="9" font-weight="700" fill="#fff" font-family="Nunito, sans-serif" letter-spacing="1.5">EMERGENCY</text>
+      <rect x="166" y="184" width="68" height="48" rx="3" fill="#9fd0dc" stroke="#d9cdb9" stroke-width="1.5"/>
+      <path d="M200 184v48" stroke="#d9cdb9" stroke-width="1.5"/>
+      <g fill="#8cc5a0"><circle cx="70" cy="214" r="18"/><circle cx="56" cy="222" r="12"/><circle cx="336" cy="212" r="20"/><circle cx="352" cy="222" r="12"/></g>
+      <rect x="67" y="226" width="5" height="10" fill="#9c7a5a"/><rect x="333" y="226" width="5" height="10" fill="#9c7a5a"/>
+      <g class="amb a1"><use href="#amb"/></g>
+      <g class="amb a2"><g transform="translate(80 0) scale(-1 1)"><use href="#amb"/></g></g>
+    </svg>
+    <div class="splash-ui">
+      <h1>Float Pool</h1>
+      <p class="tag">A cozy nursing game</p>
+      <button class="go" id="splashGo">Tap to start your shift</button>
+      <p class="disc">Float Pool is a game, not medical advice. Always follow your facility&rsquo;s protocols.</p>
+    </div>
+  </div>
+  <div class="adcard" id="adcard" hidden></div>
+
 </div>
 
 <script>
@@ -1916,7 +1992,7 @@ function vitalsSummary(v, p){
 }
 
 /* ---------- sound ---------- */
-let ac = null, soundOn = true;
+let ac = null, soundOn = (()=>{ try{ return localStorage.getItem("fp-sfx") !== "0"; }catch(e){ return true; } })();
 function beep(f, d=0.09, type="sine", v=0.05, delay=0){
   if(!soundOn || !ac) return;
   try{
@@ -1926,6 +2002,99 @@ function beep(f, d=0.09, type="sine", v=0.05, delay=0){
     o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t+d+0.02);
   }catch(e){}
 }
+/* ---------- music: a gentle original loop, generated live (no audio files) ---------- */
+const music = {
+  on: (()=>{ try{ return localStorage.getItem("fp-music") !== "0"; }catch(e){ return true; } })(),
+  playing:false, timer:null, step:0, next:0, master:null, melodyNote:4,
+  start(){
+    if(!this.on || this.playing || !ac) return;
+    this.playing = true;
+    this.master = ac.createGain(); this.master.gain.setValueAtTime(0, ac.currentTime);
+    this.master.gain.linearRampToValueAtTime(0.55, ac.currentTime + 2.5);
+    const lp = ac.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1800;
+    this.master.connect(lp); lp.connect(ac.destination);
+    this.next = ac.currentTime + 0.1; this.step = 0;
+    this.timer = setInterval(()=>this.tick(), 90);
+  },
+  stop(){
+    if(!this.playing) return; this.playing = false; clearInterval(this.timer);
+    const m = this.master; try{ m.gain.cancelScheduledValues(ac.currentTime); m.gain.setTargetAtTime(0, ac.currentTime, 0.4); setTimeout(()=>{ try{ m.disconnect(); }catch(e){} }, 2500); }catch(e){}
+  },
+  set(on){ this.on = on; try{ localStorage.setItem("fp-music", on ? "1" : "0"); }catch(e){} if(on) this.start(); else this.stop(); },
+  tone(f, t, d, type, v, att){
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(v, t + (att||0.02)); g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+    o.connect(g); g.connect(this.master); o.start(t); o.stop(t + d + 0.05);
+  },
+  /* Fmaj7 → Em7 → Dm7 → Cmaj7, 82 bpm, eighth notes */
+  chords:[[53,57,60,64],[52,55,59,62],[50,53,57,60],[48,52,55,59]],
+  scale:[60,62,64,67,69,72,74,76],
+  tick(){
+    const e = 60/82/2;
+    while(this.next < ac.currentTime + 0.3){
+      const t = this.next, st = this.step, bar = Math.floor(st/8) % 4, beat = st % 8, ch = this.chords[bar];
+      const hz = n => 440 * Math.pow(2, (n-69)/12);
+      if(beat===0) ch.forEach(n => this.tone(hz(n), t, e*8.2, "triangle", 0.035, 0.6));
+      if(beat===0 || beat===4) this.tone(hz(ch[0]-12), t, e*3.5, "sine", 0.07, 0.03);
+      if(Math.random() < (beat%2 ? 0.35 : 0.6)){
+        this.melodyNote = Math.max(0, Math.min(this.scale.length-1, this.melodyNote + [-2,-1,-1,0,1,1,2][Math.floor(Math.random()*7)]));
+        this.tone(hz(this.scale[this.melodyNote]), t, e*1.8, "sine", 0.045, 0.01);
+      }
+      this.next += e; this.step++;
+    }
+  }
+};
+document.addEventListener("visibilitychange", ()=>{ if(!ac) return; if(document.hidden) music.stop(); else if(music.on) music.start(); });
+function audioUnlock(){ try{ if(!ac) ac = new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); }catch(e){ ac = null; } music.start(); }
+
+/* ---------- ads: real ads only in the store app (AdMob); the web version previews the reward ad ---------- */
+const ADS = {
+  gapSec: 120,          // at most one between-level ad every 2 minutes
+  webPreview: true,     // show a placeholder for "watch an ad for a heart" on the web
+  ids: {                // Google's test ad units until the real AdMob units are created
+    ios:     {inter:"ca-app-pub-3940256099942544/4411468910", reward:"ca-app-pub-3940256099942544/1712485313"},
+    android: {inter:"ca-app-pub-3940256099942544/1033173712", reward:"ca-app-pub-3940256099942544/5224354917"}
+  }
+};
+let lastAdAt = 0, adsReady = false;
+const nativeAds = () => { try{ return window.Capacitor && Capacitor.isNativePlatform() && Capacitor.Plugins && Capacitor.Plugins.AdMob; }catch(e){ return null; } };
+const adIds = () => ADS.ids[(window.Capacitor && Capacitor.getPlatform && Capacitor.getPlatform()) === "ios" ? "ios" : "android"];
+async function adsInit(){
+  const A = nativeAds(); if(!A || adsReady) return;
+  try{ await A.initialize({initializeForTesting:true}); try{ await A.requestTrackingAuthorization(); }catch(e){} adsReady = true; }catch(e){}
+}
+function adPlaceholder(secs, title, done){
+  const c = document.getElementById("adcard"); let n = secs;
+  c.hidden = false; c.innerHTML = `<div class="box"><b>${title}</b><p>In the app store version, a short ad plays here.</p><div class="count">${n}</div></div>`;
+  const iv = setInterval(()=>{ n--; const el = c.querySelector(".count"); if(el) el.textContent = n; if(n <= 0){ clearInterval(iv); c.hidden = true; c.innerHTML = ""; done(); } }, 1000);
+}
+/* between levels: never after orientation, and not more than once every ADS.gapSec */
+async function betweenLevelAd(then){
+  const A = nativeAds();
+  if(!A || Date.now() - lastAdAt < ADS.gapSec*1000){ then(); return; }
+  lastAdAt = Date.now();
+  try{
+    await adsInit();
+    await A.prepareInterstitial({adId: adIds().inter});
+    let fired = false; const finish = () => { if(fired) return; fired = true; music.on && music.start(); then(); };
+    const h = await A.addListener("interstitialAdDismissed", ()=>{ try{ h.remove(); }catch(e){} finish(); });
+    music.stop(); await A.showInterstitial();
+    setTimeout(finish, 60000);
+  }catch(e){ then(); }
+}
+/* watch an ad, get a heart */
+async function rewardAd(onReward){
+  const A = nativeAds();
+  if(!A){ if(ADS.webPreview) adPlaceholder(5, "Ad break", onReward); else onReward(); return; }
+  try{
+    await adsInit(); await A.prepareRewardVideoAd({adId: adIds().reward});
+    music.stop(); const r = await A.showRewardVideoAd(); if(music.on) music.start();
+    if(r) onReward();
+  }catch(e){ toast("No ad available right now. Try again in a minute."); if(music.on) music.start(); }
+}
+function giveHeart(){ const h = saved.hearts || (saved.hearts = {n:3, t:Date.now()}); heartsNow(); h.n = Math.min(3, h.n + 1); if(h.n === 3) h.t = Date.now(); save(); }
+
 const sfx = {
   tap(){ beep(660,0.07,"sine",0.05); },
   done(){ beep(784,0.1,"sine",0.05); beep(988,0.12,"sine",0.05,0.09); beep(1319,0.16,"sine",0.04,0.18); },
@@ -3023,6 +3192,7 @@ function showStart(){
     <h1>Float Pool</h1>
     <p class="sub">A nurse who floats wherever she&rsquo;s needed. New grad? Start with orientation.</p>
     ${rankCard(careerPts())}
+    <div class="menu-sound"><button id="mMusic">${music.on ? "🎵 Music on" : "🎵 Music off"}</button><button id="mSfx">${soundOn ? "🔊 Sounds on" : "🔈 Sounds off"}</button>${heartsNow() < 3 ? `<button id="mHeart">❤ Watch ad: +1 heart</button>` : ""}</div>
     <h3 class="pick">Pick a shift</h3>
     <div class="levels">${UNIT_ORDER.map(u=>{ const ls = LEVELS.filter(l=>l.unit===u); if(!ls.length) return "";
       const got = ls.reduce((a,l)=>a+starsFor(l),0), open = (saved.lastUnit || "Med-Surg") === u;
@@ -3044,6 +3214,9 @@ function showStart(){
     <p class="fine">A game, not clinical guidance. Time runs fast: one shift is about 3 minutes.</p>
   </div>`;
   ov.querySelectorAll(".lvl").forEach(b=>b.addEventListener("click", ()=>startLevel(+b.dataset.l)));
+  $("#mMusic").addEventListener("click", ()=>{ audioUnlock(); music.set(!music.on); showStart(); });
+  $("#mSfx").addEventListener("click", ()=>{ soundOn = !soundOn; try{ localStorage.setItem("fp-sfx", soundOn?"1":"0"); }catch(_){} showStart(); });
+  const mh = $("#mHeart"); if(mh) mh.addEventListener("click", ()=>rewardAd(()=>{ giveHeart(); toast("You earned a heart!", "good"); showStart(); }));
 }
 function startLevel(n){
   const target = LEVELS.find(l=>l.n===n);
@@ -3053,8 +3226,10 @@ function startLevel(n){
     ov.hidden = false;
     ov.innerHTML = `<div class="card"><h1>Out of hearts</h1><p class="sub">The ER needs you rested. Your next heart comes back in <b id="hTimer">${mmss(nextHeartIn())}</b>.</p>
       <p class="fine">Hearts come back one every 30 minutes, up to 3. Med-Surg, Postpartum, Rapid Response and orientation don&rsquo;t use hearts.</p>
-      <button class="go" id="listBtn">Back to the shift list</button></div>`;
+      <button class="go" id="adHeartBtn">❤ Watch an ad for a heart</button>
+      <button class="toggle" id="listBtn">Back to the shift list</button></div>`;
     $("#listBtn").addEventListener("click", showStart);
+    $("#adHeartBtn").addEventListener("click", ()=>rewardAd(()=>{ giveHeart(); toast("You earned a heart!", "good"); startLevel(n); }));
     const iv = setInterval(()=>{ const el = document.getElementById("hTimer"); if(!el){ clearInterval(iv); return; } if(heartsNow()>0){ clearInterval(iv); showStart(); return; } el.textContent = mmss(nextHeartIn()); }, 1000);
     return;
   }
@@ -3065,10 +3240,12 @@ function showPause(){
   ov.hidden = false;
   ov.innerHTML = `<div class="card"><h1>Paused</h1><p class="sub">Your patients will wait.</p>
     <button class="go" id="resumeBtn">Back to the floor</button>
-    <button class="toggle" id="soundBtn">${soundOn?"Turn sound off":"Turn sound on"}</button>
+    <button class="toggle" id="soundBtn">${soundOn?"Turn sound effects off":"Turn sound effects on"}</button>
+    <button class="toggle" id="musicBtn">${music.on?"Turn music off":"Turn music on"}</button>
     <button class="toggle" id="quitBtn">Quit to shift list</button></div>`;
   $("#resumeBtn").addEventListener("click", ()=>{ G.paused = false; ov.hidden = true; });
-  $("#soundBtn").addEventListener("click", e=>{ soundOn = !soundOn; e.target.textContent = soundOn?"Turn sound off":"Turn sound on"; });
+  $("#soundBtn").addEventListener("click", e=>{ soundOn = !soundOn; try{ localStorage.setItem("fp-sfx", soundOn?"1":"0"); }catch(_){} e.target.textContent = soundOn?"Turn sound effects off":"Turn sound effects on"; });
+  $("#musicBtn").addEventListener("click", e=>{ audioUnlock(); music.set(!music.on); e.target.textContent = music.on?"Turn music off":"Turn music on"; });
   $("#quitBtn").addEventListener("click", ()=>{ G.running = false; showStart(); });
 }
 function showChart(){
@@ -3192,12 +3369,12 @@ function endShift(reshow){
     <button class="toggle" id="listBtn">Main menu</button>
     <p class="fine">${LV.mode==="icu" ? `★ do 3 cares with nobody lost · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts with drips in range 70% of the shift` : LV.mode==="er" ? `★ see 5 patients · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts and nobody lost` : LV.mode==="rrt" ? `★ answer every call · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody expired and no wrong shocks` : `★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody lost or moved to ICU too late, and every patient assessed`}</p></div>`;
   guardReport();
-  const nb = $("#nextBtn"); if(nb) nb.addEventListener("click", ()=>startLevel(nextL.n));
-  $("#againBtn").addEventListener("click", ()=>startLevel(LV.n));
+  const nb = $("#nextBtn"); if(nb) nb.addEventListener("click", ()=>betweenLevelAd(()=>startLevel(nextL.n)));
+  $("#againBtn").addEventListener("click", ()=>betweenLevelAd(()=>startLevel(LV.n)));
   $("#listBtn").addEventListener("click", showStart);
 }
 function start(){
-  try{ if(!ac) ac = new (window.AudioContext||window.webkitAudioContext)(); if(ac.state==="suspended") ac.resume(); }catch(e){ ac = null; }
+  audioUnlock();
   G.running = true; G.paused = false; G.over = false; ov.hidden = true; dirty = true;
   clearTimeout(toastT); $("#toast").className = "toast";
 }
@@ -3232,6 +3409,7 @@ function frame(ts){
   requestAnimationFrame(frame);
 }
 LV = LEVELS[1]; newGame(); showStart(); renderAll(); updateLive();
+document.getElementById("splashGo").addEventListener("click", ()=>{ audioUnlock(); adsInit(); const sp = document.getElementById("splash"); sp.classList.add("out"); setTimeout(()=>{ sp.hidden = true; }, 500); });
 requestAnimationFrame(frame);
 })();
 </script>
