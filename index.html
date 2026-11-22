@@ -2486,6 +2486,8 @@ function nextHeartIn(){
 }
 const mmss = ms => { const s = Math.ceil(ms/1000); return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; };
 const heartRow = n => "♥".repeat(n) + "♡".repeat(3-n);
+/* hearts apply in every unit; orientation, Float and Overtime don't use them */
+const usesHearts = l => l && !l.tutorial && l.mode!=="tutorial" && !l.float && !l.overtime;
 function loseHeart(){
   heartsNow();
   const h = saved.hearts;
@@ -2786,7 +2788,7 @@ function useSlow(){
 }
 function expire(p){
   p.health = 0; G.expired++; G.cpr = 0;
-  if((LV.mode==="er" || LV.mode==="icu") && !LV.tutorial && !LV.float && !LV.overtime) loseHeart();
+  if(usesHearts(LV)) loseHeart();
   if(LV.overtime) overtimeStrike();
   if(LV.mode==="icu") setTimeout(()=>{ if(!G.over) endShift(); }, 3500);
   G.score = Math.max(0, G.score - 200);
@@ -2817,6 +2819,7 @@ function transfer(p){
   }
   if(LV.mode==="floor" && !LV.pp && !LV.peds && !LV.nicu && p.active && p.active.urgent && Math.random() < 0.2){ expire(p); return; } // rare on the floor
   p.health = 0; G.transfers++;
+  if(usesHearts(LV)) loseHeart();
   G.score = Math.max(0, G.score - 150);
   p.state = "leaving"; p.out = "icu"; p.timer = 2.6; p.active = null; p.queue = [];
   if(p === cur()) floatText("−150", true);
@@ -3149,7 +3152,7 @@ function updateLive(){
   $("#score").textContent = G.score;
   const hb = $("#hearts");
   if(LV.overtime){ hb.hidden = false; const st = "✖".repeat(G.strikes||0) + "○".repeat(Math.max(0,3-(G.strikes||0))); if(hb.textContent !== st) hb.textContent = st; }
-  else if((LV.mode==="er" || LV.mode==="icu") && !LV.tutorial && !LV.float){ hb.hidden = false; const hn = heartsNow(), ht = heartRow(hn); if(hb.textContent !== ht) hb.textContent = ht; } else hb.hidden = true;
+  else if(usesHearts(LV)){ hb.hidden = false; const hn = heartsNow(), ht = heartRow(hn); if(hb.textContent !== ht) hb.textContent = ht; } else hb.hidden = true;
   const st = curStep(p);
   const escNow = !!(st && st.k==="esc"), goNow = !!(st && st.k==="go");
   const ch = $("#charge");
@@ -3337,7 +3340,7 @@ function showStart(){
     <h3 class="pick">Pick a shift</h3>
     <div class="levels">${UNIT_ORDER.map(u=>{ const ls = LEVELS.filter(l=>l.unit===u); if(!ls.length) return "";
       const got = ls.reduce((a,l)=>a+starsFor(l),0), open = (saved.lastUnit || "Med-Surg") === u;
-      const hearts = (u==="ER" || u==="ICU" || u==="Labor & Delivery" || u==="PICU") ? `<span class="hearts-note">${heartRow(heartsNow())}${heartsNow()<3 ? ` · next in ${mmss(nextHeartIn())}` : ""}</span>` : "";
+      const hearts = true ? `<span class="hearts-note">${heartRow(heartsNow())}${heartsNow()<3 ? ` · next in ${mmss(nextHeartIn())}` : ""}</span>` : "";
       const locked = u==="Rapid Response" && !isUnlocked(ls[0]);
       return `<details class="unitbox"${open?" open":""}><summary><b>${u}${locked?" 🔒":""}</b><span class="ugot">★ ${got}/${ls.length*3}</span>${hearts}</summary>${ls.map(l=>{ const s = saved[l.n]||{}, lk = !isUnlocked(l);
         return `<button class="lvl${lk?" locked":""}" data-l="${l.n}"><span class="num">${lk ? "🔒" : (l.tag||l.n)}</span><span class="txt"><b>${esc(l.name)}</b><small>${esc(lk ? lockReason(l) : l.blurb)}</small></span><span class="st">${starsRow(s.stars||0)}${s.best?`<small>${s.best} pts</small>`:""}</span></button>`; }).join("")}</details>`; }).join("")}</div>
@@ -3366,10 +3369,10 @@ function startLevel(n){
   const target = typeof n === "object" ? n : LEVELS.find(l=>l.n===n);
   if(!isUnlocked(target)){ sfx.wrong(); toast(lockReason(target), "alarm"); return; }
   if(!target.float && !target.overtime){ saved.lastUnit = target.unit; save(); }
-  if((target.mode==="er" || target.mode==="icu") && !target.tutorial && !target.float && !target.overtime && heartsNow() < 1){
+  if(usesHearts(target) && heartsNow() < 1){
     ov.hidden = false;
-    ov.innerHTML = `<div class="card"><h1>Out of hearts</h1><p class="sub">The ER needs you rested. Your next heart comes back in <b id="hTimer">${mmss(nextHeartIn())}</b>.</p>
-      <p class="fine">Hearts come back one every 30 minutes, up to 3. Med-Surg, Postpartum, Rapid Response and orientation don&rsquo;t use hearts.</p>
+    ov.innerHTML = `<div class="card"><h1>Out of hearts</h1><p class="sub">Take a break, you&rsquo;ve earned it. Your next heart comes back in <b id="hTimer">${mmss(nextHeartIn())}</b>.</p>
+      <p class="fine">Hearts come back one every 30 minutes, up to 3. Orientation, Float and Overtime don&rsquo;t use hearts.</p>
       <button class="go" id="adHeartBtn">❤ Watch an ad for a heart</button>
       <button class="toggle" id="listBtn">Back to the shift list</button></div>`;
     $("#listBtn").addEventListener("click", showStart);
