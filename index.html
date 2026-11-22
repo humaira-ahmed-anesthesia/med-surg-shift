@@ -363,6 +363,30 @@ button.chip.now:active{transform:scale(.96)}
 .who .meta{font-size:11px;font-weight:800;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .who .meta .alg{color:#c9483b}
 .who .meta .dnr{color:#6a4fb3}
+.rk-nurse{flex:none;width:50px;height:50px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 2px 0 rgba(0,0,0,.08);overflow:hidden;padding:0}
+.rk-top .rk-badge{margin-left:auto}
+.specials{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 4px}
+.special{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 11px;border-radius:14px;background:linear-gradient(135deg,#fff4d6,#ffe7c2);box-shadow:0 2px 0 #ecd3a7}
+.special b{font-family:var(--display);font-weight:600;font-size:15px}
+.special small{font-size:11px;font-weight:700;color:var(--muted);line-height:1.25}
+.pins{background:var(--wall);border-radius:14px;padding:2px 10px;margin:4px 0 6px}
+.pins>summary{list-style:none;display:flex;align-items:center;gap:6px;padding:8px 0;font-weight:800;cursor:pointer}
+.pins>summary::-webkit-details-marker{display:none}
+.pins>summary span{margin-left:auto;color:#c99a3a}
+.pin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 0 10px}
+.pin{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.pin small{font-size:9.5px;font-weight:800;color:var(--muted);line-height:1.15}
+.daisy-card{display:flex;gap:10px;align-items:flex-start;background:#fffbea;border:2px solid #f6dc8a;border-radius:16px;padding:10px 12px;margin:8px 0;text-align:left}
+.daisy-card b{font-family:var(--display);font-weight:600;font-size:16px;display:block}
+.daisy-card p{margin:4px 0;font-size:13px;font-style:italic;color:var(--ink)}
+.daisy-card small{font-weight:800;color:#a8700f;font-size:11.5px}
+.nurse-prev{display:grid;place-items:center;margin:4px auto 8px;width:110px;height:110px;border-radius:50%;background:var(--wall)}
+.nm-in{display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:12px;color:var(--muted);margin-bottom:6px}
+.nm-in input{font:inherit;font-size:16px;font-weight:700;color:var(--ink);padding:9px 11px;border-radius:12px;border:2px solid var(--line);background:#fff}
+.sw-row{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 6px}
+.sw{width:34px;height:34px;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3px var(--line)}
+.sw.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
+.sw[data-k="style"]{width:auto;height:auto;border-radius:99px;padding:5px 10px;background:var(--wall);font-size:12px;font-weight:800;text-transform:capitalize}
 .hp-tabs{display:flex;gap:6px;margin-bottom:10px}
 .hp-tabs .tab{flex:1;padding:7px 8px;border-radius:10px;background:var(--wall);font-weight:800;font-size:13px;color:var(--muted)}
 .hp-tabs .tab.on{background:var(--accent);color:#fff}
@@ -1904,6 +1928,49 @@ function lockReason(l){
   if(l.unit==="Rapid Response"){ const left = LEVELS.filter(x=>(x.unit==="ER" || x.unit==="ICU") && starsFor(x) < 1).length; return `Earn a star on every ER and ICU level first (${left} to go).`; }
   const pv = prevInUnit(l); return pv ? `Earn a star on “${pv.name}” first.` : "";
 }
+/* ---------- Float shift: a random unit with a random mix of its patients ---------- */
+const FLOAT_UNITS = ["Med-Surg","ER","ICU","Labor & Delivery","Postpartum","Pediatrics","PICU","NICU"];
+const uniq = a => [...new Set(a.filter(Boolean))];
+function makeFloatLevel(){
+  const unit = pick(FLOAT_UNITS);
+  const ls = LEVELS.filter(l => l.unit===unit && !l.tutorial && l.mode!=="tutorial");
+  const last = ls[ls.length-1];
+  const base = {n:900, tag:"F", float:true, unit:"Float", floatUnit:unit, name:`Float shift: ${unit}`, blurb:"A random unit and a random mix of patients."};
+  if(last.mode==="icu"){
+    const src = pick(ls);
+    const evPool = uniq(ls.flatMap(l => l.events.map(e=>e[1]))).filter(k => !EV[k].fatal);
+    const times = [24,62,104,146].map(t => t + Math.round(rand(-6,6)));
+    return Object.assign({}, src, base, {events: times.map(t => [t, pick(evPool)]), next:null, nextDrips:null, stars:src.stars});
+  }
+  if(last.mode==="er"){
+    return Object.assign({}, last, base, {cases: uniq(ls.flatMap(l => l.cases))});
+  }
+  return Object.assign({}, last, base, {
+    first: uniq(ls.flatMap(l => l.first)), follow: uniq(ls.flatMap(l => l.follow)),
+    urgent: uniq(ls.flatMap(l => l.urgent)), drain: 1.2, ev:[15,24]});
+}
+/* ---------- Overtime: an endless ER shift that keeps getting busier ---------- */
+function makeOvertimeLevel(){
+  const cases = uniq(ER_LEVELS.flatMap(l => l.cases));
+  return {n:950, tag:"OT", overtime:true, unit:"Overtime", mode:"er", beds:4, drain:0.95, cases, tools:ER_TOOLS, ev:[999,999], stars:[4000,8000],
+    name:"Overtime", blurb:"The ER keeps getting busier. How long can you last? Lose 3 patients and the shift ends."};
+}
+/* ---------- Daisy nominations ---------- */
+const DAISY_UNITS = [...UNIT_ORDER, "Float", "Overtime"];
+const threeStarCount = () => LEVELS.filter(l => !l.tutorial && l.mode!=="tutorial" && starsFor(l) >= 3).length;
+const daisyEligible = () => threeStarCount() >= 10;
+function nurseName(){ return (saved.nurse && saved.nurse.name) || "Nurse"; }
+function daisyLetter(p){
+  const nm = nurseName(), who = p ? cardName(p.name) : "my mom";
+  return pick([
+    `${nm} held my hand when I was scared and explained everything in words I could understand. ${who === "my mom" ? "My family" : "I"} will never forget it.`,
+    `When everything was going wrong, ${nm} stayed calm and stayed with us. Thank you for treating ${who === "my mom" ? "my mom" : "me"} like family.`,
+    `${nm} noticed something was wrong before anyone else did. Because of that nurse, I got to go home to my kids.`,
+    `${nm} brought me a warm blanket at 3 a.m. and asked about my dog. It was the first time all week I felt like a person, not a patient.`,
+    `Our baby spent her first days in the hospital. ${nm} taught us how to hold her, and cried with us when we finally went home.`,
+    `${nm} was running all night, but every time they came into my room they made me feel like the only patient on the unit.`]);
+}
+
 function nextInUnit(l){ const u = LEVELS.filter(x=>x.unit===l.unit); return u[u.indexOf(l)+1] || null; }
 const NAMES_BASE = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Moreno","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
 const NAMES = NAMES_BASE.concat(FRIENDS_W, FRIENDS_M);
@@ -2186,8 +2253,10 @@ function newGame(){
     for(let i=0;i<LV.beds;i++) G.beds.push(i<(LV.ld ? 1 : 2) ? admitER(i) : emptyBed(LV.ld ? 4 : 3 + i*4));
   }
   else for(let i=0;i<(LV.beds || 3);i++) G.beds.push(admit(i,true));
+  G.food = false; G.strikes = 0;
+  G.foodAt = (G.beds.length > 1 && !LV.tutorial && LV.mode!=="tutorial" && Math.random() < 0.45) ? rand(40, 140) : 0;
   buildDrips();
-  $("#unitName").textContent = LV.mode==="icu" ? (LV.tutorial ? "ICU · Orientation" : LV.picu ? `PICU · Level ${LV.n-505}` : `ICU · Level ${LV.n-200}`) : LV.mode==="rrt" ? "Rapid Response" : LV.mode==="tutorial" ? "4 West · Orientation" : LV.ld ? `L&D · Level ${LV.n-300}` : LV.pp ? `Mother-Baby · Level ${LV.n-400}` : LV.peds ? `${LV.n<=505 ? "Peds" : "Peds Surgery"} · Level ${LV.n<=505 ? LV.n-500 : LV.n-505}` : LV.mode==="er" ? (LV.tutorial ? "ER · Orientation" : `ER · Level ${LV.n-100}`) : LV.nicu ? `NICU · Level ${LV.n-600}` : `4 West · Level ${LV.num || LV.n}`;
+  $("#unitName").textContent = LV.overtime ? "Overtime" : LV.float ? `Float · ${LV.floatUnit}` : LV.mode==="icu" ? (LV.tutorial ? "ICU · Orientation" : LV.picu ? `PICU · Level ${LV.n-505}` : `ICU · Level ${LV.n-200}`) : LV.mode==="rrt" ? "Rapid Response" : LV.mode==="tutorial" ? "4 West · Orientation" : LV.ld ? `L&D · Level ${LV.n-300}` : LV.pp ? `Mother-Baby · Level ${LV.n-400}` : LV.peds ? `${LV.n<=505 ? "Peds" : "Peds Surgery"} · Level ${LV.n<=505 ? LV.n-500 : LV.n-505}` : LV.mode==="er" ? (LV.tutorial ? "ER · Orientation" : `ER · Level ${LV.n-100}`) : LV.nicu ? `NICU · Level ${LV.n-600}` : `4 West · Level ${LV.num || LV.n}`;
   $("#unitSub").textContent = LV.mode==="rrt" ? `Call 1 of ${LV.calls.length}` : LV.name;
   dirty = true;
 }
@@ -2426,7 +2495,7 @@ function loseHeart(){
 }
 /* ---------- tutorial coach ---------- */
 const COACH = [
-  {txt:"Welcome to 4 West, new grad! I'm your preceptor. Room 412 has <b>low hemoglobin</b>. Her care is a recipe, and the glowing step is what to do next. <b>Tap the glowing tool</b> at the bottom.", setup:()=>{ G.current = 0; }, done:()=>G.beds[0].state!=="needs" || G.beds[0].active.step>=1},
+  {get txt(){ return `Welcome to 4 West, ${esc(nurseName())}! I'm your preceptor.`.concat(this.rest); }, rest:" Room 412 has <b>low hemoglobin</b>. Her care is a recipe, and the glowing step is what to do next. <b>Tap the glowing tool</b> at the bottom.", setup:()=>{ G.current = 0; }, done:()=>G.beds[0].state!=="needs" || G.beds[0].active.step>=1},
   {txt:"Nice! Every result pops into the feed. Keep following the glow until her recipe is done. Blood is given with the <b>Meds</b> button.", done:()=>G.beds[0].state!=="needs"},
   {txt:"Every patient needs an assessment once a shift. The orange ring means not yet. <b>Tap Assess.</b>", done:()=>G.beds[0].assessed},
   {txt:"This is the monitor. Red numbers mean trouble. <b>Tap Vitals</b> to recheck anytime.", done:()=>G.tutVitals},
@@ -2471,8 +2540,10 @@ const logIt = (p, text) => p.log.push([clockStr(), text]);
 /* ---------- game logic ---------- */
 function update(dt){
   G.t += dt;
-  if((LV.mode==="floor" || (LV.mode==="er" && !LV.tutorial) || (LV.mode==="icu" && !LV.tutorial)) && G.t >= (LV.shift || SHIFT)){ endShift(); return; }
+  if((LV.mode==="floor" || (LV.mode==="er" && !LV.tutorial && !LV.overtime) || (LV.mode==="icu" && !LV.tutorial)) && G.t >= (LV.shift || SHIFT)){ endShift(); return; }
   if(LV.mode==="icu") icuTick(dt);
+  if(G.foodAt && !G.food && G.t >= G.foodAt && !G.cover) familyFood();
+  if(LV.overtime){ LV.drain = 0.95 + G.t/220; }
   if(LV.nicu) nicuTick(dt);
   const ramp = (LV.mode==="floor" || LV.mode==="er") ? LV.drain * (1 + 0.5*(G.t/SHIFT)) : LV.drain;
   G.chargeCd = Math.max(0, G.chargeCd - dt);
@@ -2519,7 +2590,7 @@ function update(dt){
       }
     } else if(p.state === "leaving"){
       p.timer -= dt;
-      if(p.timer <= 0){ p.state = "empty"; p.timer = LV.mode==="er" ? rand(3,7) : 3; dirty = true; }
+      if(p.timer <= 0){ p.state = "empty"; p.timer = LV.overtime ? Math.max(1, rand(3,6) - G.t/90) : LV.mode==="er" ? rand(3,7) : 3; dirty = true; }
     } else if(p.state === "empty"){
       p.timer -= dt;
       if(p.timer <= 0){
@@ -2687,6 +2758,21 @@ function discharge(p){
   else earnSlow();
   dirty = true;
 }
+const FOODS = ["homemade lumpia","a tray of pan dulce","samosas still warm from the oven","a giant box of donuts","tamales wrapped in foil","baklava","a pot of biryani","empanadas","a huge tray of cookies","pizza for the whole unit","kimchi pancakes","jollof rice and puff-puff"];
+function overtimeStrike(){
+  G.strikes = (G.strikes||0) + 1;
+  if(G.strikes >= 3){ toast("That's 3 patients lost. Overtime is over.", "alarm"); setTimeout(()=>{ if(!G.over) endShift(); }, 1800); }
+  else toast(`Strike ${G.strikes} of 3.`, "alarm");
+}
+function familyFood(){
+  if(G.food) return; G.food = true;
+  const home = G.all.filter(p => p.out==="home" || p.out==="admit");
+  const fam = home.length ? `The ${cardName(pick(home).name)} family` : "A patient's family";
+  G.slows++; G.score += 100;
+  toast(`${fam} brought ${pick(FOODS)} for the unit! +1 slow moment.`, "good");
+  beep(784,0.12,"sine",0.04); beep(1047,0.16,"sine",0.04,0.12);
+  dirty = true;
+}
 function earnSlow(){
   G.saves++;
   if(G.saves % 2 === 0){ G.slows++; setTimeout(()=>toast("You earned a slow moment!", "good"), 1500); }
@@ -2699,7 +2785,8 @@ function useSlow(){
 }
 function expire(p){
   p.health = 0; G.expired++; G.cpr = 0;
-  if((LV.mode==="er" || LV.mode==="icu") && !LV.tutorial) loseHeart();
+  if((LV.mode==="er" || LV.mode==="icu") && !LV.tutorial && !LV.float && !LV.overtime) loseHeart();
+  if(LV.overtime) overtimeStrike();
   if(LV.mode==="icu") setTimeout(()=>{ if(!G.over) endShift(); }, 3500);
   G.score = Math.max(0, G.score - 200);
   const tod = clockStr();
@@ -2720,6 +2807,7 @@ function transfer(p){
       pushFeed(p, "esc", "Charge nurse stepped in to help while you were busy."); dirty = true; return;
     }
     // non-critical patients who wait too long walk out
+    if(LV.overtime) overtimeStrike();
     p.health = 0; G.lwbs++; G.score = Math.max(0, G.score - 100);
     logIt(p, "Left without being seen."); pushFeed(p, "assess", `${p.name} got tired of waiting and left without being seen.`);
     p.state = "leaving"; p.out = "lwbs"; p.timer = 2.4; p.active = null; p.queue = [];
@@ -3059,7 +3147,8 @@ function updateLive(){
   $("#clock").textContent = clockStr();
   $("#score").textContent = G.score;
   const hb = $("#hearts");
-  if((LV.mode==="er" || LV.mode==="icu") && !LV.tutorial){ hb.hidden = false; const hn = heartsNow(), ht = heartRow(hn); if(hb.textContent !== ht) hb.textContent = ht; } else hb.hidden = true;
+  if(LV.overtime){ hb.hidden = false; const st = "✖".repeat(G.strikes||0) + "○".repeat(Math.max(0,3-(G.strikes||0))); if(hb.textContent !== st) hb.textContent = st; }
+  else if((LV.mode==="er" || LV.mode==="icu") && !LV.tutorial && !LV.float){ hb.hidden = false; const hn = heartsNow(), ht = heartRow(hn); if(hb.textContent !== ht) hb.textContent = ht; } else hb.hidden = true;
   const st = curStep(p);
   const escNow = !!(st && st.k==="esc"), goNow = !!(st && st.k==="go");
   const ch = $("#charge");
@@ -3181,9 +3270,47 @@ function addCareer(pts){ const before = careerPts(); saved.career = before + Mat
 function rankCard(pts, gained){
   const i = rankOf(pts), r = RANKS[i], nx = RANKS[i+1];
   const pct = nx ? Math.round(100 * (pts - r.at) / (nx.at - r.at)) : 100;
-  return `<div class="rank"><div class="rk-top"><span class="rk-badge">${i+1}</span><span class="rk-name"><b>${r.n}</b><small>${esc(r.d)}</small></span></div>
+  return `<div class="rank"><div class="rk-top"><button class="rk-nurse" id="rkNurse" aria-label="Edit your nurse">${nurseSVG(saved.nurse, 46)}</button><span class="rk-name"><b>${esc(nurseName())}, ${r.n}</b><small>${esc(r.d)}</small></span><span class="rk-badge">${i+1}</span></div>
     <div class="rk-bar"><i style="width:${pct}%"></i></div>
     <small class="rk-sub">${gained ? `+${gained.toLocaleString()} career points · ` : ""}${pts.toLocaleString()} total${nx ? ` · ${(nx.at-pts).toLocaleString()} to ${nx.n}` : " · top rank!"}</small></div>`;
+}
+const DAISY_SVG = (size, on) => `<svg viewBox="0 0 40 40" width="${size}" height="${size}" aria-hidden="true"><g opacity="${on?1:.28}">${[0,40,80,120,160,200,240,280,320].map(a=>`<ellipse cx="20" cy="9" rx="4.2" ry="8.5" fill="#fff" stroke="#e3dccb" stroke-width="1" transform="rotate(${a} 20 20)"/>`).join("")}<circle cx="20" cy="20" r="6" fill="#f6c443" stroke="#d9a21c" stroke-width="1"/></g></svg>`;
+const NURSE_OPTS = {
+  skin:["#f6d2b8","#e8b48f","#c98d63","#9c6440","#6b4129"],
+  hair:["#2b2220","#5a3b26","#a8743e","#e2c37a","#b8b2ad","#c4503f"],
+  style:["short","bun","long","curly","buzz"],
+  scrubs:["#4fa3a5","#5b7fd6","#8e6cc9","#e0798a","#3b4b5c","#6fae6b"]};
+function nurseSVG(n, size){
+  n = n || {}; const sk = n.skin || NURSE_OPTS.skin[1], hc = n.hair || NURSE_OPTS.hair[0], sc = n.scrubs || NURSE_OPTS.scrubs[0], st = n.style || "bun";
+  const hair = {
+    short:`<path d="M13 19c0-8 5-12 11-12s11 4 11 12c-2-4-6-6-11-6s-9 2-11 6z" fill="${hc}"/>`,
+    bun:`<circle cx="24" cy="6" r="5" fill="${hc}"/><path d="M13 19c0-8 5-12 11-12s11 4 11 12c-3-5-7-6-11-6s-8 1-11 6z" fill="${hc}"/>`,
+    long:`<path d="M12 30c-2-14 3-23 12-23s14 9 12 23c-2-6-2-12-3-15-3-2-6-3-9-3s-6 1-9 3c-1 3-1 9-3 15z" fill="${hc}"/>`,
+    curly:`${[14,18,22,26,30,34].map((x,i)=>`<circle cx="${x}" cy="${i%2?9:11}" r="4.6" fill="${hc}"/>`).join("")}<circle cx="13" cy="16" r="3.6" fill="${hc}"/><circle cx="35" cy="16" r="3.6" fill="${hc}"/>`,
+    buzz:`<path d="M14 17c0-7 4-10 10-10s10 3 10 10c-3-3-6-4-10-4s-7 1-10 4z" fill="${hc}" opacity=".85"/>`}[st];
+  return `<svg viewBox="0 0 48 48" width="${size}" height="${size}" aria-hidden="true">
+    <path d="M8 48c0-9 7-15 16-15s16 6 16 15z" fill="${sc}"/><path d="M19 34l5 5 5-5" fill="none" stroke="#fff" stroke-width="1.6" opacity=".8"/>
+    <path d="M17 36c0 6 3 8 7 8M31 36c0 6-3 8-7 8" fill="none" stroke="#5a6770" stroke-width="1.4"/><circle cx="24" cy="44" r="1.8" fill="#5a6770"/>
+    <circle cx="24" cy="20" r="11" fill="${sk}"/>${hair}
+    <circle cx="20" cy="21" r="1.3" fill="#2f3d47"/><circle cx="28" cy="21" r="1.3" fill="#2f3d47"/>
+    <path d="M21 25.5a3.6 3.6 0 0 0 6 0" fill="none" stroke="#2f3d47" stroke-width="1.3" stroke-linecap="round"/>
+    <circle cx="18" cy="24" r="1.6" fill="#f08f8f" opacity=".45"/><circle cx="30" cy="24" r="1.6" fill="#f08f8f" opacity=".45"/></svg>`;
+}
+function showNurseEditor(first){
+  const n = Object.assign({name:"", skin:NURSE_OPTS.skin[1], hair:NURSE_OPTS.hair[0], style:"bun", scrubs:NURSE_OPTS.scrubs[0]}, saved.nurse || {});
+  const sw = (k, arr) => `<div class="sw-row">${arr.map(v=>`<button class="sw${n[k]===v?" on":""}" data-k="${k}" data-v="${v}" style="${k==="style"?"":"background:"+v}" aria-label="${k} ${v}">${k==="style"?`<span>${v}</span>`:""}</button>`).join("")}</div>`;
+  ov.hidden = false;
+  ov.innerHTML = `<div class="card"><h1>${first ? "Meet your nurse" : "Your nurse"}</h1>${first ? `<p class="sub">Before your first shift, make your badge.</p>` : ""}
+    <div class="nurse-prev" id="nPrev">${nurseSVG(n, 96)}</div>
+    <label class="nm-in">Name on your badge<input id="nName" maxlength="18" placeholder="e.g. Humaira" value="${esc(n.name||"")}"></label>
+    <h3>Skin</h3>${sw("skin", NURSE_OPTS.skin)}<h3>Hair</h3>${sw("style", NURSE_OPTS.style)}${sw("hair", NURSE_OPTS.hair)}<h3>Scrubs</h3>${sw("scrubs", NURSE_OPTS.scrubs)}
+    <button class="go" id="nSave">${first ? "Start orientation" : "Save"}</button></div>`;
+  ov.querySelectorAll(".sw").forEach(b=>b.addEventListener("click", ()=>{
+    n[b.dataset.k] = b.dataset.v; sfx.tap();
+    ov.querySelectorAll(`.sw[data-k="${b.dataset.k}"]`).forEach(x=>x.classList.toggle("on", x===b));
+    $("#nPrev").innerHTML = nurseSVG(n, 96);
+  }));
+  $("#nSave").addEventListener("click", ()=>{ n.name = ($("#nName").value || "").trim() || "Nurse"; saved.nurse = n; save(); showStart(); });
 }
 function starsRow(n){ return STAR(n>=1)+STAR(n>=2)+STAR(n>=3); }
 
@@ -3194,6 +3321,14 @@ function showStart(){
     <p class="sub">A nurse who floats wherever she&rsquo;s needed. New grad? Start with orientation.</p>
     ${rankCard(careerPts())}
     <div class="menu-sound"><button id="mMusic">${music.on ? "🎵 Music on" : "🎵 Music off"}</button><button id="mSfx">${soundOn ? "🔊 Sounds on" : "🔈 Sounds off"}</button>${heartsNow() < 3 ? `<button id="mHeart">❤ Watch ad: +1 heart</button>` : ""}</div>
+    <div class="specials">
+      <button class="special" id="floatBtn"><b>🎲 Float shift</b><small>A random unit, random patients${(saved[900]||{}).best ? ` · best ${saved[900].best}` : ""}</small></button>
+      <button class="special" id="otBtn"><b>⏱ Overtime</b><small>How long can you last?${(saved[950]||{}).best ? ` · best ${saved[950].best}` : ""}</small></button>
+    </div>
+    <details class="pins"><summary>${DAISY_SVG(20, true)} Daisy pins <span>${Object.values(saved.daisies||{}).reduce((a,b)=>a+b,0)}</span></summary>
+      <p class="fine">${daisyEligible() ? "An exceptional shift (3 stars, nobody lost) can earn a nomination." : `Earn 3 stars on 10 levels to become eligible (${threeStarCount()} of 10).`}</p>
+      <div class="pin-grid">${DAISY_UNITS.map(u=>{ const c = (saved.daisies||{})[u] || 0; return `<div class="pin">${DAISY_SVG(34, c>0)}<small>${esc(u)}${c>1?` ×${c}`:""}</small></div>`; }).join("")}</div>
+    </details>
     <h3 class="pick">Pick a shift</h3>
     <div class="levels">${UNIT_ORDER.map(u=>{ const ls = LEVELS.filter(l=>l.unit===u); if(!ls.length) return "";
       const got = ls.reduce((a,l)=>a+starsFor(l),0), open = (saved.lastUnit || "Med-Surg") === u;
@@ -3215,15 +3350,18 @@ function showStart(){
     <p class="fine">A game, not clinical guidance. Time runs fast: one shift is about 3 minutes.</p>
   </div>`;
   ov.querySelectorAll(".lvl").forEach(b=>b.addEventListener("click", ()=>startLevel(+b.dataset.l)));
+  $("#floatBtn").addEventListener("click", ()=>startLevel(makeFloatLevel()));
+  $("#otBtn").addEventListener("click", ()=>startLevel(makeOvertimeLevel()));
+  $("#rkNurse").addEventListener("click", ()=>showNurseEditor(false));
   $("#mMusic").addEventListener("click", ()=>{ audioUnlock(); music.set(!music.on); showStart(); });
   $("#mSfx").addEventListener("click", ()=>{ soundOn = !soundOn; try{ localStorage.setItem("fp-sfx", soundOn?"1":"0"); }catch(_){} showStart(); });
   const mh = $("#mHeart"); if(mh) mh.addEventListener("click", ()=>rewardAd(()=>{ giveHeart(); toast("You earned a heart!", "good"); showStart(); }));
 }
 function startLevel(n){
-  const target = LEVELS.find(l=>l.n===n);
+  const target = typeof n === "object" ? n : LEVELS.find(l=>l.n===n);
   if(!isUnlocked(target)){ sfx.wrong(); toast(lockReason(target), "alarm"); return; }
-  saved.lastUnit = target.unit; save();
-  if((target.mode==="er" || target.mode==="icu") && !target.tutorial && heartsNow() < 1){
+  if(!target.float && !target.overtime){ saved.lastUnit = target.unit; save(); }
+  if((target.mode==="er" || target.mode==="icu") && !target.tutorial && !target.float && !target.overtime && heartsNow() < 1){
     ov.hidden = false;
     ov.innerHTML = `<div class="card"><h1>Out of hearts</h1><p class="sub">The ER needs you rested. Your next heart comes back in <b id="hTimer">${mmss(nextHeartIn())}</b>.</p>
       <p class="fine">Hearts come back one every 30 minutes, up to 3. Med-Surg, Postpartum, Rapid Response and orientation don&rsquo;t use hearts.</p>
@@ -3319,9 +3457,16 @@ function endShift(reshow){
     const isBest = G.score > (prev.best||0);
     saved[LV.n] = {stars:Math.max(prev.stars||0, stars), best:Math.max(prev.best||0, G.score)}; save();
     const cr = addCareer(G.score);
-    lastReport = {stars, isBest, cr};
+    let daisy = null;
+    if(daisyEligible() && stars === 3 && G.expired === 0 && !G.outOfHearts && Math.random() < 0.35){
+      const unit = LV.overtime ? "Overtime" : LV.float ? "Float" : LV.unit;
+      saved.daisies = saved.daisies || {}; saved.daisies[unit] = (saved.daisies[unit] || 0) + 1; save();
+      const home = G.all.filter(p => p.out==="home" || p.out==="admit" || p.out==="go");
+      daisy = {unit, letter: daisyLetter(home.length ? pick(home) : null)};
+    }
+    lastReport = {stars, isBest, cr, daisy};
   }
-  const {stars, isBest, cr} = lastReport;
+  const {stars, isBest, cr, daisy} = lastReport;
   const promoted = cr && rankOf(cr.after) > rankOf(cr.before);
   const msg = stars===3 ? "Flawless shift. Your patients adore you." : stars===2 ? "Solid shift. Everyone's in good hands." : stars===1 ? "You made it through. Go eat something." : "Tough shift. They happen to everyone.";
   const msg2 = (LV.mode==="icu" && G.icu && G.icu.passed && !G.outOfHearts) ? (stars>=2 ? "You lost a patient tonight, and you still gave everyone excellent care. Take a breath." : "A hard shift, and a patient you couldn't save. That one wasn't on you.") : msg;
@@ -3349,11 +3494,12 @@ function endShift(reshow){
       <div class="stat"><b>${G.expired}</b><span>Patients expired</span></div>
       <div class="stat"><b>${G.badShocks}</b><span>Shocks on a non-shockable rhythm</span></div>
       <div class="stat"><b>${G.ff}</b><span>CPR cycles fast-forwarded</span></div>` : "";
-  const head = G.outOfHearts ? "Out of hearts" : LV.mode==="rrt" ? "Rapid response report" : "Shift report";
-  const sub = G.outOfHearts ? `You lost all 3 hearts. The next one comes back in ${mmss(nextHeartIn())}.` : `${esc(LV.name)}. ${msg2}`;
+  const head = G.outOfHearts ? "Out of hearts" : LV.overtime ? "Overtime is over" : LV.float ? `Float shift: ${LV.floatUnit}` : LV.mode==="rrt" ? "Rapid response report" : "Shift report";
+  const sub = G.outOfHearts ? `You lost all 3 hearts. The next one comes back in ${mmss(nextHeartIn())}.` : (LV.float || LV.overtime) ? msg2 : `${esc(LV.name)}. ${msg2}`;
   ov.innerHTML = `<div class="card"><h1>${head}</h1><p class="sub">${sub}</p>
     <div class="stars">${starsRow(stars)}</div>
     ${promoted ? `<p class="promo">Promoted to <b>${RANKS[rankOf(cr.after)].n}</b>!</p>` : ""}
+    ${daisy ? `<div class="daisy-card">${DAISY_SVG(54, true)}<div><b>You've been nominated for a Daisy!</b><p>“${esc(daisy.letter)}”</p><small>New pin: ${esc(daisy.unit)} Daisy</small></div></div>` : ""}
     ${cr ? rankCard(cr.after, cr.after - cr.before) : ""}
     <div class="stats">${statsHtml || `
       <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
@@ -3371,7 +3517,7 @@ function endShift(reshow){
     <p class="fine">${LV.mode==="icu" ? `★ do 3 cares with nobody lost · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts with drips in range 70% of the shift` : LV.mode==="er" ? `★ see 5 patients · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts and nobody lost` : LV.mode==="rrt" ? `★ answer every call · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody expired and no wrong shocks` : `★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody lost or moved to ICU too late, and every patient assessed`}</p></div>`;
   guardReport();
   const nb = $("#nextBtn"); if(nb) nb.addEventListener("click", ()=>betweenLevelAd(()=>startLevel(nextL.n)));
-  $("#againBtn").addEventListener("click", ()=>betweenLevelAd(()=>startLevel(LV.n)));
+  $("#againBtn").addEventListener("click", ()=>betweenLevelAd(()=>startLevel(LV.float ? makeFloatLevel() : LV.overtime ? makeOvertimeLevel() : LV.n)));
   $("#listBtn").addEventListener("click", showStart);
 }
 function start(){
@@ -3410,7 +3556,7 @@ function frame(ts){
   requestAnimationFrame(frame);
 }
 LV = LEVELS[1]; newGame(); showStart(); renderAll(); updateLive();
-document.getElementById("splashGo").addEventListener("click", ()=>{ audioUnlock(); adsInit(); const sp = document.getElementById("splash"); sp.classList.add("out"); setTimeout(()=>{ sp.hidden = true; }, 500); });
+document.getElementById("splashGo").addEventListener("click", ()=>{ audioUnlock(); adsInit(); const sp = document.getElementById("splash"); sp.classList.add("out"); setTimeout(()=>{ sp.hidden = true; }, 500); if(!saved.nurse) showNurseEditor(true); });
 requestAnimationFrame(frame);
 })();
 </script>
