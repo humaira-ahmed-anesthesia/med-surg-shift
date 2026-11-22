@@ -373,7 +373,9 @@ button.chip.now:active{transform:scale(.96)}
 .pins>summary{list-style:none;display:flex;align-items:center;gap:6px;padding:8px 0;font-weight:800;cursor:pointer}
 .pins>summary::-webkit-details-marker{display:none}
 .pins>summary span{margin-left:auto;color:#c99a3a}
-.pin-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 0 10px}
+.pin-row{display:flex;flex-wrap:wrap;align-items:center;gap:4px;padding:0 0 10px}
+.pin-row small{font-weight:800;color:var(--muted);margin-left:4px}
+.pin-row b{color:#c99a3a;margin-left:4px}
 .pin{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
 .pin small{font-size:9.5px;font-weight:800;color:var(--muted);line-height:1.15}
 .daisy-card svg{flex:none}
@@ -1970,7 +1972,8 @@ function makeOvertimeLevel(){
     name:"Overtime", blurb:"The ER keeps getting busier. How long can you last? Lose 3 patients and the shift ends."};
 }
 /* ---------- Peony nominations (internal names still say daisy) ---------- */
-const DAISY_UNITS = [...UNIT_ORDER, "Float", "Overtime"];
+/* one collection of Peony pins (old saves counted them per unit: add those up) */
+const peonyCount = () => typeof saved.peonies === "number" ? saved.peonies : Object.values(saved.daisies||{}).reduce((a,b)=>a+b,0);
 const threeStarCount = () => LEVELS.filter(l => !l.tutorial && l.mode!=="tutorial" && starsFor(l) >= 3).length;
 const daisyEligible = () => threeStarCount() >= 10;
 function nurseName(){ return (saved.nurse && saved.nurse.name) || "Nurse"; }
@@ -3353,9 +3356,9 @@ function showStart(){
       <button class="special" id="floatBtn"><b>🎲 Float shift</b><small>A random unit, random patients${(saved[900]||{}).best ? ` · best ${saved[900].best}` : ""}</small></button>
       <button class="special" id="otBtn"><b>⏱ Overtime</b><small>How long can you last?${(saved[950]||{}).best ? ` · best ${saved[950].best}` : ""}</small></button>
     </div>
-    <details class="pins"><summary>${DAISY_SVG(20, true)} Peony pins <span>${Object.values(saved.daisies||{}).reduce((a,b)=>a+b,0)}</span></summary>
+    <details class="pins"><summary>${DAISY_SVG(20, true)} Peony pins <span>${peonyCount()}</span></summary>
       <p class="fine">${daisyEligible() ? "An exceptional shift (3 stars, nobody lost) can earn a nomination." : `Earn 3 stars on 10 levels to become eligible (${threeStarCount()} of 10).`}</p>
-      <div class="pin-grid">${DAISY_UNITS.map(u=>{ const c = (saved.daisies||{})[u] || 0; return `<div class="pin">${DAISY_SVG(34, c>0)}<small>${esc(u)}${c>1?` ×${c}`:""}</small></div>`; }).join("")}</div>
+      <div class="pin-row">${peonyCount() ? Array.from({length:Math.min(peonyCount(), 24)}, ()=>DAISY_SVG(34, true)).join("") + (peonyCount() > 24 ? `<b>+${peonyCount()-24}</b>` : "") : `${DAISY_SVG(34, false)}<small>No pins yet</small>`}</div>
     </details>
     <h3 class="pick">Pick a shift</h3>
     <div class="levels">${UNIT_ORDER.map(u=>{ const ls = LEVELS.filter(l=>l.unit===u); if(!ls.length) return "";
@@ -3490,7 +3493,7 @@ function endShift(reshow){
     let daisy = null;
     if(daisyEligible() && stars === 3 && G.expired === 0 && !G.outOfHearts && Math.random() < 0.35){
       const unit = LV.overtime ? "Overtime" : LV.float ? "Float" : LV.unit;
-      saved.daisies = saved.daisies || {}; saved.daisies[unit] = (saved.daisies[unit] || 0) + 1; save();
+      saved.peonies = peonyCount() + 1; save();
       const home = G.all.filter(p => p.out==="home" || p.out==="admit" || p.out==="go");
       daisy = {unit, letter: daisyLetter(home.length ? pick(home) : null)};
     }
@@ -3530,7 +3533,7 @@ function endShift(reshow){
     <div class="stars">${starsRow(stars)}</div>
     ${pickup ? `<p class="promo">Thanks for picking up a shift! +${pickup} bonus points</p>` : ""}
     ${promoted ? `<p class="promo">Promoted to <b>${RANKS[rankOf(cr.after)].n}</b>!</p>` : ""}
-    ${daisy ? `<div class="daisy-card">${DAISY_SVG(54, true)}<div><b>You've been nominated for a Peony!</b><p>“${esc(daisy.letter)}”</p><small>New pin: ${esc(daisy.unit)} Peony</small></div></div>` : ""}
+    ${daisy ? `<div class="daisy-card">${DAISY_SVG(54, true)}<div><b>You've been nominated for a Peony!</b><p>“${esc(daisy.letter)}”</p><small>New Peony pin! You have ${peonyCount()}.</small></div></div>` : ""}
     ${cr ? rankCard(cr.after, cr.after - cr.before) : ""}
     <div class="stats">${statsHtml || `
       <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
