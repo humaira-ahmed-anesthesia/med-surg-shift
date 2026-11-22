@@ -2888,8 +2888,8 @@ function tapTool(key, btn){
 function tapVitals(){
   if(!playing()) return;
   const p = cur();
-  if(p.state==="empty" || p.state==="leaving") return;
   G.tutVitals = true;
+  if(p.state==="empty" || p.state==="leaving") return;
   if(curStep(p) && curStep(p).k==="vitals"){ if(cprBlocks(curStep(p))) return; sfx.tap(); advance(p, "you"); return; }
   if(p.active && p.active.def.code){ toast(`Monitor: ${p.rhythm || p.active.def.rh}.`); return; }
   sfx.tap();
