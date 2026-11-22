@@ -23,7 +23,7 @@ A cozy nursing time-management game, in the spirit of cooking games like Cooking
 
 **Float shift and Overtime:** Float sends you to a random unit with a random mix of its patients. Overtime is an endless ER shift that keeps getting busier until 3 patients are lost (died or left without being seen).
 
-**Your nurse and Daisy pins:** name your nurse and pick skin, hair and scrubs. After 3 stars on 10 levels, a perfect shift can earn a Daisy nomination with a thank-you letter and a pin for that unit. Sometimes a patient's family drops off food for the unit.
+**Your nurse and Peony pins:** name your nurse and pick skin, hair and scrubs. After 3 stars on 10 levels, a perfect shift can earn a Peony nomination with a thank-you letter and a pin for that unit. Sometimes a patient's family drops off food for the unit.
 
 **Orientation and rank:** you start as a new grad on orientation. Every point from every shift counts toward your rank: New Grad, Novice Nurse, Advanced Beginner, Competent Nurse, Proficient Nurse, Preceptor, Charge Nurse, Expert Nurse and Float Pool Legend (inspired by Benner's novice-to-expert model).
 - **Rapid Response Nurse:** one patient at a time across the hospital. Run a pulseless VT code and an asystole/PEA code from hyperkalemia (CPR cycles you can fast-forward, shocks, epinephrine, amiodarone, H's and T's), a stroke to CT and TNK, and a liver transplant hemorrhage with massive transfusion (whole blood, PRBCs, plasma, platelets, cryo) before rushing to surgery. Call for more help brings the code team, stroke team or blood bank. If you're too slow, the patient expires.
