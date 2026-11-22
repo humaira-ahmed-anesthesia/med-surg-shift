@@ -2037,6 +2037,7 @@ function makeOvertimeLevel(){
 }
 /* ---------- Poppy nominations (a nod to California; internal names still say daisy/peony) ---------- */
 /* one collection of Poppy pins (old saves counted them per unit: add those up) */
+const POPPY_EVERY = 10;
 const peonyCount = () => typeof saved.peonies === "number" ? saved.peonies : Object.values(saved.daisies||{}).reduce((a,b)=>a+b,0);
 const threeStarCount = () => LEVELS.filter(l => !l.tutorial && l.mode!=="tutorial" && starsFor(l) >= 3).length;
 const daisyEligible = () => threeStarCount() >= 10;
@@ -3462,7 +3463,7 @@ function showStart(){
       <button class="special" id="otBtn"><b>⏱ Overtime</b><small>How long can you last?${(saved[950]||{}).best ? ` · best ${saved[950].best}` : ""}</small></button>
     </div>
     <details class="pins"><summary>${DAISY_SVG(20, true)} Poppy pins <span>${peonyCount()}</span></summary>
-      <p class="fine">${daisyEligible() ? "An exceptional shift (3 stars, nobody lost) can earn a nomination." : `Earn 3 stars on 10 levels to become eligible (${threeStarCount()} of 10).`}</p>
+      <p class="fine">Every ${POPPY_EVERY} exceptional shifts (3 stars, nobody lost) earns a Poppy nomination. ${(saved.exceptional||0) % POPPY_EVERY} of ${POPPY_EVERY} toward your next one.</p>
       <div class="pin-row">${peonyCount() ? Array.from({length:Math.min(peonyCount(), 24)}, ()=>DAISY_SVG(34, true)).join("") + (peonyCount() > 24 ? `<b>+${peonyCount()-24}</b>` : "") : `${DAISY_SVG(34, false)}<small>No pins yet</small>`}</div>
     </details>
     <h3 class="pick">Pick a shift</h3>
@@ -3600,15 +3601,17 @@ function endShift(reshow){
     if(saved.pickup && !G.outOfHearts && !LV.tutorial && LV.mode!=="tutorial"){ pickup = PICKUP_BONUS; G.score += pickup; saved.pickup = false; save(); }
     const cr = addCareer(G.score);
     let daisy = null;
-    if(daisyEligible() && stars === 3 && G.expired === 0 && !G.outOfHearts && Math.random() < 0.35){
+    let exceptional = false;
+    if(stars === 3 && G.expired === 0 && !G.outOfHearts){ exceptional = true; saved.exceptional = (saved.exceptional || 0) + 1; save(); }
+    if(exceptional && saved.exceptional % POPPY_EVERY === 0){
       const unit = LV.overtime ? "Overtime" : LV.float ? "Float" : LV.unit;
       saved.peonies = peonyCount() + 1; save();
       const home = G.all.filter(p => p.out==="home" || p.out==="admit" || p.out==="go");
       const pl = daisyLetter(); daisy = {unit, letter: pl.letter, reason: pl.reason};
     }
-    lastReport = {stars, isBest, cr, daisy, pickup};
+    lastReport = {stars, isBest, cr, daisy, pickup, exceptional};
   }
-  const {stars, isBest, cr, daisy, pickup} = lastReport;
+  const {stars, isBest, cr, daisy, pickup, exceptional} = lastReport;
   const promoted = cr && rankOf(cr.after) > rankOf(cr.before);
   const msg = stars===3 ? "Flawless shift. Your patients adore you." : stars===2 ? "Solid shift. Everyone's in good hands." : stars===1 ? "You made it through. Go eat something." : "Tough shift. They happen to everyone.";
   const msg2 = (LV.mode==="icu" && G.icu && G.icu.passed && !G.outOfHearts) ? (stars>=2 ? "You lost a patient tonight, and you still gave everyone excellent care. Take a breath." : "A hard shift, and a patient you couldn't save. That one wasn't on you.") : msg;
@@ -3642,6 +3645,7 @@ function endShift(reshow){
     <div class="stars">${starsRow(stars)}</div>
     ${pickup ? `<p class="promo">Thanks for picking up a shift! +${pickup} bonus points</p>` : ""}
     ${promoted ? `<p class="promo">Promoted to <b>${RANKS[rankOf(cr.after)].n}</b>!</p>` : ""}
+    ${exceptional && !daisy ? `<p class="promo">Exceptional shift! ${POPPY_EVERY - (saved.exceptional % POPPY_EVERY)} more until your next Poppy.</p>` : ""}
     ${daisy ? `<div class="daisy-card">${DAISY_SVG(54, true)}<div><b>You've been nominated for a Poppy!</b><small class="why">For ${esc(daisy.reason.charAt(0).toLowerCase() + daisy.reason.slice(1))}</small><p>“${esc(daisy.letter)}”</p><small>New Poppy pin! You have ${peonyCount()}.</small></div></div>` : ""}
     ${cr ? rankCard(cr.after, cr.after - cr.before) : ""}
     <div class="stats">${statsHtml || `
