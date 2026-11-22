@@ -1071,7 +1071,7 @@ const icuLevel = (k, o) => { const l = Object.assign({n:200+k, tag:"I"+k, unit:"
   if(!l.tutorial){ l.cares = l.cares.filter(c=>c[0]!=="turn"); l.cares = [["vit",15,3], ["turn",30,9], ...l.cares]; }
   return l; };
 const ICU_LEVELS = [
-  icuLevel(0, {tag:"IO", name:"ICU orientation", blurb:"Your first day in the ICU with a preceptor. Learn titration, hourly cares, alarms and the Lines & drains tab.", shift:90, tutorial:true, drips:["norepi"],
+  icuLevel(0, {tag:"IO", name:"ICU orientation", blurb:"7 a.m. to noon at half speed. Your first day in the ICU with a preceptor. Learn titration, hourly cares, alarms and the Lines & drains tab.", shift:90, tutorial:true, drips:["norepi"],
     pt:icuPt("Mrs. Alvarez", 67, "woman", 70, "Septic shock from pneumonia", ["COPD","Hypertension"], ["vent","cvc","art","foley"]),
     cares:[["io",22,8]], events:[], stars:[0,0]}),
   icuLevel(1, {name:"Medical-surgical ICU", blurb:"Septic shock on a ventilator. Keep the MAP up while the vent and the patient keep you busy.", drips:["norepi"],
@@ -1899,11 +1899,14 @@ const NICU_LEVELS = [
 const ER_COACH = [
   {txt:"Welcome to the ER, new grad! Patients arrive in <b>bays</b> on the right. Do the glowing steps for the patient in front of you.", done:()=>G.discharged + G.rushed >= 1},
   {txt:"Nice! Patients keep arriving all shift. <b>Tap a bay</b> to switch. If someone waits too long, they leave without being seen.", done:()=>G.discharged + G.rushed >= 3},
-  {txt:"When a patient is in the red, <b>Call for help</b> brings the whole team. In a code, coworkers cover your other bays while you stay in the room.", btn:"Got it", done:()=>G.coachAck===2},
+  {target:"#rr", txt:"This patient just dropped into the red! <b>Tap Call for help</b> and the whole team rushes in. In a code, coworkers cover your other bays while you stay in the room.",
+    setup:()=>{ let i = G.beds.findIndex(b=>b.state==="needs"); if(i<0) i = G.beds.findIndex(b=>b.state==="resting"); if(i<0) return; G.current = i; const p = G.beds[i];
+      if(p.state!=="needs"){ p.active = inst(U.desat, p); p.state = "needs"; } G.tutRR = G.rrUsed; G.rr = Math.max(G.rr, 1); p.health = 24; dirty = true; },
+    done:()=>G.rrUsed > (G.tutRR||0) || !G.beds.some(b=>b.state==="needs"||b.state==="resting")},
   {txt:"In real ER shifts you have <b>3 hearts</b>. Losing a patient costs one, and they come back one every 30 minutes. Orientation doesn't use hearts.", btn:"Finish ER orientation", done:()=>G.coachAck===3}
 ];
 const ER_ORIENT = {n:100, tag:"EO", unit:"ER", mode:"er", tutorial:true, coach:ER_COACH, beds:2, drain:0.4, cases:["uti","lac","ankle","migraine","asthmaKid","std","wristKid"], stars:[0,0],
-  name:"ER orientation", blurb:"Your first ER shift with a preceptor. Learn bays, arrivals, calling for help and hearts.", tools:ER_TOOLS, ev:[999,999]};
+  name:"ER orientation", blurb:"7 a.m. to noon at half speed. Your first ER shift with a preceptor. Learn bays, arrivals, calling for help and hearts.", tools:ER_TOOLS, ev:[999,999]};
 /* ---------- levels ---------- */
 const LEVELS = [
   {n:0, tag:"O", mode:"tutorial", name:"Orientation: new grad on 4 West", blurb:"7 a.m. to noon, at half speed, with your preceptor pointing the way. Learn the tools, the monitor and how to handle an emergency.",
@@ -2528,7 +2531,15 @@ const COACH = [
       if(G.tutBed!==undefined) forceUrgent(G.beds[G.tutBed], U.desat);
     }, done:()=>{ const b = G.beds[G.tutBed]; return G.tutBed===undefined || !b || !(b.active && b.active.urgent); }},
   {txt:"Tap the <b>H&amp;P</b> folder to read a patient's history. The game pauses while it's open.", target:"#chartBtn", done:()=>G.tutChart},
-  {txt:"Swamped? <b>Call charge</b> does one step for you. <b>Rapid response</b> unlocks when someone is in the red. The <b>snail</b> slows time. That's the basics!", btn:"Finish orientation", done:()=>G.coachAck===9}
+  {txt:"Your patient needs pain medicine and you're swamped. <b>Tap Call charge</b> and the charge nurse does the step for you, for a few points.", target:"#charge",
+    setup:()=>{ const p = cur(); G.tutHelps = G.helps; G.chargeCd = 0;
+      if(p.state!=="needs"){ p.queue.unshift(p.active || inst(F.pain, p)); p.active = inst(F.pain, p); p.queue.shift(); p.state = "needs"; takeVitals(p); dirty = true; } },
+    done:()=>G.helps > (G.tutHelps||0)},
+  {txt:"Uh oh, this patient dropped into the red! When that happens, <b>Rapid response</b> lights up. <b>Tap it</b> to bring the whole team.", target:"#rr",
+    setup:()=>{ const p = cur(); G.tutRR = G.rrUsed; G.rr = Math.max(G.rr, 1); forceUrgent(p, U.desat); p.health = 24; dirty = true; },
+    done:()=>G.rrUsed > (G.tutRR||0)},
+  {txt:"The <b>snail</b> slows time for 15 seconds. You earn more by sending patients home. <b>Tap the snail</b> to try it.", target:"#slow", done:()=>G.slowLeft>0 || G.slows<=0},
+  {txt:"That's the basics! Watch your patients, follow the glow, and ask for help when you need it.", btn:"Finish orientation", done:()=>G.coachAck===12}
 ];
 const coachList = () => LV.coach || (LV.mode==="tutorial" ? COACH : (LV.mode==="icu" && LV.tutorial) ? ICU_COACH : null);
 function checkCoach(){
@@ -2560,7 +2571,7 @@ const logIt = (p, text) => p.log.push([clockStr(), text]);
 function update(dt){
   G.t += dt;
   if((LV.mode==="floor" || (LV.mode==="er" && !LV.tutorial && !LV.overtime) || (LV.mode==="icu" && !LV.tutorial)) && G.t >= (LV.shift || SHIFT)){ endShift(); return; }
-  if(LV.mode==="tutorial" && G.t >= ORIENT_END && !G.over){ finishTutorial(); return; }
+  if((LV.mode==="tutorial" || LV.tutorial) && G.t >= ORIENT_END && !G.over){ if(LV.mode==="icu") finishIcuTutorial(); else if(LV.mode==="er") finishErOrientation(); else finishTutorial(); return; }
   if(LV.mode==="icu") icuTick(dt);
   if(G.foodAt && !G.food && G.t >= G.foodAt && !G.cover) familyFood();
   if(LV.overtime){ LV.drain = 0.95 + G.t/220; }
