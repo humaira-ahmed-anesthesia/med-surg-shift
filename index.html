@@ -384,6 +384,7 @@ button.chip.now:active{transform:scale(.96)}
 .daisy-card b{font-family:var(--display);font-weight:600;font-size:16px;display:block}
 .daisy-card p{margin:4px 0;font-size:13px;font-style:italic;color:var(--ink)}
 .daisy-card small{font-weight:800;color:#a8700f;font-size:11.5px}
+.daisy-card small.why{display:block;color:#c0507a;font-size:12.5px;margin-top:2px}
 .nurse-prev{display:grid;place-items:center;margin:4px auto 8px;width:110px;height:110px;border-radius:50%;background:var(--wall)}
 .nm-in{display:flex;flex-direction:column;gap:4px;font-weight:800;font-size:12px;color:var(--muted);margin-bottom:6px}
 .nm-in input{font:inherit;font-size:16px;font-weight:700;color:var(--ink);padding:9px 11px;border-radius:12px;border:2px solid var(--line);background:#fff}
@@ -1288,7 +1289,7 @@ const PP = {
 };
 const PPF = {
   afterpains:{t:"Cramping", d:"Strong cramps while breastfeeding.", r:0.9, s:[C("hands","Check the fundus","Fundus","Firm and midline. These are normal afterpains."), C("meds","Pain medicine","Ibuprofen","Ibuprofen 600 mg.")]},
-  retention:{t:"Fundus off to the right", d:"Hasn't peed in 6 hours. Bleeding more than before.", r:1.1, s:[
+  retention:{retention:true, t:"Fundus off to the right", d:"Hasn't peed in 6 hours. Bleeding more than before.", r:1.1, s:[
     C("hands","Check the fundus","Fundus","High and pushed to the right (abnormal): full bladder."),
     C("assess","Help her to the bathroom","Void","Can't go."),
     C("hands","Straight cath","Cath","800 mL drained. Fundus back to midline and firm.")]},
@@ -1341,6 +1342,31 @@ const PPD2 = {allHands:1, t:"Still bleeding!", d:"Medicines aren't working. BP f
   C("labs","Labs & blood loss","QBL","QBL 1,600 mL. Fibrinogen low (low)."),
   C("go","Rush to the OR","or","")]};
 addCases(LD);
+const RET_AGAIN = {retention:true, t:"Bladder full again", d:"Hasn't peed since the last straight cath.", r:1.0, s:[
+  C("assess","Bladder scan","Scan","700 mL in the bladder (high)."),
+  C("hands","Straight cath","Cath","700 mL drained. More comfortable.")]};
+const FOLEY_IN = {t:"Retaining again", d:"That would be the 4th straight cath today.", r:1.0, s:[
+  C("assess","Bladder scan","Scan","750 mL in the bladder (high)."),
+  C("hands","Insert an indwelling (Foley) catheter","Foley","After 3 straight caths, it's time for an indwelling catheter. Foley placed, draining 750 mL.")]};
+const FOLEY_OUT = {t:"Foley due out", d:"The bladder's had a rest.", r:0.7, s:[
+  C("hands","Remove the Foley","Remove","Foley out. Fewer catheter days means fewer infections. She needs to pee within 6 hours.")]};
+const VOID_OK = {t:"Hasn't peed since the Foley came out", d:"6 hours ago.", r:0.9, s:[
+  C("assess","Bladder scan","Scan","Only 150 mL in the bladder."),
+  C("hands","Help to the bathroom","Void",["Warm water and privacy did it: peed 350 mL on her own!","Walked to the bathroom and peed 300 mL. Bladder's back in business."])]};
+const VOID_RET = {retention:true, resetCaths:true, t:"Hasn't peed since the Foley came out", d:"6 hours ago. Belly feels full.", r:1.0, s:[
+  C("assess","Bladder scan","Scan","800 mL in the bladder (high). Still retaining."),
+  C("hands","Straight cath","Cath","800 mL drained. Urology may be consulted if this keeps happening.")]};
+function retentionNext(p, def){
+  const later = (a,b) => G.t + rand(a,b);
+  if(def.retention){
+    p.caths = def.resetCaths ? 1 : (p.caths || 0) + 1;
+    p.retNext = {at: later(18,26), def: p.caths >= 3 ? FOLEY_IN : RET_AGAIN};
+  }
+  else if(def === FOLEY_IN) p.retNext = {at: later(22,30), def: FOLEY_OUT};
+  else if(def === FOLEY_OUT) p.retNext = {at: later(18,24), def: Math.random() < 0.6 ? VOID_OK : VOID_RET};
+  else return;
+  if(G.t >= SHIFT - 8) p.retNext = null; // not enough shift left
+}
 const LD_TOOLS = ["assess","hands","iv","labs","meds","baby","o2","cpr"];
 const ldLevel = (k, beds, drain, ids, stars, name, blurb) => ({n:300+k, tag:"L"+k, unit:"Labor & Delivery", mode:"er", ld:true, names:OB_NAMES, beds, drain, cases:ids, stars, name, blurb, tools:LD_TOOLS, ev:[999,999]});
 const LD_LEVELS = [
@@ -1687,7 +1713,7 @@ const MS = {
     C("hands","Walk in the hall","Walk","Walked two laps. Chewing gum helps the gut wake up.")]}
 };
 const MSF = {
-  retention:{t:"Can't pee after surgery", d:"Belly feels full.", r:1.0, s:[C("assess","Bladder scan","Scan","650 mL in the bladder (high)."), C("hands","Straight cath","Cath","650 mL drained. Much more comfortable.")]},
+  retention:{retention:true, t:"Can't pee after surgery", d:"Belly feels full.", r:1.0, s:[C("assess","Bladder scan","Scan","650 mL in the bladder (high)."), C("hands","Straight cath","Cath","650 mL drained. Much more comfortable.")]},
   pump:{t:"IV pump beeping", d:"Downstream occlusion alarm.", r:0.8, s:[C("iv","Trace the line","Check","Clamp was closed under the blanket. Unclamped, running again.")]},
   ama:{t:"Wants to leave", d:"\"I'm going home. I've got a dog to feed.\"", r:0.8, s:[C("assess","Listen & update the MD","Listen","Neighbor will feed the dog. Staying for one more night of antibiotics.")]},
   turn:{t:"Turn & reposition", d:"Every 2 hours.", r:0.7, s:[C("hands","Turn the patient","Turn","Turned, heels floated, skin intact.")]}
@@ -1981,16 +2007,18 @@ const peonyCount = () => typeof saved.peonies === "number" ? saved.peonies : Obj
 const threeStarCount = () => LEVELS.filter(l => !l.tutorial && l.mode!=="tutorial" && starsFor(l) >= 3).length;
 const daisyEligible = () => threeStarCount() >= 10;
 function nurseName(){ return (saved.nurse && saved.nurse.name) || "Nurse"; }
-function daisyLetter(p){
-  const nm = nurseName(), who = p ? cardName(p.name) : "my mom";
-  return pick([
-    `${nm} held my hand when I was scared and explained everything in words I could understand. ${who === "my mom" ? "My family" : "I"} will never forget it.`,
-    `When everything was going wrong, ${nm} stayed calm and stayed with us. Thank you for treating ${who === "my mom" ? "my mom" : "me"} like family.`,
-    `${nm} noticed something was wrong before anyone else did. Because of that nurse, I got to go home to my kids.`,
-    `${nm} brought me a warm blanket at 3 a.m. and asked about my dog. It was the first time all week I felt like a person, not a patient.`,
-    `Our baby spent her first days in the hospital. ${nm} taught us how to hold her, and cried with us when we finally went home.`,
-    `${nm} was running all night, but every time they came into my room they made me feel like the only patient on the unit.`]);
-}
+const PEONY_REASONS = [
+  {r:"Catching a patient getting worse before anyone else did", l:nm=>`${nm} noticed something was wrong before anyone else did and got help right away. Because of that nurse, I got to go home to my kids.`},
+  {r:"Staying calm during a code", l:nm=>`When my dad's heart stopped, everything was chaos, but ${nm} was calm, kind and told us exactly what was happening. We will never forget that.`},
+  {r:"Comforting a scared patient", l:nm=>`I was terrified. ${nm} held my hand and explained everything in words I could understand, as many times as I needed.`},
+  {r:"Going the extra mile for a family", l:nm=>`${nm} found my grandma a recliner so she could sleep next to me, and brought her coffee every morning without being asked.`},
+  {r:"Speaking up for a patient", l:nm=>`My pain wasn't being taken seriously until ${nm} called the doctor and stayed on the phone until someone listened.`},
+  {r:"Teaching that made going home less scary", l:nm=>`${nm} taught us everything before we went home, wrote it all down and made sure we could do it ourselves. We felt ready.`},
+  {r:"Making a child smile on a hard day", l:nm=>`My son was so scared of the hospital. ${nm} turned his IV into a superhero power and he asked to see that nurse every day.`},
+  {r:"Kindness at the end of life", l:nm=>`In my mother's last hours, ${nm} played her favorite hymns, brushed her hair and made sure none of us were ever alone.`},
+  {r:"Jumping in to help a coworker", l:nm=>`From a coworker: when my patient crashed, ${nm} dropped everything to help without being asked. That's the nurse you want next to you.`},
+  {r:"Remembering the little things", l:nm=>`${nm} remembered I like my blanket warm and my coffee black, and asked about my dog every morning. I felt like a person, not a patient.`}];
+function daisyLetter(){ const x = pick(PEONY_REASONS); return {reason:x.r, letter:x.l(nurseName())}; }
 
 function nextInUnit(l){ const u = LEVELS.filter(x=>x.unit===l.unit); return u[u.indexOf(l)+1] || null; }
 const NAMES_BASE = ["Mrs. Alvarez","Mr. Okafor","Ms. Nguyen","Mr. Patel","Mrs. Kowalski","Mr. Haddad","Ms. Brooks","Mr. Tanaka","Mrs. Rossi","Mr. Moreno","Ms. Ahmed","Mr. Lindqvist","Mrs. Mensah","Mr. Silva","Ms. Park","Mr. O'Brien","Mrs. Yilmaz","Ms. Dubois"];
@@ -2618,7 +2646,7 @@ function update(dt){
           else if(i!==G.current) sfx.ping();
           takeVitals(p);
           dirty = true;
-        } else if(p.icu) p.timer = 0.5; else discharge(p);
+        } else if(p.icu) p.timer = 0.5; else if(p.retNext) p.timer = 1; else discharge(p);
       }
     } else if(p.state === "leaving"){
       p.timer -= dt;
@@ -2656,6 +2684,11 @@ function update(dt){
     }
   });
 
+  G.beds.forEach(p=>{
+    if(!p.retNext || G.t < p.retNext.at || G.cover || !(p.state==="needs" || p.state==="resting")) return;
+    p.queue.push(inst(p.retNext.def, p)); p.retNext = null;
+    if(p.state==="resting") p.timer = Math.min(p.timer, 0.5);
+  });
   if(LV.mode!=="floor" || G.cover) return;
   G.nextEvent -= dt;
   if(G.nextEvent <= 0){
@@ -2731,6 +2764,7 @@ function cprBlocks(st){
   return false;
 }
 function complete(p, via){
+  if(p.active && LV.mode==="floor") retentionNext(p, p.active.def);
   if(LV.mode==="icu" && G.icu && p.active){
     if(p.active.def.fatal){ passAway(p, p.active.def.fatal); return; }
     const dd = p.active.def;
@@ -3515,7 +3549,7 @@ function endShift(reshow){
       const unit = LV.overtime ? "Overtime" : LV.float ? "Float" : LV.unit;
       saved.peonies = peonyCount() + 1; save();
       const home = G.all.filter(p => p.out==="home" || p.out==="admit" || p.out==="go");
-      daisy = {unit, letter: daisyLetter(home.length ? pick(home) : null)};
+      const pl = daisyLetter(); daisy = {unit, letter: pl.letter, reason: pl.reason};
     }
     lastReport = {stars, isBest, cr, daisy, pickup};
   }
@@ -3553,7 +3587,7 @@ function endShift(reshow){
     <div class="stars">${starsRow(stars)}</div>
     ${pickup ? `<p class="promo">Thanks for picking up a shift! +${pickup} bonus points</p>` : ""}
     ${promoted ? `<p class="promo">Promoted to <b>${RANKS[rankOf(cr.after)].n}</b>!</p>` : ""}
-    ${daisy ? `<div class="daisy-card">${DAISY_SVG(54, true)}<div><b>You've been nominated for a Peony!</b><p>“${esc(daisy.letter)}”</p><small>New Peony pin! You have ${peonyCount()}.</small></div></div>` : ""}
+    ${daisy ? `<div class="daisy-card">${DAISY_SVG(54, true)}<div><b>You've been nominated for a Peony!</b><small class="why">For ${esc(daisy.reason.charAt(0).toLowerCase() + daisy.reason.slice(1))}</small><p>“${esc(daisy.letter)}”</p><small>New Peony pin! You have ${peonyCount()}.</small></div></div>` : ""}
     ${cr ? rankCard(cr.after, cr.after - cr.before) : ""}
     <div class="stats">${statsHtml || `
       <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
