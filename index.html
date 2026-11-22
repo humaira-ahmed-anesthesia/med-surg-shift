@@ -404,6 +404,7 @@ button.chip.now:active{transform:scale(.96)}
 .spot-tip.hasBtn{pointer-events:auto}
 .spot-tip .tipBtn{display:block;width:100%;margin-top:9px;padding:9px;border-radius:11px;background:#ffd84d;color:#2f3d47;font-weight:800;font-size:14px}
 .spot[hidden],.spot-arrow[hidden],.spot-tip[hidden]{display:none}
+.pickup.callback{display:block;width:100%;text-align:left;background:#ffe9e4;border-color:#f3b6a8;color:var(--ink)}
 .pickup{background:#fff1c8;border:2px solid #f2d27a;border-radius:14px;padding:9px 11px;font-size:13px;font-weight:700;margin:8px 0 2px;line-height:1.35}
 .hp-tabs{display:flex;gap:6px;margin-bottom:10px}
 .hp-tabs .tab{flex:1;padding:7px 8px;border-radius:10px;background:var(--wall);font-weight:800;font-size:13px;color:var(--muted)}
@@ -648,6 +649,8 @@ const DEST = {
   gi:   {btn:"Take for an urgent scope", out:"Off for a scope", fx:"The GI team takes over for an emergency scope to stop the bleeding.", toast:"is off to the GI suite for a scope."},
   ld:   {btn:"Take to Labor & Delivery", out:"Off to Labor & Delivery", fx:"Mom and baby head upstairs together. Congratulations!", toast:"and her new baby are headed to Labor & Delivery."},
   poison:{btn:"Call poison control", out:"", fx:"", mid:"Poison Control notified: the substance, amount and time were reported, and they gave treatment advice.", say:"Poison Control is on the line."},
+  ep:   {btn:"Send to the EP lab", out:"Off to the EP lab", fx:"EP lab: a TEE to check for clots, then a synchronized cardioversion. Back in normal rhythm.", toast:"is off to the EP lab for a cardioversion."},
+  icuAfib:{btn:"Move to the ICU", out:"Off to the ICU", fx:"Too unstable for the floor. The ICU team will cardiovert.", toast:"is headed to the ICU for a cardioversion."},
   icu:  {btn:"Take to the ICU",  out:"Off to the ICU",      fx:"ROSC! The ICU team takes over post-arrest care.", toast:"has a pulse and is headed to the ICU. Great code!"},
   cath: {btn:"Rush to cath lab", out:"Off to the cath lab", fx:"The cath lab team takes over to open the blocked artery.", toast:"is off to the cath lab. Time is muscle."}
 };
@@ -1718,6 +1721,19 @@ const MSF = {
   ama:{t:"Wants to leave", d:"\"I'm going home. I've got a dog to feed.\"", r:0.8, s:[C("assess","Listen & update the MD","Listen","Neighbor will feed the dog. Staying for one more night of antibiotics.")]},
   turn:{t:"Turn & reposition", d:"Every 2 hours.", r:0.7, s:[C("hands","Turn the patient","Turn","Turned, heels floated, skin intact.")]}
 };
+const AFIB_EP = {t:"Racing heart won't slow down!", d:"A-fib, rate 150. Fluttery, but blood pressure is holding.", v:{hr:150,sbp:118,dbp:72}, r:1.8, s:[
+  C("assess","Assess","Assess","Irregular, racing pulse. Talking normally. BP 118/72."),
+  C("labs","Stat EKG","EKG","Atrial fibrillation, rate 150 (high)."),
+  C("meds","Diltiazem","Dilt","Diltiazem 10 mg IV. HR still 142: didn't convert."),
+  C("meds","Amiodarone bolus & drip","Amio","Amiodarone 150 mg IV, then a drip. An hour later: still A-fib at 138."),
+  C("go","Send to the EP lab","ep","")]};
+const AFIB_ICU = {icuCallback:true, t:"Racing heart, BP dropping!", d:"A-fib, rate 160, and getting worse.", v:{hr:160,sbp:86,dbp:50}, r:2.2, s:[
+  C("labs","Stat EKG","EKG","Atrial fibrillation, rate 160 (high)."),
+  C("meds","Diltiazem","Dilt","Diltiazem 10 mg IV. HR still 156: didn't convert."),
+  C("meds","Amiodarone bolus & drip","Amio","Amiodarone 150 mg IV, then a drip. Still A-fib at 152."),
+  C("assess","Reassess","Assess","Dizzy, clammy, BP 86/50 (low). Now unstable."),
+  C("esc","Call rapid response","","Rapid response: unstable A-fib. Needs a cardioversion in the ICU."),
+  C("go","Move to the ICU","icuAfib","")]};
 const MSU = {
   fall:{t:"Found on the floor!", d:"Tried to walk to the bathroom alone.", v:{hr:104}, r:1.8, s:[
     C("assess","Check for injury before moving","Assess","Hit her head (abnormal). She's on apixaban, a blood thinner."),
@@ -1748,9 +1764,9 @@ const MS_LEVELS = [
   msLevel(4, {name:"Night shift on 4 West", blurb:"Withdrawal, a fall and a patient who's too sleepy.", first:[P.hgb,P.pna,P.cell,MS.etoh,MS.hipfx,P.lowk], follow:[F.pain,F.lostiv,MSF.retention,MSF.pump,F.nausea], urgent:[U.desat,U.fever,MSU.fall,MSU.wdSeizure,MSU.oversed], doom:[COPD,COPD2,COPD3], drain:1.25, ev:[15,22], stars:[1800,2900]}),
   msLevel(5, {name:"Isolation hallway", blurb:"C. diff, delirium and contact precautions.", first:[MS.cdiff,MS.delirium,P.dehyd,P.pna,P.hf,P.inc], follow:[F.pain,F.dizzy,MSF.ama,MSF.turn,F.k], urgent:[MSU.pulling,MSU.fall,U.sepsis,U.bpdrop,U.desat], doom:[SEP1,SEP2], drain:1.27, ev:[15,22], stars:[1900,3000]}),
   msLevel(6, {name:"Post-op Monday", blurb:"Hips, bowels and a bladder that won't empty.", first:[MS.hipfx,MS.ileus,P.kneepain,P.dsg,P.hgb,P.inc], follow:[MSF.retention,F.pain,F.nausea,MSF.pump,F.lostiv], urgent:[U.bleed,U.dehisc,MSU.oversed,U.rxn,MSU.fall], doom:[P.gib,GIB2], drain:1.3, ev:[14,21], stars:[2000,3100]}),
-  msLevel(7, {name:"Sugar and clots", blurb:"Steroid sugars, a pulmonary embolism and a heparin drip.", first:[MS.highSugar,MS.pe,P.hypo,P.hf,P.lowmg,P.cell], follow:[F.lowsugar,F.mg,F.k,MSF.pump,F.sob], urgent:[U.desat,U.afib,U.hyperk,U.stemi,MSU.fall], doom:[SEP1,SEP2], drain:1.33, ev:[14,21], stars:[2100,3250]}),
+  msLevel(7, {name:"Sugar and clots", blurb:"Steroid sugars, a pulmonary embolism and a heparin drip.", first:[MS.highSugar,MS.pe,P.hypo,P.hf,P.lowmg,P.cell], follow:[F.lowsugar,F.mg,F.k,MSF.pump,F.sob], urgent:[U.desat,U.afib,AFIB_EP,AFIB_ICU,U.hyperk,U.stemi,MSU.fall], doom:[SEP1,SEP2], drain:1.33, ev:[14,21], stars:[2100,3250]}),
   msLevel(8, {name:"Full moon on 4 West", blurb:"Withdrawal, delirium and everyone pulling at their lines.", first:[MS.etoh,MS.delirium,MS.cdiff,P.gib,P.pna,P.dehyd], follow:[MSF.ama,F.pain,MSF.turn,F.lostiv,F.dizzy], urgent:[MSU.wdSeizure,MSU.pulling,MSU.fall,U.stroke,U.unresp], doom:[COPD,COPD2,COPD3], drain:1.37, ev:[13,20], stars:[2200,3400]}),
-  msLevel(9, {name:"Short a nurse", blurb:"Sicker patients, faster. Lean on charge when you need to.", first:[P.hf,P.gib,MS.pe,MS.hipfx,MS.highSugar,P.lowk,P.hgb], follow:[F.pain,F.k,F.mg,MSF.retention,MSF.pump], urgent:[U.sepsis,U.afib,U.rxn,U.stemi,MSU.oversed,U.hyperk], doom:[SEP1,SEP2], drain:1.41, ev:[12,19], stars:[2300,3550]}),
+  msLevel(9, {name:"Short a nurse", blurb:"Sicker patients, faster. Lean on charge when you need to.", first:[P.hf,P.gib,MS.pe,MS.hipfx,MS.highSugar,P.lowk,P.hgb], follow:[F.pain,F.k,F.mg,MSF.retention,MSF.pump], urgent:[U.sepsis,U.afib,AFIB_EP,AFIB_ICU,U.rxn,U.stemi,MSU.oversed,U.hyperk], doom:[SEP1,SEP2], drain:1.41, ev:[12,19], stars:[2300,3550]}),
   msLevel(10, {name:"Charge nurse's nightmare", blurb:"Everything 4 West can throw at you.", first:[MS.etoh,MS.cdiff,MS.delirium,MS.pe,MS.hipfx,MS.ileus,MS.highSugar,P.gib,P.hf,P.pna], follow:[F.pain,F.lostiv,MSF.retention,MSF.pump,MSF.ama,MSF.turn,F.k,F.mg], urgent:[U.sepsis,U.stroke,U.stemi,U.unresp,MSU.wdSeizure,MSU.fall,MSU.oversed,U.rxn,U.desat], doom:[P.gib,GIB2], drain:1.45, ev:[11,18], stars:[2400,3700]})
 ];
 
@@ -1943,10 +1959,10 @@ const LEVELS = [
    urgent:[U.desat,U.bleed,U.fever,U.sleepy,U.hives,U.dehisc], doom:[COPD,COPD2,COPD3], drain:1, ev:[20,30], stars:[1500,2400]},
   {n:2, name:"Busy Monday", blurb:"Sicker patients. Sepsis, A-fib, high potassium, blood reactions and BP drops that need a rapid response.",
    first:[P.gib,P.hgb,P.pna,P.dehyd,P.cell,P.inc,P.lowmg,P.hf], follow:[F.pain,F.lostiv,F.nausea,F.mg,F.lowsugar,F.phos,F.ca,F.sob,F.dizzy],
-   urgent:[U.afib,U.sepsis,U.rxn,U.bpdrop,U.infbleed,U.desat,U.hives,U.hyperk], doom:[P.gib,GIB2], drain:1.12, ev:[17,26], stars:[1600,2600]},
+   urgent:[U.afib,AFIB_EP,U.sepsis,U.rxn,U.bpdrop,U.infbleed,U.desat,U.hives,U.hyperk], doom:[P.gib,GIB2], drain:1.12, ev:[17,26], stars:[1600,2600]},
   {n:3, name:"Short-staffed Saturday", blurb:"Anything goes. Strokes to CT, chest pain to the cath lab, and patients who won't wake up.",
    first:[P.hf,P.gib,P.pna,P.hypo,P.cell,P.inc,P.lowmg,P.hgb,P.kneepain], follow:[F.pain,F.lostiv,F.mg,F.phos,F.ca,F.lowsugar,F.nausea,F.dizzy,F.sob],
-   urgent:[U.stroke,U.stemi,U.unresp,U.bpdrop,U.rxn,U.sleepy,U.afib,U.sepsis,U.dehisc,U.hyperk], doom:[COPD,COPD2,COPD3], drain:1.22, ev:[15,23], stars:[1700,2800]},
+   urgent:[U.stroke,U.stemi,U.unresp,U.bpdrop,U.rxn,U.sleepy,U.afib,AFIB_ICU,U.sepsis,U.dehisc,U.hyperk], doom:[COPD,COPD2,COPD3], drain:1.22, ev:[15,23], stars:[1700,2800]},
   {n:4, tag:"RR", mode:"rrt", name:"Rapid Response Nurse", blurb:"One patient at a time across the hospital: a VT code, a stroke that needs TNK, an asystole code and a massive hemorrhage.",
    calls:CALLS, tools:["assess","cpr","shock","meds","o2","labs","iv","wound"], drain:1, ev:[999,999], stars:[1000,1250]}
 ];
@@ -1994,6 +2010,24 @@ function makeFloatLevel(){
   return Object.assign({}, last, base, {
     first: uniq(ls.flatMap(l => l.first)), follow: uniq(ls.flatMap(l => l.follow)),
     urgent: uniq(ls.flatMap(l => l.urgent)), drain: 1.2, ev:[15,24]});
+}
+/* ---------- A familiar face: the patient you sent to the ICU ---------- */
+Object.assign(DRIPS, {diltP:{name:"Diltiazem", unit:"mg/hr", min:0, max:15, step:2.5, start:5, v:"Heart rate", hrLink:true, lo:60, hi:110, base:158, gain:-5.2, noise:2, why:"Slows the heart in A-fib. Goal heart rate 60–110. After the cardioversion the heart slows on its own, so turn it down."}});
+Object.assign(EV, {
+  cardiovert:{t:"Time to cardiovert!", d:"Still in A-fib. The team is ready.", r:1.6, v:{sbp:92,dbp:54}, allHands:1, converts:true, s:[
+    C("assess","Consent & time-out","Time-out","Consent signed. Pads on. Time-out done."),
+    C("md","MD sedates (propofol)","","Asleep and breathing without help."),
+    C("shock","Synchronized shock, 120 J (sync on!)","Sync","Sync button on, everyone clear… shock! Normal sinus rhythm, HR 82."),
+    C("vitals","Recheck vitals","","")]},
+  transferOut:{t:"Ready for step-down", d:"In normal rhythm for 4 hours. Stable.", r:0.6, transferOut:true, s:[
+    C("meds","Start anticoagulation","Apixaban","Apixaban started to prevent a stroke."),
+    C("assess","Hand-off report to step-down","SBAR","SBAR report given. Your patient thanks you for checking in again.")]}
+});
+function makeCallbackLevel(){
+  const r = saved.icuReturn || {name:"Mr. Calderon", age:68, sex:"man", pmh:["Hypertension"]};
+  return Object.assign(icuLevel(0, {name:`${r.name}, back from 4 West`, blurb:"The A-fib patient you sent up from 4 West.", shift:SHIFT*5/12, drips:["diltP"],
+    pt:icuPt(r.name, r.age, r.sex, 80, "A-fib with a fast rate, transferred from 4 West", r.pmh && r.pmh.length ? r.pmh : ["Hypertension"], ["art"]),
+    cares:[["io",15,8]], events:[[12,"cardiovert"],[46,"transferOut"]], stars:[600,1000]}), {n:990, tag:"♥", callback:true, unit:"ICU"});
 }
 /* ---------- Overtime: an endless ER shift that keeps getting busier ---------- */
 function makeOvertimeLevel(){
@@ -2305,7 +2339,7 @@ function newGame(){
   G.food = false; G.strikes = 0;
   G.foodAt = (G.beds.length > 1 && !LV.tutorial && LV.mode!=="tutorial" && Math.random() < 0.45) ? rand(40, 140) : 0;
   buildDrips();
-  $("#unitName").textContent = LV.overtime ? "Overtime" : LV.float ? `Float · ${LV.floatUnit}` : LV.mode==="icu" ? (LV.tutorial ? "ICU · Orientation" : LV.picu ? `PICU · Level ${LV.n-505}` : `ICU · Level ${LV.n-200}`) : LV.mode==="rrt" ? "Rapid Response" : LV.mode==="tutorial" ? "4 West · Orientation" : LV.ld ? `L&D · Level ${LV.n-300}` : LV.pp ? `Mother-Baby · Level ${LV.n-400}` : LV.peds ? `${LV.n<=505 ? "Peds" : "Peds Surgery"} · Level ${LV.n<=505 ? LV.n-500 : LV.n-505}` : LV.mode==="er" ? (LV.tutorial ? "ER · Orientation" : `ER · Level ${LV.n-100}`) : LV.nicu ? `NICU · Level ${LV.n-600}` : `4 West · Level ${LV.num || LV.n}`;
+  $("#unitName").textContent = LV.overtime ? "Overtime" : LV.float ? `Float · ${LV.floatUnit}` : LV.mode==="icu" ? (LV.tutorial ? "ICU · Orientation" : LV.picu ? `PICU · Level ${LV.n-505}` : LV.callback ? "ICU · Return visit" : `ICU · Level ${LV.n-200}`) : LV.mode==="rrt" ? "Rapid Response" : LV.mode==="tutorial" ? "4 West · Orientation" : LV.ld ? `L&D · Level ${LV.n-300}` : LV.pp ? `Mother-Baby · Level ${LV.n-400}` : LV.peds ? `${LV.n<=505 ? "Peds" : "Peds Surgery"} · Level ${LV.n<=505 ? LV.n-500 : LV.n-505}` : LV.mode==="er" ? (LV.tutorial ? "ER · Orientation" : `ER · Level ${LV.n-100}`) : LV.nicu ? `NICU · Level ${LV.n-600}` : `4 West · Level ${LV.num || LV.n}`;
   $("#unitSub").textContent = LV.mode==="rrt" ? `Call 1 of ${LV.calls.length}` : LV.name;
   dirty = true;
 }
@@ -2355,6 +2389,7 @@ function icuTick(dt){
   if(p && p.base) I.drips.forEach(d=>{
     if(d.def.fixed) return;
     if(d.def.bp==="map"){ p.base.sbp = Math.round(d.val+26); p.base.dbp = Math.round(d.val-13); }
+    if(d.def.hrLink) p.base.hr = Math.round(d.val);
     if(d.def.bp==="sbp"){ p.base.sbp = Math.round(d.val); p.base.dbp = Math.round(d.val*0.55); }
   });
   I.sched.forEach(sc=>{
@@ -2767,6 +2802,18 @@ function complete(p, via){
   if(p.active && LV.mode==="floor") retentionNext(p, p.active.def);
   if(LV.mode==="icu" && G.icu && p.active){
     if(p.active.def.fatal){ passAway(p, p.active.def.fatal); return; }
+    if(p.active.def.converts){
+      const d = G.icu.drips.find(x=>x.key==="diltP"); if(d){ d.dist -= 58; }
+      setTimeout(()=>toast("Normal rhythm now! The heart rate will drop, so turn the diltiazem down.", "good"), 600);
+    }
+    if(p.active.def.transferOut){
+      G.score += 300; floatText("+300"); sfx.home();
+      logIt(p, "Transferred to step-down in normal rhythm."); pushFeed(p, "assess", "Transferred to step-down in normal rhythm. You saw it through.");
+      p.state = "leaving"; p.out = "stepdown"; p.timer = 99; p.active = null; p.queue = [];
+      if(LV.callback){ delete saved.icuReturn; save(); }
+      toast(`${p.name} is stable and off to step-down. You saw it through!`, "good");
+      setTimeout(()=>{ if(!G.over) endShift(); }, 3200); dirty = true; return;
+    }
     const dd = p.active.def;
     if(dd.addDrip && !G.icu.drips.some(x=>x.key===dd.addDrip)){
       G.icu.drips.push(newDrip(dd.addDrip)); buildDrips();
@@ -2798,6 +2845,9 @@ function escalate(p, via){
 }
 function rushTo(p){
   const st = curStep(p); if(!st || st.k!=="go") return;
+  if(p.active.def.icuCallback && p.active.step === p.active.steps.length-1 && !LV.tutorial && LV.mode!=="tutorial"){
+    saved.icuReturn = {name:p.name, age:Math.floor(p.age), sex:p.sex, pmh:p.pmh.slice(0,3)}; save();
+  }
   if(cprBlocks(st)) return;
   const d = DEST[st.b];
   if(p.active.step < p.active.steps.length-1){
@@ -3134,8 +3184,8 @@ function renderAll(){
     else if(p.state==="resting" && LV.ld){ h = p.queue.length ? "Laboring comfortably" : p.fetal ? "Baby looks good" : "Recovering with baby"; d = p.queue.length ? "Keep an eye on the fetal monitor." : p.fetal ? "Almost ready to go." : "Transfer to postpartum soon."; }
     else if(p.state==="resting"){ h = p.queue.length ? "Resting comfortably" : "Ready for discharge"; d = p.queue.length ? "Go check on your other patients." : "Paperwork is almost done."; }
     else if(p.state==="leaving"){
-      h = p.out==="passed" ? "Rest in peace" : p.out==="admit" ? (LV.ld ? "Off to postpartum" : "Admitted upstairs") : p.out==="lwbs" ? "Left without being seen" : p.out==="home" ? (LV.mode==="er" ? "Discharged home" : "Going home!") : p.out==="go" ? DEST[p.dest].out : p.out==="esc" ? "Moving to the ICU" : p.out==="expired" ? "Patient expired" : "Transferred to ICU";
-      d = p.out==="passed" ? "Take a moment. Sometimes everything isn't enough." : (p.out==="admit" || (p.out==="home" && p.dispoTxt)) ? p.dispoTxt : p.out==="lwbs" ? "Waiting too long sends people home untreated. Keep the board moving." : p.out==="home" ? "Great care today." : p.out==="go" ? "The team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : p.out==="expired" ? (LV.mode==="rrt" ? "Take a breath. The next call is coming." : "Take a breath. Your other patients still need you.") : "They'll get closer monitoring there.";
+      h = p.out==="stepdown" ? "Off to step-down" : p.out==="passed" ? "Rest in peace" : p.out==="admit" ? (LV.ld ? "Off to postpartum" : "Admitted upstairs") : p.out==="lwbs" ? "Left without being seen" : p.out==="home" ? (LV.mode==="er" ? "Discharged home" : "Going home!") : p.out==="go" ? DEST[p.dest].out : p.out==="esc" ? "Moving to the ICU" : p.out==="expired" ? "Patient expired" : "Transferred to ICU";
+      d = p.out==="stepdown" ? "Stable, in normal rhythm. You saw it through." : p.out==="passed" ? "Take a moment. Sometimes everything isn't enough." : (p.out==="admit" || (p.out==="home" && p.dispoTxt)) ? p.dispoTxt : p.out==="lwbs" ? "Waiting too long sends people home untreated. Keep the board moving." : p.out==="home" ? "Great care today." : p.out==="go" ? "The team takes it from here. Good catch." : p.out==="esc" ? "You did everything right. Some patients need more support than the floor can give." : p.out==="expired" ? (LV.mode==="rrt" ? "Take a breath. The next call is coming." : "Take a breath. Your other patients still need you.") : "They'll get closer monitoring there.";
     }
     else if(LV.mode==="icu"){ h = "Bed being cleaned"; d = G.icu.usedNext || !LV.next ? "Keep the drips ready." : "A new admission is on the way."; }
     else { h = LV.mode==="er" ? "Bay being cleaned" : "Room being cleaned"; d = LV.mode==="er" ? "The next patient is coming from triage." : "A new admission is on the way."; }
@@ -3406,6 +3456,7 @@ function showStart(){
     ${rankCard(careerPts())}
     <div class="menu-sound"><button id="mMusic">${music.on ? "🎵 Music on" : "🎵 Music off"}</button><button id="mSfx">${soundOn ? "🔊 Sounds on" : "🔈 Sounds off"}</button>${heartsNow() < 3 ? `<button id="mHeart">❤ Watch ad: +1 heart</button>` : ""}</div>
     ${saved.pickup ? `<div class="pickup">📟 <b>We're short-staffed!</b> Can you pick up a shift? Finish any shift today for <b>+${PICKUP_BONUS} bonus points</b>.</div>` : ""}
+    ${saved.icuReturn ? `<button class="pickup callback" id="cbBtn">📟 <b>Remember ${esc(saved.icuReturn.name)} from 4 West?</b> They're in the ICU now for a cardioversion. <u>Go help them get better.</u></button>` : ""}
     <div class="specials">
       <button class="special" id="floatBtn"><b>🎲 Float shift</b><small>A random unit, random patients${(saved[900]||{}).best ? ` · best ${saved[900].best}` : ""}</small></button>
       <button class="special" id="otBtn"><b>⏱ Overtime</b><small>How long can you last?${(saved[950]||{}).best ? ` · best ${saved[950].best}` : ""}</small></button>
@@ -3436,6 +3487,7 @@ function showStart(){
   </div>`;
   ov.querySelectorAll(".lvl").forEach(b=>b.addEventListener("click", ()=>startLevel(+b.dataset.l)));
   $("#floatBtn").addEventListener("click", ()=>startLevel(makeFloatLevel()));
+  const cb = $("#cbBtn"); if(cb) cb.addEventListener("click", ()=>startLevel(makeCallbackLevel()));
   $("#otBtn").addEventListener("click", ()=>startLevel(makeOvertimeLevel()));
   $("#rkNurse").addEventListener("click", ()=>showNurseEditor(false));
   $("#rkEdit").addEventListener("click", ()=>showNurseEditor(false));
@@ -3608,7 +3660,7 @@ function endShift(reshow){
     <p class="fine">${LV.mode==="icu" ? `★ do 3 cares with nobody lost · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts with drips in range 70% of the shift` : LV.mode==="er" ? `★ see 5 patients · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts and nobody lost` : LV.mode==="rrt" ? `★ answer every call · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody expired and no wrong shocks` : `★ 3 patients home · ★★ ${LV.stars[0].toLocaleString()} pts · ★★★ ${LV.stars[1].toLocaleString()} pts, nobody lost or moved to ICU too late, and every patient assessed`}</p></div>`;
   guardReport();
   const nb = $("#nextBtn"); if(nb) nb.addEventListener("click", ()=>betweenLevelAd(()=>startLevel(nextL.n)));
-  $("#againBtn").addEventListener("click", ()=>betweenLevelAd(()=>startLevel(LV.float ? makeFloatLevel() : LV.overtime ? makeOvertimeLevel() : LV.n)));
+  $("#againBtn").addEventListener("click", ()=>betweenLevelAd(()=>startLevel(LV.float ? makeFloatLevel() : LV.overtime ? makeOvertimeLevel() : LV.callback ? makeCallbackLevel() : LV.n)));
   $("#listBtn").addEventListener("click", showStart);
 }
 function start(){
