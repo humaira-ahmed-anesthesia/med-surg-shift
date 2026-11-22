@@ -3502,8 +3502,8 @@ function endShift(reshow){
       <div class="stat"><b>${G.expired}</b><span>Patients expired</span></div>
       <div class="stat"><b>${G.badShocks}</b><span>Shocks on a non-shockable rhythm</span></div>
       <div class="stat"><b>${G.ff}</b><span>CPR cycles fast-forwarded</span></div>` : "";
-  const head = G.outOfHearts ? "Out of hearts" : LV.overtime ? "Overtime is over" : LV.float ? `Float shift: ${LV.floatUnit}` : LV.mode==="rrt" ? "Rapid response report" : "Shift report";
-  const sub = G.outOfHearts ? `You lost all 3 hearts. The next one comes back in ${mmss(nextHeartIn())}.` : (LV.float || LV.overtime) ? msg2 : `${esc(LV.name)}. ${msg2}`;
+  const head = G.outOfHearts ? "Shift failed" : LV.overtime ? "Overtime is over" : LV.float ? `Float shift: ${LV.floatUnit}` : LV.mode==="rrt" ? "Rapid response report" : "Shift report";
+  const sub = G.outOfHearts ? `You lost all 3 hearts, so this shift doesn't count. Try it again when a heart comes back in ${mmss(nextHeartIn())}, or watch an ad for one.` : (LV.float || LV.overtime) ? msg2 : `${esc(LV.name)}. ${msg2}`;
   ov.innerHTML = `<div class="card"><h1>${head}</h1><p class="sub">${sub}</p>
     <div class="stars">${starsRow(stars)}</div>
     ${promoted ? `<p class="promo">Promoted to <b>${RANKS[rankOf(cr.after)].n}</b>!</p>` : ""}
