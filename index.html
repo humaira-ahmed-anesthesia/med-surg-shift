@@ -365,6 +365,7 @@ button.chip.now:active{transform:scale(.96)}
 .who .meta .dnr{color:#6a4fb3}
 .rk-nurse{flex:none;width:50px;height:50px;border-radius:50%;background:#fff;display:grid;place-items:center;box-shadow:0 2px 0 rgba(0,0,0,.08);overflow:hidden;padding:0}
 .rk-top .rk-badge{margin-left:auto}
+.rk-edit{align-self:flex-start;margin-top:4px;padding:3px 9px;border-radius:99px;background:#fff;font-size:11.5px;font-weight:800;color:var(--accent);box-shadow:0 1px 0 var(--line)}
 .specials{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0 4px}
 .special{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 11px;border-radius:14px;background:linear-gradient(135deg,#fff4d6,#ffe7c2);box-shadow:0 2px 0 #ecd3a7}
 .special b{font-family:var(--display);font-weight:600;font-size:15px}
@@ -3307,7 +3308,7 @@ function addCareer(pts){ const before = careerPts(); saved.career = before + Mat
 function rankCard(pts, gained){
   const i = rankOf(pts), r = RANKS[i], nx = RANKS[i+1];
   const pct = nx ? Math.round(100 * (pts - r.at) / (nx.at - r.at)) : 100;
-  return `<div class="rank"><div class="rk-top"><button class="rk-nurse" id="rkNurse" aria-label="Edit your nurse">${nurseSVG(saved.nurse, 46)}</button><span class="rk-name"><b>${esc(nurseName())}, ${r.n}</b><small>${esc(r.d)}</small></span><span class="rk-badge">${i+1}</span></div>
+  return `<div class="rank"><div class="rk-top"><button class="rk-nurse" id="rkNurse" aria-label="Edit your nurse">${nurseSVG(saved.nurse, 46)}</button><span class="rk-name"><b>${esc(nurseName())}, ${r.n}</b><small>${esc(r.d)}</small>${gained === undefined ? `<button class="rk-edit" id="rkEdit">✏️ Edit name &amp; look</button>` : ""}</span><span class="rk-badge">${i+1}</span></div>
     <div class="rk-bar"><i style="width:${pct}%"></i></div>
     <small class="rk-sub">${gained ? `+${gained.toLocaleString()} career points · ` : ""}${pts.toLocaleString()} total${nx ? ` · ${(nx.at-pts).toLocaleString()} to ${nx.n}` : " · top rank!"}</small></div>`;
 }
@@ -3337,7 +3338,7 @@ function nurseSVG(n, size){
     <path d="M21 25.5a3.6 3.6 0 0 0 6 0" fill="none" stroke="#2f3d47" stroke-width="1.3" stroke-linecap="round"/>
     <circle cx="18" cy="24" r="1.6" fill="#f08f8f" opacity=".45"/><circle cx="30" cy="24" r="1.6" fill="#f08f8f" opacity=".45"/></svg>`;
 }
-function showNurseEditor(first){
+function showNurseEditor(first, onDone){
   const n = Object.assign({name:"", skin:NURSE_OPTS.skin[1], hair:NURSE_OPTS.hair[0], style:"bun", scrubs:NURSE_OPTS.scrubs[0]}, saved.nurse || {});
   const sw = (k, arr) => `<div class="sw-row">${arr.map(v=>`<button class="sw${n[k]===v?" on":""}" data-k="${k}" data-v="${v}" style="${k==="style"?"":"background:"+v}" aria-label="${k} ${v}">${k==="style"?`<span>${v}</span>`:""}</button>`).join("")}</div>`;
   ov.hidden = false;
@@ -3345,13 +3346,13 @@ function showNurseEditor(first){
     <div class="nurse-prev" id="nPrev">${nurseSVG(n, 96)}</div>
     <label class="nm-in">Name on your badge<input id="nName" maxlength="18" placeholder="e.g. Humaira" value="${esc(n.name||"")}"></label>
     <h3>Skin</h3>${sw("skin", NURSE_OPTS.skin)}<h3>Hair</h3>${sw("style", NURSE_OPTS.style)}${sw("hair", NURSE_OPTS.hair)}<h3>Scrubs</h3>${sw("scrubs", NURSE_OPTS.scrubs)}
-    <button class="go" id="nSave">${first ? "Start orientation" : "Save"}</button></div>`;
+    <button class="go" id="nSave">${first ? "Start orientation" : onDone ? "Save and go back" : "Save"}</button></div>`;
   ov.querySelectorAll(".sw").forEach(b=>b.addEventListener("click", ()=>{
     n[b.dataset.k] = b.dataset.v; sfx.tap();
     ov.querySelectorAll(`.sw[data-k="${b.dataset.k}"]`).forEach(x=>x.classList.toggle("on", x===b));
     $("#nPrev").innerHTML = nurseSVG(n, 96);
   }));
-  $("#nSave").addEventListener("click", ()=>{ n.name = ($("#nName").value || "").trim() || "Nurse"; saved.nurse = n; save(); showStart(); });
+  $("#nSave").addEventListener("click", ()=>{ n.name = ($("#nName").value || "").trim() || "Nurse"; saved.nurse = n; save(); if(onDone) onDone(); else showStart(); });
 }
 function starsRow(n){ return STAR(n>=1)+STAR(n>=2)+STAR(n>=3); }
 
@@ -3395,6 +3396,7 @@ function showStart(){
   $("#floatBtn").addEventListener("click", ()=>startLevel(makeFloatLevel()));
   $("#otBtn").addEventListener("click", ()=>startLevel(makeOvertimeLevel()));
   $("#rkNurse").addEventListener("click", ()=>showNurseEditor(false));
+  $("#rkEdit").addEventListener("click", ()=>showNurseEditor(false));
   $("#mMusic").addEventListener("click", ()=>{ audioUnlock(); music.set(!music.on); showStart(); });
   $("#mSfx").addEventListener("click", ()=>{ soundOn = !soundOn; try{ localStorage.setItem("fp-sfx", soundOn?"1":"0"); }catch(_){} showStart(); });
   const mh = $("#mHeart"); if(mh) mh.addEventListener("click", ()=>rewardAd(()=>{ giveHeart(); toast("You earned a heart!", "good"); showStart(); }));
@@ -3423,11 +3425,13 @@ function showPause(){
     <button class="go" id="resumeBtn">Back to the floor</button>
     <button class="toggle" id="soundBtn">${soundOn?"Turn sound effects off":"Turn sound effects on"}</button>
     <button class="toggle" id="musicBtn">${music.on?"Turn music off":"Turn music on"}</button>
+    <button class="toggle" id="nurseBtn">Edit your nurse</button>
     <button class="toggle" id="quitBtn">Quit to shift list</button></div>`;
   $("#resumeBtn").addEventListener("click", ()=>{ G.paused = false; ov.hidden = true; });
   $("#soundBtn").addEventListener("click", e=>{ soundOn = !soundOn; try{ localStorage.setItem("fp-sfx", soundOn?"1":"0"); }catch(_){} e.target.textContent = soundOn?"Turn sound effects off":"Turn sound effects on"; });
   $("#musicBtn").addEventListener("click", e=>{ audioUnlock(); music.set(!music.on); e.target.textContent = music.on?"Turn music off":"Turn music on"; });
   $("#quitBtn").addEventListener("click", ()=>{ G.running = false; showStart(); });
+  $("#nurseBtn").addEventListener("click", ()=>showNurseEditor(false, showPause));
 }
 function showChart(){
   const p = cur();
