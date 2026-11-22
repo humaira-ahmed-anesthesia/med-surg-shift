@@ -388,6 +388,19 @@ button.chip.now:active{transform:scale(.96)}
 .sw{width:34px;height:34px;border-radius:50%;box-shadow:0 0 0 2px #fff,0 0 0 3px var(--line)}
 .sw.on{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--accent)}
 .sw[data-k="style"]{width:auto;height:auto;border-radius:99px;padding:5px 10px;background:var(--wall);font-size:12px;font-weight:800;text-transform:capitalize}
+.spot{position:fixed;z-index:40;border-radius:16px;box-shadow:0 0 0 200vmax rgba(24,32,38,.6),0 0 0 4px #ffd84d inset;pointer-events:none;transition:left .25s,top .25s,width .25s,height .25s}
+.spot-arrow{position:fixed;z-index:41;pointer-events:none;animation:arrowBob .8s ease-in-out infinite}
+.spot-arrow.up svg{transform:rotate(180deg)}
+.spot-arrow.right svg{transform:rotate(-90deg)}
+.spot-arrow.nudge{animation:arrowNudge .35s ease,arrowBob .8s ease-in-out .35s infinite}
+@keyframes arrowBob{50%{transform:translateY(8px)}}
+@keyframes arrowNudge{25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.spot-tip{position:fixed;z-index:41;pointer-events:none;background:#24484a;color:#fff;border-radius:14px;padding:10px 12px;font-size:14px;font-weight:700;line-height:1.35;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.spot-tip b{color:#ffe28a}
+.spot-tip.hasBtn{pointer-events:auto}
+.spot-tip .tipBtn{display:block;width:100%;margin-top:9px;padding:9px;border-radius:11px;background:#ffd84d;color:#2f3d47;font-weight:800;font-size:14px}
+.spot[hidden],.spot-arrow[hidden],.spot-tip[hidden]{display:none}
+.pickup{background:#fff1c8;border:2px solid #f2d27a;border-radius:14px;padding:9px 11px;font-size:13px;font-weight:700;margin:8px 0 2px;line-height:1.35}
 .hp-tabs{display:flex;gap:6px;margin-bottom:10px}
 .hp-tabs .tab{flex:1;padding:7px 8px;border-radius:10px;background:var(--wall);font-weight:800;font-size:13px;color:var(--muted)}
 .hp-tabs .tab.on{background:var(--accent);color:#fff}
@@ -1093,7 +1106,7 @@ const ICU_LEVELS = [
     cares:[["pulses",15,6],["dressing",45,22],["glucose",15,11]], events:[[22,"co"],[70,"chestEschar"],[115,"cold"],[168,"lateArrest"]], stars:[4300,5800]})
 ];
 const ICU_COACH = [
-  {txt:"Welcome to the ICU: <b>one patient, a lot going on</b>. The drip panel keeps her <b>MAP 65–80</b>. When a number drifts, the <b>+</b> or <b>−</b> you need glows. Tap <b>+</b> until MAP turns green.", done:()=>G.icu.drips[0] && dripOK(G.icu.drips[0])},
+  {txt:"Welcome to the ICU: <b>one patient, a lot going on</b>. The drip panel keeps her <b>MAP 65–80</b>. When a number drifts, the <b>+</b> or <b>−</b> you need glows. Tap <b>+</b> until MAP turns green.", target:"#drips .dp", done:()=>G.icu.drips[0] && dripOK(G.icu.drips[0])},
   {txt:"Drips drift, so keep an eye on them all shift. Next: <b>hourly cares</b> come due on a clock. Do the glowing step when one appears.", done:()=>G.icu.caresDone>=1},
   {txt:"The <b>ventilator is alarming!</b> Follow the steps. When it's time, tap the call button to bring <b>RT</b>.", setup:()=>{G.icu.pendingEv="ventHigh";}, done:()=>G.icu.eventsDone>=1},
   {txt:"Open the <b>H&amp;P</b> folder and tap <b>Lines &amp; drains</b> to learn what each device is and what to watch.", done:()=>G.tutDevices},
@@ -1891,7 +1904,7 @@ const ER_ORIENT = {n:100, tag:"EO", unit:"ER", mode:"er", tutorial:true, coach:E
   name:"ER orientation", blurb:"Your first ER shift with a preceptor. Learn bays, arrivals, calling for help and hearts.", tools:ER_TOOLS, ev:[999,999]};
 /* ---------- levels ---------- */
 const LEVELS = [
-  {n:0, tag:"O", mode:"tutorial", name:"Orientation: new grad on 4 West", blurb:"Your first day as a new grad, with a preceptor at your side. Learn the tools, the monitor and how to handle an emergency.",
+  {n:0, tag:"O", mode:"tutorial", name:"Orientation: new grad on 4 West", blurb:"7 a.m. to noon, at half speed, with your preceptor pointing the way. Learn the tools, the monitor and how to handle an emergency.",
    first:[P.dsg,P.pna,P.cell], follow:[], urgent:[], drain:0.12, ev:[999,999], stars:[0,0]},
   {n:1, name:"Day shift on 4 West", blurb:"Learn the ropes. Pain, wounds, blood and a COPD flare who needs the ICU.",
    first:[P.kneepain,P.hgb,P.pna,P.dsg,P.dehyd,P.cell,P.hypo,P.inc,P.lowk], follow:[F.pain,F.lostiv,F.nausea,F.pressure,F.lowsugar,F.am,F.k,F.ca,F.dizzy,F.sob],
@@ -2498,21 +2511,21 @@ function loseHeart(){
 }
 /* ---------- tutorial coach ---------- */
 const COACH = [
-  {get txt(){ return `Welcome to 4 West, ${esc(nurseName())}! I'm your preceptor.`.concat(this.rest); }, rest:" Room 412 has <b>low hemoglobin</b>. Her care is a recipe, and the glowing step is what to do next. <b>Tap the glowing tool</b> at the bottom.", setup:()=>{ G.current = 0; }, done:()=>G.beds[0].state!=="needs" || G.beds[0].active.step>=1},
-  {txt:"Nice! Every result pops into the feed. Keep following the glow until her recipe is done. Blood is given with the <b>Meds</b> button.", done:()=>G.beds[0].state!=="needs"},
-  {txt:"Every patient needs an assessment once a shift. The orange ring means not yet. <b>Tap Assess.</b>", done:()=>G.beds[0].assessed},
-  {txt:"This is the monitor. Red numbers mean trouble. <b>Tap Vitals</b> to recheck anytime.", done:()=>G.tutVitals},
-  {txt:"Your other patients are on the right. <b>Tap Room 414.</b>", done:()=>G.current===1},
-  {txt:"He's short of breath. <b>Assess first</b>, then treat. Follow the glow.", done:()=>G.beds[1].state!=="needs"},
-  {txt:"Emergency! A patient is <b>flashing red</b>. Go to their room and follow the steps.", setup:()=>{
+  {get txt(){ return `Welcome to 4 West, ${esc(nurseName())}! I'm your preceptor. Room 412 has <b>low hemoglobin</b>. Her care is a recipe. <b>Tap the button the arrow points to.</b>`; }, setup:()=>{ G.current = 0; }, done:()=>G.beds[0].state!=="needs" || G.beds[0].active.step>=1},
+  {txt:"Nice! Every result shows up in the feed. <b>Keep following the arrow</b> until her care is done.", done:()=>G.beds[0].state!=="needs"},
+  {txt:"Every patient needs one assessment each shift. The orange ring means not yet. <b>Tap Assess.</b>", target:"#tool-assess", done:()=>G.beds[0].assessed},
+  {txt:"This is the monitor. Red numbers mean trouble. Vitals live up here, not at the bottom: <b>tap Recheck.</b>", target:"#vitBtn", done:()=>G.tutVitals},
+  {txt:"<b>These are your other patients.</b> You have three. Keep an eye on their health bars: when one drops or a badge pops up, they need you.", target:"#list", btn:"Got it", done:()=>G.coachAck===4},
+  {txt:"Room 414 needs you. <b>Tap Room 414</b> to go check on him.", target:"#bed-1", done:()=>G.current===1},
+  {txt:"He's short of breath. <b>Follow the arrow</b> to care for him.", done:()=>G.beds[1].state!=="needs"},
+  {txt:"Emergency! A patient is <b>flashing red</b>. Go to their room and follow the arrow.", setup:()=>{
       const live = b => b.state==="needs" || b.state==="resting";
       G.tutBed = [2,1,0].find(i => i!==G.current && live(G.beds[i]));
       if(G.tutBed===undefined) G.tutBed = [2,1,0].find(i => live(G.beds[i]));
       if(G.tutBed!==undefined) forceUrgent(G.beds[G.tutBed], U.desat);
     }, done:()=>{ const b = G.beds[G.tutBed]; return G.tutBed===undefined || !b || !(b.active && b.active.urgent); }},
-  {txt:"Tap the <b>H&amp;P</b> folder to read a patient's history. The game pauses while it's open.", done:()=>G.tutChart},
-  {txt:"Swamped? <b>Call charge</b> does one step for 20 points. <b>Rapid response</b> unlocks when someone is in the red. The <b>snail</b> slows time for 15 seconds.", btn:"Got it", done:()=>G.coachAck===8},
-  {txt:"That's the basics. You're ready for your first shift!", btn:"Finish orientation", done:()=>G.coachAck===9}
+  {txt:"Tap the <b>H&amp;P</b> folder to read a patient's history. The game pauses while it's open.", target:"#chartBtn", done:()=>G.tutChart},
+  {txt:"Swamped? <b>Call charge</b> does one step for you. <b>Rapid response</b> unlocks when someone is in the red. The <b>snail</b> slows time. That's the basics!", btn:"Finish orientation", done:()=>G.coachAck===9}
 ];
 const coachList = () => LV.coach || (LV.mode==="tutorial" ? COACH : (LV.mode==="icu" && LV.tutorial) ? ICU_COACH : null);
 function checkCoach(){
@@ -2544,6 +2557,7 @@ const logIt = (p, text) => p.log.push([clockStr(), text]);
 function update(dt){
   G.t += dt;
   if((LV.mode==="floor" || (LV.mode==="er" && !LV.tutorial && !LV.overtime) || (LV.mode==="icu" && !LV.tutorial)) && G.t >= (LV.shift || SHIFT)){ endShift(); return; }
+  if(LV.mode==="tutorial" && G.t >= ORIENT_END && !G.over){ finishTutorial(); return; }
   if(LV.mode==="icu") icuTick(dt);
   if(G.foodAt && !G.food && G.t >= G.foodAt && !G.cover) familyFood();
   if(LV.overtime){ LV.drain = 0.95 + G.t/220; }
@@ -3252,6 +3266,11 @@ function floatText(txt, minus){
 const ov = $("#overlay");
 let saved = {};
 try{ saved = JSON.parse(localStorage.getItem("medsurg-levels") || "{}") || {}; }catch(e){ saved = {}; }
+/* "Can you pick up a shift?" — away a day or more → +250 on the next finished shift */
+const PICKUP_BONUS = 250;
+{ const last = saved.lastPlay || 0;
+  if(last && Date.now() - last >= 24*3600*1000 && !saved.pickup){ saved.pickup = true; }
+  saved.lastPlay = Date.now(); try{ localStorage.setItem("medsurg-levels", JSON.stringify(saved)); }catch(e){} }
 /* career points started counting after some shifts were already played: credit every level's best score */
 { const bestSum = Object.keys(saved).filter(k=>/^\d+$/.test(k)).reduce((a,k)=>a + ((saved[k]||{}).best||0), 0);
   if((saved.career||0) < bestSum){ saved.career = bestSum; try{ localStorage.setItem("medsurg-levels", JSON.stringify(saved)); }catch(e){} } }
@@ -3329,6 +3348,7 @@ function showStart(){
     <p class="sub">A nurse who floats wherever she&rsquo;s needed. New grad? Start with orientation.</p>
     ${rankCard(careerPts())}
     <div class="menu-sound"><button id="mMusic">${music.on ? "🎵 Music on" : "🎵 Music off"}</button><button id="mSfx">${soundOn ? "🔊 Sounds on" : "🔈 Sounds off"}</button>${heartsNow() < 3 ? `<button id="mHeart">❤ Watch ad: +1 heart</button>` : ""}</div>
+    ${saved.pickup ? `<div class="pickup">📟 <b>We're short-staffed!</b> Can you pick up a shift? Finish any shift today for <b>+${PICKUP_BONUS} bonus points</b>.</div>` : ""}
     <div class="specials">
       <button class="special" id="floatBtn"><b>🎲 Float shift</b><small>A random unit, random patients${(saved[900]||{}).best ? ` · best ${saved[900].best}` : ""}</small></button>
       <button class="special" id="otBtn"><b>⏱ Overtime</b><small>How long can you last?${(saved[950]||{}).best ? ` · best ${saved[950].best}` : ""}</small></button>
@@ -3464,6 +3484,8 @@ function endShift(reshow){
     const prev = saved[LV.n] || {stars:0, best:0};
     const isBest = G.score > (prev.best||0);
     saved[LV.n] = {stars:Math.max(prev.stars||0, stars), best:Math.max(prev.best||0, G.score)}; save();
+    let pickup = 0;
+    if(saved.pickup && !G.outOfHearts && !LV.tutorial && LV.mode!=="tutorial"){ pickup = PICKUP_BONUS; G.score += pickup; saved.pickup = false; save(); }
     const cr = addCareer(G.score);
     let daisy = null;
     if(daisyEligible() && stars === 3 && G.expired === 0 && !G.outOfHearts && Math.random() < 0.35){
@@ -3472,9 +3494,9 @@ function endShift(reshow){
       const home = G.all.filter(p => p.out==="home" || p.out==="admit" || p.out==="go");
       daisy = {unit, letter: daisyLetter(home.length ? pick(home) : null)};
     }
-    lastReport = {stars, isBest, cr, daisy};
+    lastReport = {stars, isBest, cr, daisy, pickup};
   }
-  const {stars, isBest, cr, daisy} = lastReport;
+  const {stars, isBest, cr, daisy, pickup} = lastReport;
   const promoted = cr && rankOf(cr.after) > rankOf(cr.before);
   const msg = stars===3 ? "Flawless shift. Your patients adore you." : stars===2 ? "Solid shift. Everyone's in good hands." : stars===1 ? "You made it through. Go eat something." : "Tough shift. They happen to everyone.";
   const msg2 = (LV.mode==="icu" && G.icu && G.icu.passed && !G.outOfHearts) ? (stars>=2 ? "You lost a patient tonight, and you still gave everyone excellent care. Take a breath." : "A hard shift, and a patient you couldn't save. That one wasn't on you.") : msg;
@@ -3506,6 +3528,7 @@ function endShift(reshow){
   const sub = G.outOfHearts ? `You lost all 3 hearts, so this shift doesn't count. Try it again when a heart comes back in ${mmss(nextHeartIn())}, or watch an ad for one.` : (LV.float || LV.overtime) ? msg2 : `${esc(LV.name)}. ${msg2}`;
   ov.innerHTML = `<div class="card"><h1>${head}</h1><p class="sub">${sub}</p>
     <div class="stars">${starsRow(stars)}</div>
+    ${pickup ? `<p class="promo">Thanks for picking up a shift! +${pickup} bonus points</p>` : ""}
     ${promoted ? `<p class="promo">Promoted to <b>${RANKS[rankOf(cr.after)].n}</b>!</p>` : ""}
     ${daisy ? `<div class="daisy-card">${DAISY_SVG(54, true)}<div><b>You've been nominated for a Peony!</b><p>“${esc(daisy.letter)}”</p><small>New pin: ${esc(daisy.unit)} Peony</small></div></div>` : ""}
     ${cr ? rankCard(cr.after, cr.after - cr.before) : ""}
@@ -3549,17 +3572,85 @@ document.getElementById("ptAv").addEventListener("click", ()=>{
   toast(reviewSlow ? "Review speed on: the whole shift runs at half speed. Tap the face again to turn it off." : "Review speed off: back to normal speed.");
 });
 showReviewBadge();
+/* ---------- orientation spotlight: dim the screen, point at the one thing to tap ---------- */
+const ORIENT_END = SHIFT * 5/12; // 07:00 to 12:00
+const spotEl = document.createElement("div"); spotEl.className = "spot"; spotEl.hidden = true;
+const spotArrow = document.createElement("div"); spotArrow.className = "spot-arrow"; spotArrow.hidden = true;
+spotArrow.innerHTML = '<svg viewBox="0 0 40 52" width="40" height="52"><path d="M20 50 4 30h10V2h12v28h10z" fill="#ffd84d" stroke="#8a6100" stroke-width="2.5" stroke-linejoin="round"/></svg>';
+const spotTip = document.createElement("div"); spotTip.className = "spot-tip"; spotTip.hidden = true;
+document.body.append(spotEl, spotArrow, spotTip);
+let spotSel = null, spotLastSel = null;
+function spotTarget(){
+  const list = LV && coachList();
+  if(!list || !G || G.over || !G.running || G.paused || !ov.hidden) return null;
+  const c = list[G.coach]; if(!c) return null;
+  if(c.target) return typeof c.target === "function" ? c.target() : c.target;
+  if(c.btn) return ".coach";
+  const p = cur();
+  if(p && p.state==="needs"){
+    const st = curStep(p); if(!st || st.k==="md") return null;
+    if(st.pick) return G.picking === st ? ".picks" : "#tool-meds";
+    return st.k==="vitals" ? "#vitBtn" : st.k==="esc" ? "#rr" : st.k==="go" ? "#goBtn" : st.k==="cpr" && G.cpr>0 && !st.during ? "#ffBtn" : "#tool-" + btnFor(st.k);
+  }
+  const i = G.beds.findIndex(b => b.state==="needs");
+  return i >= 0 ? "#bed-" + i : null;
+}
+function updateSpot(){
+  spotSel = spotTarget();
+  const el = spotSel && document.querySelector(spotSel);
+  const r = el && el.getBoundingClientRect();
+  if(!el || !r.width){ spotEl.hidden = spotArrow.hidden = spotTip.hidden = true; return; }
+  if(spotSel !== spotLastSel){ spotLastSel = spotSel; if(el.closest("#feed")) el.scrollIntoView({block:"nearest"}); }
+  const pad = 6;
+  Object.assign(spotEl.style, {left:(r.left-pad)+"px", top:(r.top-pad)+"px", width:(r.width+pad*2)+"px", height:(r.height+pad*2)+"px"});
+  spotEl.hidden = false;
+  const H = window.innerHeight, roomAbove = r.top >= 170, roomBelow = H - r.bottom >= 170;
+  const mode = roomAbove ? "above" : roomBelow ? "below" : "side";
+  const below = mode === "below";
+  spotArrow.classList.toggle("up", below); spotArrow.classList.toggle("right", mode==="side");
+  if(mode==="side") Object.assign(spotArrow.style, {left:(r.left - 62)+"px", top:(r.top + Math.min(r.height*0.3, 160))+"px"});
+  else Object.assign(spotArrow.style, {left:(r.left + r.width/2 - 20)+"px", top:(below ? r.bottom + 10 : r.top - 62)+"px"});
+  spotArrow.hidden = false;
+  const c = coachList()[G.coach];
+  const showTip = spotSel !== ".coach";
+  spotTip.hidden = !showTip;
+  if(showTip){
+    if(spotTip._t !== G.coach){ spotTip._t = G.coach; spotTip.innerHTML = c.txt + (c.btn ? `<button class="tipBtn">${c.btn}</button>` : ""); spotTip.classList.toggle("hasBtn", !!c.btn); }
+    if(mode==="side"){
+      const tw = Math.max(180, Math.min(300, r.left - 24));
+      spotTip.style.width = tw + "px"; spotTip.style.left = Math.max(12, r.left - tw - 14) + "px";
+      spotTip.style.top = (r.top + Math.min(r.height*0.3, 160) + 64) + "px"; spotTip.style.bottom = "auto";
+      return;
+    }
+    const tw = Math.min(300, window.innerWidth - 24);
+    const left = Math.max(12, Math.min(window.innerWidth - tw - 12, r.left + r.width/2 - tw/2));
+    spotTip.style.width = tw + "px"; spotTip.style.left = left + "px";
+    if(below){ spotTip.style.top = (r.bottom + 70) + "px"; spotTip.style.bottom = "auto"; }
+    else { spotTip.style.top = "auto"; spotTip.style.bottom = (window.innerHeight - r.top + 70) + "px"; }
+  }
+}
+/* while the spotlight is on, only the highlighted thing (and pause) can be tapped */
+["click","pointerdown"].forEach(t => document.addEventListener(t, e => {
+  if(spotEl.hidden || !spotSel) return;
+  const el = e.target;
+  if(t==="click" && el.closest(".tipBtn")){ e.stopPropagation(); G.coachAck = G.coach; checkCoach(); sfx.tap(); return; }
+  if(el.closest(spotSel) || el.closest(".tipBtn") || el.closest("#pauseBtn") || el.closest("#overlay") || el.closest(".adcard")) return;
+  e.stopPropagation(); e.preventDefault();
+  if(t==="click"){ spotArrow.classList.remove("nudge"); void spotArrow.offsetWidth; spotArrow.classList.add("nudge"); }
+}, true));
 function frame(ts){
   const dt = last ? Math.min(0.1, (ts-last)/1000) : 0; last = ts;
   if(playing()){
     let gdt = dt;
     if(G.slowLeft>0){ G.slowLeft = Math.max(0, G.slowLeft - dt); gdt = dt*SLOW_RATE; }
     if(reviewSlow) gdt *= REVIEW_RATE;
+    if(LV.mode==="tutorial" || LV.tutorial) gdt *= 0.5; // orienting: everything at half speed
     update(gdt);
     checkCoach();
   }
   if(dirty){ renderAll(); dirty = false; }
   updateLive();
+  updateSpot();
   if(G.feed && G.feed[0] && !G.feed[0].aged && performance.now()-G.feed[0].ts > 6000){ G.feed[0].aged = true; dirty = true; }
   requestAnimationFrame(frame);
 }
