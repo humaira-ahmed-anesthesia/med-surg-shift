@@ -161,6 +161,8 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .adcard .box b{display:block;font-family:var(--display);font-size:20px;margin-bottom:6px}
 .adcard .box p{margin:0 0 12px;color:var(--muted);font-weight:700;font-size:13px}
 .adcard .count{font-family:var(--display);font-size:34px;color:var(--accent)}
+.adcard .abtn{display:block;width:100%;margin-top:8px;padding:12px;border-radius:12px;font-weight:800;font-size:15px;background:var(--wall);color:var(--ink)}
+.adcard .abtn.main{background:var(--accent);color:#fff}
 .menu-sound{display:flex;gap:8px;justify-content:center;margin:6px 0 2px}
 .menu-sound button{flex:1;padding:8px;border-radius:12px;background:var(--wall);font-weight:800;font-size:13px;color:var(--ink)}
 .overlay{position:absolute;inset:0;display:grid;place-items:center;padding:20px;background:rgba(47,61,71,.35);z-index:10}
@@ -784,6 +786,10 @@ const VT_ARREST = {allHands:1, t:"Code blue!", d:"Found unresponsive by the tech
   C("shock","Shock again","200 J","Third shock at 200 joules."),
   C("cpr","Resume CPR","CPR","CPR resumed.",{cpr:1}),
   C("meds","Amiodarone 300 mg","Amio","Amiodarone 300 mg IV push.",{during:1}),
+  C("vitals","Rhythm check","","Still pulseless VT (abnormal). Shockable."),
+  C("shock","Shock again","200 J","Fourth shock at 200 joules."),
+  C("cpr","Resume CPR","CPR","CPR resumed.",{cpr:1}),
+  C("meds","Epinephrine 1 mg","Epi","Second epinephrine 1 mg, 4 minutes after the first.",{during:1}),
   C("vitals","Rhythm & pulse check","","Organized rhythm with a strong pulse. ROSC! BP 96/58.",{rh:"Sinus tach · ROSC"}),
   C("labs","12-lead EKG & labs","EKG","12-lead shows no STEMI. Potassium 3.0 (low), magnesium 1.5 (low)."),
   C("go","Take to the ICU","icu","")]};
@@ -921,29 +927,34 @@ const ER = {
     C("shock","Shock again","200 J","Third shock at 200 joules."),
     C("cpr","Resume CPR","CPR","CPR resumed.",{cpr:1}),
     C("meds","Amiodarone 300 mg","Amio","Amiodarone 300 mg IV push.",{during:1}),
+    C("vitals","Rhythm check","","Still V-fib (abnormal). Shockable."),
+    C("shock","Shock again","200 J","Fourth shock at 200 joules."),
+    C("cpr","Resume CPR","CPR","CPR resumed.",{cpr:1}),
+    C("meds","Epinephrine 1 mg","Epi","Second epinephrine 1 mg, 4 minutes after the first.",{during:1}),
     C("vitals","Rhythm & pulse check","","Organized rhythm with a pulse. ROSC! BP 98/60.",{rh:"Sinus tach · ROSC"}),
     C("labs","12-lead EKG","EKG","ST elevation in the front of the heart (abnormal). STEMI."),
     C("go","Rush to cath lab","cath","")]}},
-  codePEA: {age:74, sex:"woman", pmh:["Atrial fibrillation (on a blood thinner)"], dx:"Cardiac arrest (PEA) from blood loss", def:{allHands:1, code:true, crit:1, t:"Code blue!", d:"EMS rolling in doing CPR. Vomited blood at home, then passed out.", rh:"Unknown: pads not on yet", r:2.4, s:[
+  codePEA: {age:74, sex:"woman", pmh:["Atrial fibrillation (on a blood thinner)"], dx:"Cardiac arrest (PEA) from blood loss", def:{allHands:1, code:true, crit:1, t:"Code blue!", d:"EMS rolling in doing CPR. Vomited blood at home, then passed out. PEA on their monitor, IO in.", rh:"PEA (EMS monitor)", r:2.4, s:[
     C("cpr","Take over compressions","CPR","You take over compressions from EMS.",{cpr:1}),
     C("o2","Bag-mask breaths","BVM","Bag-mask breaths, 30 compressions to 2.",{during:1}),
+    C("meds","Epinephrine 1 mg now","Epi","Epinephrine 1 mg through the EMS IO, as soon as possible.",{during:1}),
     C("vitals","Pads on, rhythm check","","Organized rhythm on the monitor, but no pulse. PEA (abnormal). Not shockable.",{rh:"PEA"}),
     C("cpr","Resume CPR","CPR","CPR continues. No shock for PEA.",{cpr:1}),
     C("iv","Two big IVs","IV","Two large IVs placed during compressions.",{during:1}),
-    C("meds","Epinephrine 1 mg","Epi","Epinephrine 1 mg IV push.",{during:1}),
     C("labs","Look for the cause","H's & T's","Hemoglobin 4.8 (critically low). She's lost a lot of blood.",{during:1}),
     C("blood","Blood, fast","O-neg","O-negative blood squeezed in on the rapid infuser.",{during:1}),
+    C("meds","Epinephrine 1 mg","Epi","Second epinephrine 1 mg, 4 minutes after the first.",{during:1}),
     C("vitals","Rhythm & pulse check","","Pulse is back! ROSC. BP 84/50.",{rh:"Sinus tach · ROSC"}),
     C("go","Take to the ICU","icu","")]}},
-  codeAsys: {age:66, sex:"man", pmh:["Kidney failure (on dialysis)"], dx:"Cardiac arrest (asystole)", def:{allHands:1, code:true, crit:1, t:"Code blue!", d:"EMS rolling in doing CPR. Skipped dialysis this week.", rh:"Unknown: pads not on yet", r:2.4, s:[
+  codeAsys: {age:66, sex:"man", pmh:["Kidney failure (on dialysis)"], dx:"Cardiac arrest (asystole)", def:{allHands:1, code:true, crit:1, t:"Code blue!", d:"EMS rolling in doing CPR. Skipped dialysis this week. Flat line on their monitor, IO in.", rh:"Asystole (EMS monitor)", r:2.4, s:[
     C("cpr","Take over compressions","CPR","You take over compressions from EMS.",{cpr:1}),
     C("o2","Bag-mask breaths","BVM","Bag-mask breaths, 30 compressions to 2.",{during:1}),
+    C("meds","Epinephrine 1 mg now","Epi","Epinephrine 1 mg through the EMS IO, as soon as possible.",{during:1}),
     C("vitals","Pads on, rhythm check","","Flat line. Leads checked: asystole (abnormal). Not shockable.",{rh:"Asystole"}),
     C("cpr","Resume CPR","CPR","CPR continues. No shock for asystole.",{cpr:1}),
-    C("iv","IO access","IO","No veins, so an IO line went into the shin.",{during:1}),
-    C("meds","Epinephrine 1 mg","Epi","Epinephrine 1 mg IO push.",{during:1}),
     C("labs","Look for the cause","H's & T's","Potassium 7.8 (critically high) from missed dialysis.",{during:1}),
     C("meds","Calcium & bicarb","CaCl","Calcium chloride 1 g and sodium bicarbonate IO push.",{during:1}),
+    C("meds","Epinephrine 1 mg","Epi","Second epinephrine 1 mg, 4 minutes after the first.",{during:1}),
     C("vitals","Rhythm & pulse check","","Wide rhythm, then a pulse! ROSC. BP 90/54.",{rh:"Sinus · ROSC"}),
     C("go","Take to the ICU","icu","")]}},
   afibShock: {once:1, age:68, sex:"woman", pmh:["Hypertension"], dx:"A-fib with a fast rate and low blood pressure", def:{allHands:1, crit:1, t:"Heart racing, BP low!", d:"Dizzy and gray. Heart rate 172, BP 76/44.", r:2.0, v:{hr:172,sbp:76,dbp:44}, rh:"A-fib · rate 172", dispo:"admit", dispoTxt:"Back in a normal rhythm. Admitted to the cardiac floor.", s:[
@@ -1353,6 +1364,7 @@ const LD = {
     C("meds","Epinephrine 1 mg","Epi","Epinephrine 1 mg IV.",{during:1}),
     C("vitals","Rhythm check","","PEA (abnormal). Not shockable.",{rh:"PEA"}),
     C("cpr","Resume CPR","CPR","CPR resumed. Four minutes since the arrest.",{cpr:1}),
+    C("meds","Epinephrine 1 mg","Epi","Second epinephrine 1 mg, 3 to 5 minutes after the first.",{during:1}),
     C("md","OB: delivers the baby at the bedside","","Baby delivered at 5 minutes. NICU team takes over.",{born:1, during:1}),
     C("vitals","Rhythm & pulse check","","Pulse is back! Emptying the uterus helped her heart. ROSC!",{rh:"Sinus tach · ROSC"})]}}
 };
@@ -2321,6 +2333,21 @@ async function adsInit(){
   const A = nativeAds(); if(!A || adsReady) return;
   try{ await A.initialize({initializeForTesting:true}); try{ await A.requestTrackingAuthorization(); }catch(e){} adsReady = true; }catch(e){}
 }
+/* until real ads exist (web, or no AdMob yet): say so and let them skip */
+function noAdCard(title, done){
+  const c = document.getElementById("adcard");
+  c.hidden = false; c.innerHTML = `<div class="box"><b>${title}</b><p>No ads available right now.</p><button class="abtn main" id="adSkip">Skip</button></div>`;
+  c.querySelector("#adSkip").addEventListener("click", ()=>{ c.hidden = true; c.innerHTML = ""; done(); });
+}
+/* out of something mid-shift: offer an ad for more. The shift pauses while the card is up. */
+function adOffer(title, text, reward){
+  const c = document.getElementById("adcard"), wasRunning = G && G.running && !G.over;
+  if(wasRunning) G.paused = true;
+  const resume = () => { if(wasRunning && G.running && !G.over) G.paused = false; dirty = true; };
+  c.hidden = false; c.innerHTML = `<div class="box"><b>${title}</b><p>${text}</p><button class="abtn main" id="adYes">Watch an ad</button><button class="abtn" id="adNo">No thanks</button></div>`;
+  c.querySelector("#adNo").addEventListener("click", ()=>{ c.hidden = true; c.innerHTML = ""; resume(); });
+  c.querySelector("#adYes").addEventListener("click", ()=>{ c.hidden = true; c.innerHTML = ""; rewardAd(()=>{ reward(); resume(); }, resume); });
+}
 function adPlaceholder(secs, title, done){
   const c = document.getElementById("adcard"); let n = secs;
   c.hidden = false; c.innerHTML = `<div class="box"><b>${title}</b><p>In the app store version, a short ad plays here.</p><div class="count">${n}</div></div>`;
@@ -2329,8 +2356,9 @@ function adPlaceholder(secs, title, done){
 /* between levels: never after orientation, and not more than once every ADS.gapSec */
 async function betweenLevelAd(then){
   const A = nativeAds();
-  if(!A || Date.now() - lastAdAt < ADS.gapSec*1000){ then(); return; }
+  if(Date.now() - lastAdAt < ADS.gapSec*1000){ then(); return; }
   lastAdAt = Date.now();
+  if(!A){ noAdCard("Ad break", then); return; }
   try{
     await adsInit();
     await A.prepareInterstitial({adId: adIds().inter});
@@ -2341,14 +2369,14 @@ async function betweenLevelAd(then){
   }catch(e){ then(); }
 }
 /* watch an ad, get a heart */
-async function rewardAd(onReward){
+async function rewardAd(onReward, onNone){
   const A = nativeAds();
-  if(!A){ if(ADS.webPreview) adPlaceholder(5, "Ad break", onReward); else onReward(); return; }
+  if(!A){ noAdCard("Watch an ad", onNone || (()=>{})); return; }
   try{
     await adsInit(); await A.prepareRewardVideoAd({adId: adIds().reward});
     music.stop(); const r = await A.showRewardVideoAd(); if(music.on) music.start();
     if(r) onReward();
-  }catch(e){ toast("No ad available right now. Try again in a minute."); if(music.on) music.start(); }
+  }catch(e){ if(music.on) music.start(); noAdCard("Watch an ad", onNone || (()=>{})); }
 }
 function giveHeart(){ const h = saved.hearts || (saved.hearts = {n:3, t:Date.now()}); heartsNow(); h.n = Math.min(3, h.n + 1); if(h.n === 3) h.t = Date.now(); save(); }
 
@@ -2985,7 +3013,7 @@ function discharge(p){
   if(p === cur()) floatText("+150");
   if(p.dispoTxt){ logIt(p, p.dispoTxt); pushFeed(p, admitIt ? "md" : "assess", p.dispoTxt); }
   toast(admitIt ? `${p.name} is being admitted upstairs.` : `${p.name} is going home!`, "good");
-  if(G.discharged % 3 === 0){ G.rr++; setTimeout(()=>toast(LV.mode==="er" ? "You earned another call for help!" : "You earned a rapid response!", "good"), 1300); }
+  if(G.discharged % 5 === 0){ G.rr++; setTimeout(()=>toast(LV.mode==="er" ? "You earned another call for help!" : "You earned a rapid response!", "good"), 1300); }
   else earnSlow();
   dirty = true;
 }
@@ -3006,9 +3034,10 @@ function familyFood(){
 }
 function earnSlow(){
   G.saves++;
-  if(G.saves % 2 === 0){ G.slows++; setTimeout(()=>toast("You earned a slow moment!", "good"), 1500); }
+  if(G.saves % 3 === 0){ G.slows++; setTimeout(()=>toast("You earned a slow moment!", "good"), 1500); }
 }
 function useSlow(){
+  if(playing() && G.slows<=0 && G.slowLeft<=0){ adOffer("Out of slow moments", "Watch a short ad for 2 more?", ()=>{ G.slows += 2; toast("+2 slow moments!", "good"); }); return; }
   if(!playing() || G.slows<=0 || G.slowLeft>0) return;
   G.slows--; G.slowLeft = SLOW_FOR;
   beep(392,0.25,"sine",0.05); beep(330,0.3,"sine",0.04,0.2);
@@ -3135,6 +3164,11 @@ function callRR(){
     G.rrUsed++;
     if(p.active.step === p.active.steps.length-1 && LV.mode!=="icu") escalate(p, "rr");
     else advance(p, "you", st.fx || (LV.mode==="rrt" ? "More help is on the way." : LV.mode==="er" ? "Help is here." : "Rapid response team at the bedside."));
+    return;
+  }
+  if(LV.mode!=="rrt" && G.rr<=0 && p.health<30 && st.k!=="md"){
+    const what = (LV.mode==="er" || LV.mode==="icu") ? "calls for help" : "rapid responses";
+    adOffer(`Out of ${what}`, `Watch a short ad for 1 more?`, ()=>{ G.rr++; toast(`+1 ${what.replace(/s$/,"").replace("responses","response")}! Tap it again to bring the team.`, "good"); });
     return;
   }
   if(LV.mode==="er" || LV.mode==="icu"){
@@ -3390,16 +3424,17 @@ function updateLive(){
   ch.classList.toggle("ready", escNow && G.chargeCd<=0);
   $("#chargeSub").textContent = G.chargeCd>0 ? `Dana is busy · ${Math.ceil(G.chargeCd)}s` : escNow ? "Calls for help · −20 pts" : goNow ? "Helps you transport · −20 pts" : "Helps one step · −20 pts";
   const rrtMode = LV.mode==="rrt";
-  const rr = $("#rr"), ready = escNow || (!rrtMode && !goNow && G.rr>0 && p.state==="needs" && p.health<30);
+  const outRed = !rrtMode && !goNow && !escNow && G.rr<=0 && p.state==="needs" && p.health<30;
+  const rr = $("#rr"), ready = escNow || outRed || (!rrtMode && !goNow && G.rr>0 && p.state==="needs" && p.health<30);
   rr.disabled = !ready; rr.classList.toggle("ready", ready);
   const erMode = LV.mode==="er" || LV.mode==="icu" || LV.nicu;
   $("#rrName").textContent = rrtMode ? "Call for more help" : LV.mode==="icu" ? (escNow ? st.l.replace(/ stat$/,"") : "Call intensivist") : erMode ? "Call for help" : "Rapid response";
-  $("#rrCount").textContent = rrtMode ? "" : "×"+G.rr;
+  $("#rrCount").textContent = rrtMode ? "" : escNow ? "· free" : "×"+G.rr;
   const sl = $("#slow"), on = G.slowLeft>0;
-  sl.disabled = !on && G.slows<=0; sl.classList.toggle("on", on);
+  sl.disabled = false; sl.classList.toggle("on", on);
   $("#slowCount").textContent = on ? Math.ceil(G.slowLeft)+"s" : "×"+G.slows;
   $("#app").classList.toggle("slowmo", on);
-  $("#rrSub").textContent = erMode ? (escNow ? "Brings the whole team" : G.rr<=0 ? "Earn more by discharging" : ready ? "The whole team takes over" : "Unlocks in the red") : rrtMode ? (escNow ? "Calls the team you need" : "For codes, stroke alerts, MTP") : escNow ? "Calls the team. Free" : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
+  $("#rrSub").textContent = outRed ? "Out · watch an ad for 1 more" : erMode ? (escNow ? "Part of the care · free" : G.rr<=0 ? "Earn more by discharging" : ready ? "The whole team takes over" : "Unlocks in the red") : rrtMode ? (escNow ? "Calls the team you need" : "For codes, stroke alerts, MTP") : escNow ? "Part of the care · free" : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
 }
 
 let toastT = 0;
