@@ -677,15 +677,15 @@ const VIT = (l) => S("vitals", l || "Check vitals", "", "");
 /* admitting problems */
 const P = {
   kneepain:{t:"Post-op pain", d:"Day 1 after knee replacement. Pain 8/10.", dx:"Right knee replacement, post-op day 1", surg:true, v:{hr:98,sbp:152,dbp:88},
-    s:[S("assess","Pain assessment","Assess","Sharp, throbbing knee pain 8/10. Dressing dry, toes warm and pink."), S("meds","Give IV pain med","Dilaudid","Hydromorphone (Dilaudid) 0.5 mg IV given. Pain down to 4/10.")], r:1.3},
+    s:[S("assess","Pain assessment","Assess","Sharp, throbbing knee pain 8/10. Dressing dry, toes warm and pink."), S("meds","Give IV pain med","Hydromorphone","Hydromorphone 0.5 mg IV given. Pain down to 4/10.")], r:1.3},
   hgb:{t:"Low hemoglobin", d:"Pale and dizzy after hip surgery.", dx:"Left hip fracture repair, post-op day 2", surg:true, v:{hr:106,sbp:102,dbp:60},
     s:[S("labs","Type & screen","T&S","Hemoglobin 6.8 g/dL (low). Type & screen sent to blood bank."), S("iv","Large-bore IV","18g IV","18-gauge IV placed in the left arm."), S("blood","Hang 1 unit PRBCs","PRBCs","Two-nurse check done. 1 unit PRBCs running with normal saline.")], r:1.5},
   pna:{t:"Pneumonia", d:"Coughing and feverish. SpO₂ 90% on room air.", dx:"Community-acquired pneumonia", v:{spo2:90,t:38.4,hr:104,rr:24},
-    s:[S("assess","Listen to lungs","Assess","Coarse crackles over the right lower lung."), S("o2","Start oxygen","NC 2 L","2 L nasal cannula on. SpO₂ up to 94%."), S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn before antibiotics. WBC 16.2 (high)."), S("meds","Start antibiotics","Rocephin","Ceftriaxone (Rocephin) 1 g IV started.")], r:1.6},
+    s:[S("assess","Listen to lungs","Assess","Coarse crackles over the right lower lung."), S("o2","Start oxygen","NC 2 L","2 L nasal cannula on. SpO₂ up to 94%."), S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn before antibiotics. WBC 16.2 (high)."), S("meds","Start antibiotics","Ceftriaxone","Ceftriaxone 1 g IV started.")], r:1.6},
   dsg:{t:"Dressing change", d:"Abdominal incision is due for care.", dx:"Bowel resection, post-op day 3", surg:true,
     s:[S("wound","Change dressing","Dressing","Incision clean and dry, edges together. New dressing on.")], r:0.9},
   dehyd:{t:"Dehydration", d:"Vomiting since last night. Dry lips.", dx:"Gastroenteritis with dehydration", v:{hr:112,sbp:98,dbp:60},
-    s:[S("labs","Draw a BMP","BMP","Sodium 147 (high), BUN 32 (high). Very dry."), S("iv","Start IV fluids","LR bolus","1 L lactated Ringer's bolus running."), S("meds","Anti-nausea med","Zofran","Ondansetron (Zofran) 4 mg IV given.")], r:1.4},
+    s:[S("labs","Draw a BMP","BMP","Sodium 147 (high), BUN 32 (high). Very dry."), S("iv","Start IV fluids","LR bolus","1 L lactated Ringer's bolus running."), S("meds","Anti-nausea med","Ondansetron","Ondansetron 4 mg IV given.")], r:1.4},
   cell:{t:"Cellulitis", d:"Red, warm, swollen left leg.", dx:"Cellulitis of the left leg", v:{t:38.2,hr:98},
     s:[S("wound","Mark the redness","Marker","Edge of the redness outlined so the team can track it."), S("meds","IV antibiotics","Cefazolin","Cefazolin 2 g IV started.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin IV started instead."})], r:1.2},
   hypo:{t:"Severe low blood sugar", d:"Drowsy, sweaty and hard to wake.", dx:"Diabetic foot ulcer", pmh:"Type 1 diabetes (on insulin)", v:{hr:114},
@@ -697,15 +697,15 @@ const P = {
   lowmg:{t:"Low magnesium", d:"Muscle twitches and an irregular pulse.", dx:"Alcohol withdrawal", pmh:"Alcohol use disorder",
     s:[S("labs","Draw a magnesium","Mag level","Magnesium 1.3 mg/dL (low)."), S("meds","Replace magnesium","Mag","Magnesium sulfate 2 g IV running over 2 hours.")], r:1.2},
   gib:{t:"GI bleed", d:"Black, tarry stools since this morning.", dx:"Upper GI bleed", v:{hr:112,sbp:100,dbp:58},
-    s:[S("labs","Stat CBC & T&S","CBC","Hemoglobin 7.2 g/dL (low). Type & screen sent."), S("iv","Two large-bore IVs","2× 18g","Two 18-gauge IVs placed."), S("meds","IV acid blocker","Protonix","Pantoprazole (Protonix) 80 mg IV given. GI paged for a scope.")], r:1.5},
+    s:[S("labs","Stat CBC & T&S","CBC","Hemoglobin 7.2 g/dL (low). Type & screen sent."), S("iv","Two large-bore IVs","2× 18g","Two 18-gauge IVs placed."), S("meds","IV acid blocker","Pantoprazole","Pantoprazole 80 mg IV given. GI paged for a scope.")], r:1.5},
   hf:{t:"Fluid overload", d:"Short of breath, swollen legs, crackles in both lungs.", dx:"Heart failure flare", pmh:"Heart failure", v:{spo2:91,rr:24,sbp:158,dbp:92},
-    s:[S("assess","Lung & leg exam","Assess","Crackles at both lung bases. 2+ swelling in both legs."), S("o2","Start oxygen","NC 2 L","2 L nasal cannula on. SpO₂ 95%."), S("meds","IV diuretic","Lasix","Furosemide (Lasix) 40 mg IV given. Strict ins and outs started.")], r:1.4}
+    s:[S("assess","Lung & leg exam","Assess","Crackles at both lung bases. 2+ swelling in both legs."), S("o2","Start oxygen","NC 2 L","2 L nasal cannula on. SpO₂ 95%."), S("meds","IV diuretic","Furosemide","Furosemide 40 mg IV given. Strict ins and outs started.")], r:1.4}
 };
 /* later in a stay */
 const F = {
   pain:{t:"Pain", d:"Grimacing in bed.", s:[S("assess","Pain assessment","Assess","Aching pain 7/10 at the incision. No new swelling."), S("meds","Give pain med","Oxycodone","Oxycodone 5 mg by mouth given. Pain down to 3/10.")], r:1.1},
   lostiv:{t:"Lost IV", d:"IV came out during the gown change.", s:[S("iv","Place a new IV","20g IV","20-gauge IV placed. Flushes well."), S("meds","Restart IV meds","Restart","Scheduled IV medication restarted on time.")], r:1.1},
-  nausea:{t:"Nausea", d:"Queasy. Can't keep breakfast down.", s:[S("meds","Anti-nausea med","Zofran","Ondansetron (Zofran) 4 mg IV given.")], r:1.0},
+  nausea:{t:"Nausea", d:"Queasy. Can't keep breakfast down.", s:[S("meds","Anti-nausea med","Ondansetron","Ondansetron 4 mg IV given.")], r:1.0},
   pressure:{t:"Pressure injury", d:"Red spot on the tailbone that doesn't blanch.", s:[S("wound","Clean & protect skin","Barrier","Stage 1 pressure injury. Barrier cream on, turned to the left side.")], r:0.8},
   lowsugar:{t:"Low blood sugar", d:"Shaky and sweaty, but awake.", pmh:"Type 2 diabetes (on insulin)", v:{hr:104},
     s:[S("labs","Fingerstick glucose","FSBG","Glucose 58 mg/dL (low)."), S("meds","Give oral glucose","Glucose","Awake and can swallow, so 15 g oral glucose given. Recheck in 15 minutes.")], r:1.6},
@@ -726,11 +726,11 @@ const U = {
   bleed:{t:"Bleeding!", d:"Blood is soaking through the surgical dressing.", surg:true, v:{hr:118,sbp:96,dbp:58},
     s:[S("wound","Pressure dressing","Pressure","Firm pressure held and dressing reinforced. Surgeon paged."), S("labs","Stat CBC","CBC","Hemoglobin 7.1 g/dL (dropped from 9.4)."), S("blood","Hang blood","PRBCs","Two-nurse check done. 1 unit PRBCs running.")], r:2.6},
   fever:{t:"New fever!", d:"Shaking chills.", v:{t:39.2,hr:112},
-    s:[VIT(), S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn. Lactate 1.6, normal."), S("meds","Fever med","Tylenol","Acetaminophen (Tylenol) 650 mg by mouth given.")], r:2.2},
+    s:[VIT(), S("labs","Blood cultures","Cultures","2 sets of blood cultures drawn. Lactate 1.6, normal."), S("meds","Fever med","Acetaminophen","Acetaminophen 650 mg by mouth given.")], r:2.2},
   sleepy:{needs:"opioid", t:"Too sleepy to breathe!", d:"Hard to wake after pain meds. Pinpoint pupils.", v:{rr:6,spo2:85,hr:56},
-    s:[S("assess","Check responsiveness","Assess","Barely rouses to a sternal rub. Pinpoint pupils, shallow breaths."), VIT(), S("o2","Apply oxygen","NC 4 L","4 L nasal cannula on. SpO₂ climbing to 90%."), S("meds","Reverse the opioid","Narcan","Naloxone (Narcan) 0.4 mg IV given. Awake and breathing 14/min.")], r:2.6},
+    s:[S("assess","Check responsiveness","Assess","Barely rouses to a sternal rub. Pinpoint pupils, shallow breaths."), VIT(), S("o2","Apply oxygen","NC 4 L","4 L nasal cannula on. SpO₂ climbing to 90%."), S("meds","Reverse the opioid","Naloxone","Naloxone 0.4 mg IV given. Awake and breathing 14/min.")], r:2.6},
   hives:{needs:"abx", t:"Hives during antibiotic!", d:"Itchy red welts spreading up the arm.", v:{hr:104},
-    s:[S("assess","Assess the reaction","Assess","Hives on arms and chest. Breathing fine, no throat swelling."), S("iv","Stop the infusion","Stop","Antibiotic stopped and line flushed with saline."), S("meds","Antihistamine","Benadryl","Diphenhydramine (Benadryl) 25 mg IV given. Hives fading. Allergy added to chart.")], r:2.0},
+    s:[S("assess","Assess the reaction","Assess","Hives on arms and chest. Breathing fine, no throat swelling."), S("iv","Stop the infusion","Stop","Antibiotic stopped and line flushed with saline."), S("meds","Antihistamine","Diphenhydramine","Diphenhydramine 25 mg IV given. Hives fading. Allergy added to chart.")], r:2.0},
   dehisc:{t:"Wound popped open!", d:"Felt a pop while coughing. The incision has split open.", surg:true, leaves:true, v:{hr:104},
     s:[S("wound","Cover the wound","NS gauze","Sterile saline-soaked gauze over the wound. Knees bent to ease tension. Surgeon paged."), S("labs","Pre-op labs","T&S","CBC and type & screen sent. Hemoglobin 9.9."), S("iv","IV fluids, NPO","IV fluids","Nothing by mouth. Maintenance IV fluids running."), S("go","Rush to surgery","or","")], r:2.6},
   infbleed:{t:"Bleeding from infection!", d:"The infected wound is oozing bright red blood.", surg:true, leaves:true, v:{hr:116,sbp:98,dbp:60},
@@ -738,7 +738,7 @@ const U = {
   afib:{t:"Racing heart!", d:"Says they feel off. Palpitations.", v:{hr:148,sbp:104,dbp:64},
     s:[S("assess","Assess","Assess","Pulse irregular and racing. Lightheaded but talking."), VIT(), S("labs","Stat EKG & labs","EKG","EKG: atrial fibrillation, rate 148 (high). Magnesium 1.6 (low)."), S("meds","Slow the heart rate","Dilt","Diltiazem 10 mg IV push given. Heart rate down to 96.")], r:2.3},
   sepsis:{t:"Possible sepsis!", d:"Confused and warm to the touch.", v:{sbp:84,dbp:46,hr:122,t:38.9,rr:24},
-    s:[VIT(), S("labs","Lactate & cultures","Lactate","Lactate 4.1 (high). Blood cultures drawn."), S("iv","IV fluid bolus","LR bolus","Lactated Ringer's bolus running wide open. BP up to 102/60."), S("meds","Broad antibiotics","Zosyn","Piperacillin-tazobactam (Zosyn) IV started within the hour.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin and aztreonam started instead."})], r:2.7},
+    s:[VIT(), S("labs","Lactate & cultures","Lactate","Lactate 4.1 (high). Blood cultures drawn."), S("iv","IV fluid bolus","LR bolus","Lactated Ringer's bolus running wide open. BP up to 102/60."), S("meds","Broad antibiotics","Pip-tazo","Piperacillin-tazobactam IV started within the hour.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin and aztreonam started instead."})], r:2.7},
   rxn:{t:"Reaction to blood!", d:"Chills and back pain 15 minutes into the transfusion.", blood:true, v:{t:38.6,hr:116,sbp:98,dbp:58},
     s:[S("blood","Stop the transfusion","Stop","Transfusion stopped. Bag and tubing saved for the blood bank."), S("iv","New tubing, saline","NS","New tubing hung with normal saline to keep the vein open."), VIT("Recheck vitals"), S("labs","Reaction labs","Rxn labs","Blood bank notified. Reaction labs and a urine sample sent.")], r:2.4},
   bpdrop:{t:"BP dropping!", d:"Cool, clammy and getting confused.", leaves:true, v:{sbp:78,dbp:40,hr:128,rr:24},
@@ -751,13 +751,13 @@ const U = {
   stemi:{t:"Chest pain!", d:"Crushing chest pain. Sweaty and pale.", leaves:true, v:{hr:104,sbp:148,dbp:90},
     s:[VIT(), S("assess","Chest pain assessment","Assess","Pressure-like pain 8/10 spreading to the left arm and jaw."), S("labs","12-lead EKG","EKG","ST elevation in leads II, III and aVF (abnormal). This is a STEMI."), S("meds","Chewable aspirin","Aspirin","Aspirin 324 mg chewed."), S("esc","Call a STEMI alert","","STEMI alert called. Cath lab team activated."), S("go","Rush to cath lab","cath","")], r:2.6},
   hyperk:{t:"Potassium is high!", d:"Lab called a critical potassium of 6.8. Feels weak.", v:{hr:52},
-    s:[S("labs","Stat EKG","EKG","Peaked T waves (abnormal). Heart rate 52 (low)."), S("meds","Protect the heart","Ca gluc","Calcium gluconate 1 g IV given to stabilize the heart."), S("meds","Shift potassium","Insulin","Regular insulin 10 units IV given with dextrose 50% 25 g."), S("meds","Remove potassium","Lokelma","Sodium zirconium cyclosilicate (Lokelma) 10 g by mouth given. Recheck potassium in 2 hours.")], r:2.4},
+    s:[S("labs","Stat EKG","EKG","Peaked T waves (abnormal). Heart rate 52 (low)."), S("meds","Protect the heart","Ca gluc","Calcium gluconate 1 g IV given to stabilize the heart."), S("meds","Shift potassium","Insulin","Regular insulin 10 units IV given with dextrose 50% 25 g."), S("meds","Remove potassium","K binder","Sodium zirconium cyclosilicate 10 g by mouth given. Recheck potassium in 2 hours.")], r:2.4},
   unresp:{t:"Suddenly unresponsive!", d:"Won't wake to voice or a sternal rub. Skin cold and clammy.", v:{hr:116,rr:12},
     s:[S("assess","Check responsiveness","Assess","Opens eyes only to pain. Breathing, strong pulse."), VIT(), S("labs","Fingerstick glucose","FSBG","Glucose 34 mg/dL (critically low)."), S("meds","IV dextrose","D50","Dextrose 50% 25 g IV push given. Eyes open, asking what happened.")], r:2.9}
 };
 /* patients who will need the ICU no matter what */
 const COPD = {t:"COPD flare", d:"Wheezing and short of breath.", dx:"COPD flare with pneumonia", pmh:"COPD (home oxygen 2 L)", v:{spo2:86,rr:28,hr:110},
-   s:[S("assess","Respiratory exam","Assess","Wheezes in all lung fields. Using neck muscles to breathe."), S("o2","Start oxygen","NC 2 L","2 L nasal cannula. SpO₂ 89%. Goal for COPD is 88–92%."), S("meds","Breathing treatment","DuoNeb","Albuterol-ipratropium (DuoNeb) nebulizer given."), S("meds","IV steroids","Steroid","Methylprednisolone (Solu-Medrol) 40 mg IV given.")], r:1.7};
+   s:[S("assess","Respiratory exam","Assess","Wheezes in all lung fields. Using neck muscles to breathe."), S("o2","Start oxygen","NC 2 L","2 L nasal cannula. SpO₂ 89%. Goal for COPD is 88–92%."), S("meds","Breathing treatment","Neb","Albuterol-ipratropium nebulizer given."), S("meds","IV steroids","Steroid","Methylprednisolone 40 mg IV given.")], r:1.7};
 const COPD2 = {t:"Breathing harder!", d:"Using neck muscles to breathe.", v:{spo2:85,rr:30,hr:118},
    s:[S("o2","Venturi mask","Venturi","Venturi mask at 35%. SpO₂ only 87%."), S("labs","Blood gas","ABG","ABG: pH 7.29 (low), PaCO₂ 58 (high). Tiring out.")], r:2.5};
 const COPD3 = {t:"Still desatting!", d:"Drowsy and confused.", v:{spo2:83,rr:32,hr:124},
@@ -853,23 +853,23 @@ const CALLS = [
 const MD = (l, fx) => C("md", l, "", fx);
 const ER = {
   uti: {age:34, sex:"woman", pmh:["Hypothyroidism"], dx:"Urinary tract infection", def:{t:"Burning when peeing", d:"Two days of burning and going every 20 minutes.", r:0.9, dispoTxt:"Discharged with antibiotics and a lot of water.",
-    s:[C("assess","Assess","Assess","No fever, no back pain. Comfortable."), C("labs","Urine test","Urinalysis","Urine positive for infection (abnormal)."), C("meds","First antibiotic dose","Keflex","Cephalexin 500 mg by mouth. Prescription sent to the pharmacy.")]}},
+    s:[C("assess","Assess","Assess","No fever, no back pain. Comfortable."), C("labs","Urine test","Urinalysis","Urine positive for infection (abnormal)."), C("meds","First antibiotic dose","Cephalexin","Cephalexin 500 mg by mouth. Prescription sent to the pharmacy.")]}},
   lac: {age:41, sex:"man", pmh:["High cholesterol"], dx:"Hand laceration", def:{t:"Cut hand", d:"Slipped while cutting an avocado.", r:0.9, dispoTxt:"Stitches in, tetanus up to date. Avocado safety reviewed.",
     s:[C("assess","Check the cut","Assess","2 cm cut on the palm. Bleeding controlled, can move every finger."), C("wound","Irrigate the wound","Irrigate","Washed out with lots of saline."), C("meds","Tetanus shot","Tdap","Tdap given. Last tetanus shot was 12 years ago."), MD("MD: stitches","MD numbed the hand and closed it with 5 stitches."), C("wound","Dress the wound","Dressing","Clean dressing on. Wound care teaching done.")]}},
   ankle: {age:27, sex:"woman", pmh:["Asthma"], dx:"Ankle fracture", def:{t:"Hurt ankle", d:"Rolled it stepping off a curb. Can't put weight on it.", r:1.0, dispoTxt:"Crutches and an orthopedics appointment this week.",
     s:[C("assess","Check pulses & feeling","Assess","Swollen and bruised. Foot pulse strong, toes warm and pink."), C("meds","Pain medicine","Ibuprofen","Ibuprofen 600 mg by mouth, ice and elevation."), MD("X-ray","X-ray: broken ankle (fibula). No surgery needed."), C("wound","Splint it","Splint","Splint on. Pulses still strong after splinting.")]}},
   migraine: {age:30, sex:"woman", pmh:["Migraines"], dx:"Migraine", def:{t:"Bad headache", d:"Pounding headache with light sensitivity, like her usual migraines but worse.", r:1.0, v:{sbp:142,dbp:88}, dispoTxt:"Headache gone after a nap in the dark. Discharged.",
-    s:[C("assess","Neuro check","Assess","Normal neuro exam. Lights and noise make it worse."), VIT(), C("iv","IV","IV","20-gauge IV placed. Lights dimmed."), C("meds","Migraine cocktail","Reglan","Metoclopramide 10 mg, diphenhydramine 25 mg and ketorolac 15 mg IV. Dexamethasone to keep it from coming back.")]}},
+    s:[C("assess","Neuro check","Assess","Normal neuro exam. Lights and noise make it worse."), VIT(), C("iv","IV","IV","20-gauge IV placed. Lights dimmed."), C("meds","Migraine cocktail","Metoclopramide","Metoclopramide 10 mg, diphenhydramine 25 mg and ketorolac 15 mg IV. Dexamethasone to keep it from coming back.")]}},
   asthmaSevere: {age:24, sex:"woman", pmh:["Asthma"], dx:"Severe asthma attack", def:{t:"Can barely breathe", d:"Asthma attack. Can only say two or three words at a time.", r:1.9, crit:1, v:{rr:34,spo2:88,hr:132}, dispo:"admit", dispoTxt:"Moving air again. Admitted to step-down to keep a close eye on her.",
-    s:[VIT(), C("assess","Listen to lungs","Assess","Tight, quiet chest with faint wheezes (abnormal). Using neck muscles to breathe."), C("o2","Oxygen","Mask","Oxygen by mask. SpO₂ 92%."), C("meds","Back-to-back nebulizers","DuoNeb","Three albuterol-ipratropium nebs back to back."), C("meds","IV steroid","Solu-Medrol","Methylprednisolone 125 mg IV."), C("meds","IV magnesium","Magnesium","Magnesium sulfate 2 g IV given. Moving more air now.")]}},
+    s:[VIT(), C("assess","Listen to lungs","Assess","Tight, quiet chest with faint wheezes (abnormal). Using neck muscles to breathe."), C("o2","Oxygen","Mask","Oxygen by mask. SpO₂ 92%."), C("meds","Back-to-back nebulizers","Neb","Three albuterol-ipratropium nebs back to back."), C("meds","IV steroid","Methylpred","Methylprednisolone 125 mg IV."), C("meds","IV magnesium","Magnesium","Magnesium sulfate 2 g IV given. Moving more air now.")]}},
   asthmaKid: {age:7, sex:"man", pmh:["Asthma"], dx:"Asthma attack", def:{t:"Trouble breathing", d:"Wheezing since soccer practice. Inhaler isn't helping.", r:1.4, v:{rr:32,spo2:91,hr:128}, dispoTxt:"Breathing easy again. Home with a new asthma plan.",
-    s:[VIT(), C("assess","Listen to lungs","Assess","Wheezing everywhere. Using belly muscles to breathe."), C("o2","Oxygen","Mask","Oxygen by mask. SpO₂ up to 95%."), C("meds","Breathing treatment","DuoNeb","Albuterol-ipratropium neb. Wheezes loosening."), C("meds","Steroid","Dex","Dexamethasone by mouth. Juice chaser.")]}},
+    s:[VIT(), C("assess","Listen to lungs","Assess","Wheezing everywhere. Using belly muscles to breathe."), C("o2","Oxygen","Mask","Oxygen by mask. SpO₂ up to 95%."), C("meds","Breathing treatment","Neb","Albuterol-ipratropium neb. Wheezes loosening."), C("meds","Steroid","Dex","Dexamethasone by mouth. Juice chaser.")]}},
   stone: {age:45, sex:"man", pmh:["Hypertension"], dx:"Kidney stone", def:{t:"Flank pain", d:"Worst pain of his life, left side down to the groin. Can't sit still.", r:1.2, v:{hr:108,sbp:158,dbp:94}, dispoTxt:"Discharged with pain medicine and a strainer to catch the stone.",
-    s:[C("assess","Assess","Assess","Writhing in pain. Left flank tender."), C("iv","IV","IV","IV placed."), C("meds","Pain medicine","Toradol","Ketorolac 15 mg IV. Pain from 10 down to 4."), C("labs","Urine & kidney labs","UA & BMP","Blood in the urine. Kidney function normal."), C("go","Send to CT","ct","")], ct:"CT: 4 mm stone in the left ureter. Small enough to pass."}},
-  kidVomit: {age:4, sex:"woman", pmh:["None"], dx:"Stomach bug with dehydration", def:{t:"Vomiting", d:"Threw up 6 times since breakfast. Big brother had the same bug.", r:1.1, v:{hr:132}, dispoTxt:"Popsicle stayed down. Home with an oral rehydration plan.",
-    s:[C("assess","Assess","Assess","Dry lips, still making tears. Wants her stuffed bunny."), C("meds","Anti-nausea","Zofran","Ondansetron dissolving tablet."), C("meds","Fluid challenge","Popsicle","Kept down a popsicle and 4 oz of juice. Smiling now.")]}},
+    s:[C("assess","Assess","Assess","Writhing in pain. Left flank tender."), C("iv","IV","IV","IV placed."), C("meds","Pain medicine","Ketorolac","Ketorolac 15 mg IV. Pain from 10 down to 4."), C("labs","Urine & kidney labs","UA & BMP","Blood in the urine. Kidney function normal."), C("go","Send to CT","ct","")], ct:"CT: 4 mm stone in the left ureter. Small enough to pass."}},
+  kidVomit: {age:4, sex:"woman", pmh:["None"], dx:"Stomach bug with dehydration", def:{t:"Vomiting", d:"Threw up 6 times since breakfast. Big brother had the same bug.", r:1.1, v:{hr:132}, dispoTxt:"Ice pop stayed down. Home with an oral rehydration plan.",
+    s:[C("assess","Assess","Assess","Dry lips, still making tears. Wants her stuffed bunny."), C("meds","Anti-nausea","Ondansetron","Ondansetron dissolving tablet."), C("meds","Fluid challenge","Ice pop","Kept down a popsicle and 4 oz of juice. Smiling now.")]}},
   backPain: {age:52, sex:"man", pmh:["Obesity"], dx:"Back strain", def:{t:"Back pain", d:"Lifted a couch this morning and felt something pull.", r:0.9, dispoTxt:"Home with heat, gentle movement and a work note.",
-    s:[C("assess","Check red flags","Assess","No numbness, no weakness, no trouble peeing. A muscle strain."), C("meds","Pain medicine","Toradol","Ketorolac 30 mg IM in the hip. Up walking.")]}},
+    s:[C("assess","Check red flags","Assess","No numbness, no weakness, no trouble peeing. A muscle strain."), C("meds","Pain medicine","Ketorolac","Ketorolac 30 mg IM in the hip. Up walking.")]}},
   chestLow: {age:33, sex:"woman", pmh:["Anxiety","GERD"], dx:"Chest pain, not heart related", def:{t:"Chest pain", d:"Burning chest pain after a big spicy dinner.", r:1.1, dispoTxt:"Heart checks all normal. Home with heartburn medicine.",
     s:[C("labs","EKG within 10 minutes","EKG","EKG normal."), VIT(), C("labs","Troponin","Troponin","Troponin normal. Not a heart attack."), C("meds","GI cocktail","Antacid","Antacid with lidocaine. Burning gone.")]}},
   wristKid: {age:9, sex:"woman", pmh:["None"], dx:"Wrist fracture", def:{t:"Hurt wrist", d:"Fell off the trampoline onto an outstretched hand.", r:1.0, dispoTxt:"Picked a purple cast at the ortho follow-up.",
@@ -879,35 +879,35 @@ const ER = {
   gall: {age:48, sex:"woman", pmh:["Type 2 diabetes","Obesity"], dx:"Gallbladder infection", def:{t:"Upper belly pain", d:"Right upper belly pain after fried chicken. Pain goes to her shoulder.", r:1.2, v:{t:38.1,hr:104}, dispo:"admit", dispoTxt:"Admitted to surgery to have her gallbladder removed.",
     s:[C("assess","Assess","Assess","Stops breathing in when the right upper belly is pressed."), C("iv","IV","IV","IV placed."), C("labs","Liver labs & lipase","Labs","White count 13.1 (high). Lipase normal."), MD("MD: bedside ultrasound","Gallbladder wall thick and full of stones. Inflamed."), C("meds","Pain & antibiotics","Abx","Morphine and piperacillin-tazobactam IV.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin and aztreonam IV."})]}},
   std: {age:22, sex:"woman", pmh:["None"], dx:"STI testing", def:{t:"Worried about an infection", d:"Would like to be tested after a new partner.", r:0.8, dispoTxt:"Treated, tested and taught. Call-back set for results.",
-    s:[C("assess","Private history","Assess","Asked privately and without judgment. No other symptoms."), C("labs","STI testing","Tests","Swabs and blood tests sent. Results in 2 days."), C("meds","Treat per protocol","Rocephin","Ceftriaxone 500 mg IM, plus a doxycycline prescription.")]}},
+    s:[C("assess","Private history","Assess","Asked privately and without judgment. No other symptoms."), C("labs","STI testing","Tests","Swabs and blood tests sent. Results in 2 days."), C("meds","Treat per protocol","Ceftriaxone","Ceftriaxone 500 mg IM, plus a doxycycline prescription.")]}},
   kidPoison: {age:3, sex:"man", pmh:["None"], dx:"Possible medicine ingestion", def:{t:"Swallowed pills?", d:"Found with grandma's open pill organizer. Two pills missing.", r:1.0, dispoTxt:"Six hours of normal checks. Grandma's pills are locked up now.",
     s:[C("assess","What, how much, when","Assess","Up to 2 of her blood pressure pills, about 30 minutes ago. Acting normal."), VIT(), C("go","Call poison control","poison",""), C("labs","Fingerstick glucose","FSBG","Glucose 92, normal."), C("assess","Watch closely","Monitor","Vitals every 30 minutes for 6 hours. All normal.")]}},
   chf: {age:71, sex:"man", pmh:["Heart failure","Atrial fibrillation"], dx:"Heart failure flare", def:{t:"Short of breath, legs swollen", d:"Can't lie flat. Ankles have doubled in size this week.", r:1.4, v:{spo2:89,rr:26,sbp:164,dbp:96}, dispo:"admit", dispoTxt:"Admitted to telemetry to keep taking off fluid.",
-    s:[VIT(), C("assess","Lungs & legs","Assess","Crackles halfway up both lungs. Pitting swelling up to the knees."), C("o2","Oxygen","NC 3 L","3 L nasal cannula. SpO₂ 94%."), C("labs","BNP & chest X-ray","BNP","BNP 2,400 (high). X-ray: fluid in both lungs."), C("iv","IV","IV","IV placed."), C("meds","IV diuretic","Lasix","Furosemide 80 mg IV. Peed 900 mL in an hour.")]}},
+    s:[VIT(), C("assess","Lungs & legs","Assess","Crackles halfway up both lungs. Pitting swelling up to the knees."), C("o2","Oxygen","NC 3 L","3 L nasal cannula. SpO₂ 94%."), C("labs","BNP & chest X-ray","BNP","BNP 2,400 (high). X-ray: fluid in both lungs."), C("iv","IV","IV","IV placed."), C("meds","IV diuretic","Furosemide","Furosemide 80 mg IV. Peed 900 mL in an hour.")]}},
   hipFx: {age:84, sex:"woman", pmh:["Osteoporosis","Hypertension"], dx:"Hip fracture", def:{t:"Fell at home", d:"Tripped on the rug. Can't get up.", r:1.2, dispo:"admit", dispoTxt:"Admitted to orthopedics for hip surgery tomorrow.",
     s:[C("assess","Assess","Assess","Right leg shorter and turned out. Hit her head? No. On blood thinners? No."), C("iv","IV","IV","IV placed."), C("meds","Pain medicine","Fentanyl","Fentanyl 25 mcg IV. Much more comfortable."), MD("X-ray","X-ray: broken right hip."), C("labs","Pre-op labs","T&S","Type & screen, CBC and EKG done for surgery.")]}},
   urosepsis: {age:79, sex:"woman", pmh:["Dementia","Type 2 diabetes"], dx:"Urosepsis", def:{t:"Not feeling well", d:"Family says she's more confused than usual and feels warm.", r:1.7, v:{t:39.1,hr:118,sbp:92,dbp:54}, crit:1, dispo:"admit", dispoTxt:"Admitted to step-down for urosepsis.",
-    s:[VIT(), C("assess","Assess","Assess","More confused than baseline. Family noticed dark, smelly urine."), C("labs","Lactate, cultures, urine","Lactate","Lactate 3.2 (high). Urine cloudy with bacteria. It's sepsis from a UTI."), C("iv","Fluid bolus","30 mL/kg","30 mL/kg lactated Ringer's running."), C("meds","Antibiotics within the hour","Rocephin","Ceftriaxone 2 g IV.")]}},
+    s:[VIT(), C("assess","Assess","Assess","More confused than baseline. Family noticed dark, smelly urine."), C("labs","Lactate, cultures, urine","Lactate","Lactate 3.2 (high). Urine cloudy with bacteria. It's sepsis from a UTI."), C("iv","Fluid bolus","30 mL/kg","30 mL/kg lactated Ringer's running."), C("meds","Antibiotics within the hour","Ceftriaxone","Ceftriaxone 2 g IV.")]}},
   woundInf: {age:56, sex:"man", pmh:["Type 2 diabetes"], dx:"Post-op wound infection", def:{t:"Incision looks bad", d:"Hernia surgery 8 days ago. Now red, draining and feverish.", r:1.4, v:{t:38.7,hr:108}, dispo:"admit", dispoTxt:"Admitted to surgery for IV antibiotics and wound care.",
     s:[VIT(), C("assess","Look at the wound","Assess","Red, hot and swollen around the incision. Pus at one end."), C("labs","Cultures & lactate","Cultures","Wound and blood cultures sent. Lactate 1.8, normal."), C("iv","IV","IV","IV placed."), C("meds","IV antibiotics","Vanc","Vancomycin IV started."), MD("Surgeon at bedside","Surgeon opened and drained the wound at the bedside."), C("wound","Pack the wound","Packing","Wound packed with gauze and covered.")]}},
   giBleed: {age:63, sex:"man", pmh:["Alcohol use disorder","Cirrhosis"], dx:"Upper GI bleed", def:{t:"Vomiting blood", d:"Threw up a big cup of bright red blood. Dizzy.", r:2.0, v:{hr:124,sbp:88,dbp:52}, crit:1,
-    s:[VIT(), C("iv","Two large-bore IVs","2× 18g","Two 18-gauge IVs placed."), C("labs","CBC & type and screen","CBC","Hemoglobin 6.9 (low). INR 1.8 (high)."), C("meds","IV acid blocker","Protonix","Pantoprazole 80 mg IV."), C("blood","Hang blood","PRBCs","Two-nurse check done. PRBCs running."), C("meds","Octreotide & antibiotics","Octreotide","Octreotide drip and ceftriaxone for a bleed with cirrhosis."), C("go","Take for an urgent scope","gi","")]}},
+    s:[VIT(), C("iv","Two large-bore IVs","2× 18g","Two 18-gauge IVs placed."), C("labs","CBC & type and screen","CBC","Hemoglobin 6.9 (low). INR 1.8 (high)."), C("meds","IV acid blocker","Pantoprazole","Pantoprazole 80 mg IV."), C("blood","Hang blood","PRBCs","Two-nurse check done. PRBCs running."), C("meds","Octreotide & antibiotics","Octreotide","Octreotide drip and ceftriaxone for a bleed with cirrhosis."), C("go","Take for an urgent scope","gi","")]}},
   seizure: {age:24, sex:"man", pmh:["Epilepsy"], dx:"Seizure", def:{t:"Seizure!", d:"Shaking in the waiting room for 6 minutes.", r:2.0, v:{hr:130,spo2:89}, crit:1, dispo:"admit", dispoTxt:"Admitted to neurology. Missed his seizure meds for 3 days.",
-    s:[C("assess","Protect & time it","Safety","On his side, nothing in the mouth, head cushioned. Timing started."), C("o2","Oxygen","Mask","Oxygen by mask."), C("iv","IV","IV","IV placed while shaking."), C("meds","Stop the seizure","Ativan","Lorazepam 2 mg IV. Seizure stopped."), C("labs","Glucose & labs","FSBG","Glucose 104. Seizure medicine level low (low).")]}},
-  anaph: {age:29, sex:"woman", pmh:["Shellfish allergy"], dx:"Anaphylaxis", def:{t:"Throat feels tight!", d:"Ate shrimp at a party. Lips swelling, voice getting hoarse.", r:2.4, v:{hr:128,sbp:86,dbp:48,spo2:91}, crit:1, dispo:"admit", dispoTxt:"Admitted for overnight watching. Leaving with an EpiPen.",
-    s:[C("meds","Epinephrine IM, right now","Epi IM","Epinephrine 0.5 mg IM in the outer thigh."), C("o2","Oxygen","Mask","Oxygen by mask."), C("esc","Call for help","","MD, RT and a second nurse are in the room."), C("iv","IV & fluid bolus","Bolus","IV placed, liter of saline wide open."), C("meds","Antihistamine & steroid","Benadryl","Diphenhydramine 50 mg and methylprednisolone 125 mg IV."), MD("MD: airway check","Swelling going down. Airway safe, no breathing tube needed.")]}},
+    s:[C("assess","Protect & time it","Safety","On his side, nothing in the mouth, head cushioned. Timing started."), C("o2","Oxygen","Mask","Oxygen by mask."), C("iv","IV","IV","IV placed while shaking."), C("meds","Stop the seizure","Lorazepam","Lorazepam 2 mg IV. Seizure stopped."), C("labs","Glucose & labs","FSBG","Glucose 104. Seizure medicine level low (low).")]}},
+  anaph: {age:29, sex:"woman", pmh:["Shellfish allergy"], dx:"Anaphylaxis", def:{t:"Throat feels tight!", d:"Ate shrimp at a party. Lips swelling, voice getting hoarse.", r:2.4, v:{hr:128,sbp:86,dbp:48,spo2:91}, crit:1, dispo:"admit", dispoTxt:"Admitted for overnight watching. Leaving with an epinephrine auto-injector.",
+    s:[C("meds","Epinephrine IM, right now","Epi IM","Epinephrine 0.5 mg IM in the outer thigh."), C("o2","Oxygen","Mask","Oxygen by mask."), C("esc","Call for help","","MD, RT and a second nurse are in the room."), C("iv","IV & fluid bolus","Bolus","IV placed, liter of saline wide open."), C("meds","Antihistamine & steroid","Diphenhydramine","Diphenhydramine 50 mg and methylprednisolone 125 mg IV."), MD("MD: airway check","Swelling going down. Airway safe, no breathing tube needed.")]}},
   ectopic: {age:26, sex:"woman", pmh:["None"], dx:"Ruptured ectopic pregnancy", def:{t:"Abdominal pain", d:"Sudden sharp lower belly pain and nearly fainted. Period is late.", r:2.2, v:{hr:126,sbp:84,dbp:50}, crit:1,
     s:[VIT(), C("assess","Assess","Assess","Pale and sweaty. Very tender low on the right."), C("labs","Pregnancy test","hCG","Pregnancy test positive (abnormal). Blood hCG sent too."), MD("MD: bedside ultrasound","FAST: free fluid in the pelvis, no pregnancy in the uterus. Likely ruptured ectopic. OB-GYN called."), C("iv","Two large-bore IVs","2× 18g","Two 18-gauge IVs, fluids running."), C("labs","Type & cross","T&C","Type and crossmatch sent for 2 units."), C("blood","Hang blood","PRBCs","Two-nurse check done. PRBCs running."), C("meds","Keep her comfortable","Fentanyl","Fentanyl 50 mcg IV. Holding her hand until the OR is ready."), C("go","Rush to surgery","or","")]}},
   delivery: {age:31, sex:"woman", pmh:["Pregnant, 39 weeks"], dx:"Precipitous delivery", def:{t:"Baby's coming!", d:"Arrived in a wheelchair. Contractions a minute apart and she has to push.", r:1.8, crit:1,
-    s:[C("assess","Check for crowning","Assess","The baby's head is crowning! No time to go upstairs."), C("esc","Call for help","","OB and the NICU team are on the way. Delivery kit open."), MD("MD delivers the baby","Baby girl born at the bedside, crying loudly!"), C("assess","Dry & warm the baby","Warm","Baby dried, skin to skin with mom, hat on."), C("meds","Oxytocin for mom","Pitocin","Oxytocin started to help the uterus clamp down and limit bleeding."), C("go","Take to Labor & Delivery","ld","")]}},
+    s:[C("assess","Check for crowning","Assess","The baby's head is crowning! No time to go upstairs."), C("esc","Call for help","","OB and the NICU team are on the way. Delivery kit open."), MD("MD delivers the baby","Baby girl born at the bedside, crying loudly!"), C("assess","Dry & warm the baby","Warm","Baby dried, skin to skin with mom, hat on."), C("meds","Oxytocin for mom","Oxytocin","Oxytocin started to help the uterus clamp down and limit bleeding."), C("go","Take to Labor & Delivery","ld","")]}},
   overdose: {age:35, sex:"man", pmh:["Depression"], dx:"Overdose", def:{t:"Found unresponsive", d:"Roommate found him next to empty pill bottles.", r:2.2, v:{rr:6,spo2:84,hr:58}, crit:1, dispo:"admit", dispoTxt:"Admitted to the ICU for the antidote, with a mental health team visit.",
-    s:[VIT(), C("assess","Assess","Assess","Barely breathing. Pinpoint pupils."), C("o2","Bag-mask breaths","BVM","Bag-mask breaths. SpO₂ climbing."), C("meds","Naloxone","Narcan","Naloxone 0.4 mg IV. Breathing 14 a minute, waking up."), C("labs","Tox labs","Tox","Acetaminophen level high (high). Treatable if started now."), C("go","Call poison control","poison",""), C("meds","Start the antidote","NAC","N-acetylcysteine IV started.")]}},
+    s:[VIT(), C("assess","Assess","Assess","Barely breathing. Pinpoint pupils."), C("o2","Bag-mask breaths","BVM","Bag-mask breaths. SpO₂ climbing."), C("meds","Naloxone","Naloxone","Naloxone 0.4 mg IV. Breathing 14 a minute, waking up."), C("labs","Tox labs","Tox","Acetaminophen level high (high). Treatable if started now."), C("go","Call poison control","poison",""), C("meds","Start the antidote","NAC","N-acetylcysteine IV started.")]}},
   dka: {age:16, sex:"man", pmh:["Type 1 diabetes"], dx:"Diabetic ketoacidosis", def:{t:"Vomiting, breathing fast", d:"Ran out of insulin 2 days ago. Thirsty and exhausted.", r:1.8, v:{hr:124,rr:30,sbp:100,dbp:60}, crit:1,
     s:[VIT(), C("labs","Fingerstick glucose","FSBG","Glucose 520 (high)."), C("labs","Blood gas & ketones","VBG","pH 7.12 (low), ketones high (high). It's DKA."), C("iv","IV & fluid bolus","Bolus","Two IVs. Liter of saline running."), C("labs","Check potassium","BMP","Potassium 4.1, safe to start insulin."), C("meds","Insulin drip","Insulin","Insulin drip started, glucose checks every hour."), C("go","Take to the ICU","micu","")]}},
   sepsis: {age:68, sex:"woman", pmh:["COPD","Hypertension"], dx:"Septic shock from pneumonia", def:{t:"Not feeling so well", d:"Weak and short of breath for 3 days. Now hard to wake.", r:2.2, v:{t:38.9,hr:126,sbp:82,dbp:44,rr:28,spo2:90}, crit:1,
-    s:[VIT(), C("assess","Assess","Assess","Warm, flushed and confused. Crackles on the right."), C("labs","Lactate & cultures","Lactate","Lactate 4.4 (high). Blood cultures drawn."), C("iv","30 mL/kg bolus","Bolus","Lactated Ringer's bolus wide open."), C("meds","Broad antibiotics","Zosyn","Piperacillin-tazobactam and vancomycin IV.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin and aztreonam IV."}), C("esc","Call for help","","MD, a second nurse and RT in the room."), MD("MD: central line & pressors","BP still 78/40 after fluids. MD placed a central line, norepinephrine started."), C("go","Take to the ICU","micu","")]}},
+    s:[VIT(), C("assess","Assess","Assess","Warm, flushed and confused. Crackles on the right."), C("labs","Lactate & cultures","Lactate","Lactate 4.4 (high). Blood cultures drawn."), C("iv","30 mL/kg bolus","Bolus","Lactated Ringer's bolus wide open."), C("meds","Broad antibiotics","Pip-tazo","Piperacillin-tazobactam and vancomycin IV.",{b:"Vanc",fx:"Penicillin allergy on file, so vancomycin and aztreonam IV."}), C("esc","Call for help","","MD, a second nurse and RT in the room."), MD("MD: central line & pressors","BP still 78/40 after fluids. MD placed a central line, norepinephrine started."), C("go","Take to the ICU","micu","")]}},
   copdTube: {age:66, sex:"man", pmh:["COPD (home oxygen 2 L)"], dx:"COPD flare with respiratory failure", def:{allHands:1, t:"Can't breathe", d:"Tripod position, can only say two words at a time.", r:2.2, v:{spo2:82,rr:34,hr:124}, crit:1,
-    s:[VIT(), C("o2","Oxygen","NC 2 L","2 L nasal cannula. SpO₂ 86%."), C("meds","Breathing treatment","DuoNeb","Albuterol-ipratropium neb."), C("meds","Steroids","Solu-Medrol","Methylprednisolone 125 mg IV."), C("o2","Start BiPAP","BiPAP","BiPAP on. He's getting more tired and harder to wake."), C("esc","Call for help","","MD and RT at the bedside. Airway cart open."), C("meds","Intubation medicines","RSI","On the MD's order: etomidate and rocuronium pushed."), MD("MD intubates","MD placed the breathing tube. Airway secured."), MD("RT: ventilator","Patient now on the ventilator. Chest rising evenly."), C("go","Take to the ICU","micu","")]}},
+    s:[VIT(), C("o2","Oxygen","NC 2 L","2 L nasal cannula. SpO₂ 86%."), C("meds","Breathing treatment","Neb","Albuterol-ipratropium neb."), C("meds","Steroids","Methylpred","Methylprednisolone 125 mg IV."), C("o2","Start BiPAP","BiPAP","BiPAP on. He's getting more tired and harder to wake."), C("esc","Call for help","","MD and RT at the bedside. Airway cart open."), C("meds","Intubation medicines","RSI","On the MD's order: etomidate and rocuronium pushed."), MD("MD intubates","MD placed the breathing tube. Airway secured."), MD("RT: ventilator","Patient now on the ventilator. Chest rising evenly."), C("go","Take to the ICU","micu","")]}},
   farmerArm: {age:58, sex:"man", pmh:["Hypertension"], dx:"Near-amputation of the arm", def:{allHands:1, t:"Arm injury!", d:"Farmer caught his forearm in a grain auger. Bleeding heavily.", r:2.6, v:{hr:132,sbp:86,dbp:52}, crit:1,
     s:[C("wound","Tourniquet, right now","Tourniquet","Tourniquet tightened above the wound, time written on it. Bleeding stopped."), C("esc","Call for help","","Trauma team, surgeon and a second nurse in the room."), C("iv","Two large-bore IVs","2× 16g","Two 16-gauge IVs placed."), C("blood","Hang blood","2 units","Two-nurse check done. 2 units of blood running."), C("meds","Pain medicine","Fentanyl","Fentanyl 100 mcg IV."), C("meds","Tetanus & antibiotics","Cefazolin","Tdap and cefazolin 2 g IV."), C("wound","Splint & wrap","Wrap","Arm splinted and wrapped in moist sterile gauze."), C("go","Rush to surgery","or","")]}},
   stemi: {age:61, sex:"man", pmh:["High cholesterol","Type 2 diabetes"], dx:"STEMI", def:{t:"Chest pain", d:"Crushing chest pressure while shoveling snow. Sweaty.", r:2.0, v:{hr:104,sbp:150,dbp:92}, crit:1,
@@ -1046,7 +1046,7 @@ const CARE = {
   satWild: {t:"Daily sedation pause", d:"Wake-up check on the vent.", r:0.8, s:[SAT_PAUSE(),
     C("assess","Wake-up check","Assess","Eyes open, then thrashing and reaching for the tube! RASS +3 (abnormal)."),
     C("esc","Call the intensivist","","Give fentanyl and midazolam, then restart the sedation."),
-    C("meds","Fentanyl & midazolam","Fent + Versed","Fentanyl 50 mcg and midazolam 2 mg IV. Settling down."), SAT_RESTART()]},
+    C("meds","Fentanyl & midazolam","Fent + midazolam","Fentanyl 50 mcg and midazolam 2 mg IV. Settling down."), SAT_RESTART()]},
   feeds:   {t:"Tube feeds", d:"Continuous feeds through the feeding tube.", r:0.5, s:[C("device","Feeding tube & feeds","Feeds",["New bag of tube feeds hung, running at 50 mL/hr.","Tube flushed with 30 mL of water. Feeds running at goal.","Placement checked, head of bed 30°. Feeds running."])]},
   bath:    {t:"Bath & linen change", d:"Chlorhexidine bath.", r:0.5, s:[C("wound","Bath & fresh sheets","Bath","Chlorhexidine bath, fresh sheets, lines re-secured.")]},
   skin:    {t:"Skin check", d:"Heels, sacrum, under every device.", r:0.5, s:[C("wound","Check the skin","Skin",["Skin intact. Heels floated.","Small red spot under the tube holder. Padded and moved.","Sacrum pink, blanches. New foam dressing."])]},
@@ -1067,7 +1067,7 @@ const EV = {
   pullTube:{t:"Pulling at the tube!", d:"Agitated, reaching for the breathing tube.", r:2.0, hit:{d:"propofol", by:2},
     s:[C("assess","Check the tube & safety","Assess","Tube still at 23 cm. Hands gently held, safety mitts on."), C("meds","Sedation & pain","Fentanyl","Fentanyl 25 mcg IV. Calmer. Titrate the sedation drip.")]},
   fever:{t:"New fever!", d:"Temp 39.0 °C.", r:1.2, v:{t:39.0,hr:116},
-    s:[C("labs","Blood cultures","Cultures","Two sets of blood cultures."), C("meds","Fever medicine","Tylenol","Acetaminophen 650 mg per tube.")]},
+    s:[C("labs","Blood cultures","Cultures","Two sets of blood cultures."), C("meds","Fever medicine","Acetaminophen","Acetaminophen 650 mg per tube.")]},
   crrtClot:{t:"CRRT filter clotted!", d:"The dialysis machine is alarming and the filter looks dark.", r:1.4,
     s:[C("device","Stop & return the blood","Return","Blood returned to the patient, circuit stopped."), C("esc","Call the dialysis nurse","","Dialysis nurse bringing a new filter."), C("device","Prime a new circuit","Prime","New circuit primed and running.")]},
   ards:{t:"SpO₂ dropping!", d:"SpO₂ 84% on 70% oxygen. Both lungs white on X-ray.", r:2.0, v:{spo2:84,rr:30},
@@ -1091,7 +1091,7 @@ const EV = {
   evdStop:{t:"EVD stopped draining!", d:"No CSF in the chamber for an hour.", r:1.6,
     s:[C("device","Check clamps & level","Check","Stopcock was left clamped after the scan. Opened and draining.")]},
   seizure:{t:"Seizure!", d:"Rhythmic jerking of the left arm and face.", r:2.2, v:{hr:132,spo2:89},
-    s:[C("assess","Safety & time it","Safety","On her side, padded rails, timer started."), C("meds","Stop the seizure","Ativan","Lorazepam 2 mg IV. Seizure stopped."), C("meds","Load antiseizure medicine","Keppra","Levetiracetam IV load.")]},
+    s:[C("assess","Safety & time it","Safety","On her side, padded rails, timer started."), C("meds","Stop the seizure","Lorazepam","Lorazepam 2 mg IV. Seizure stopped."), C("meds","Load antiseizure medicine","Levetiracetam","Levetiracetam IV load.")]},
   spasm:{t:"New weakness!", d:"Day 7 after the bleed. Right hand suddenly weak.", r:1.8,
     s:[C("assess","Neuro check","Assess","Right hand grip weak (abnormal), new since last hour."), C("esc","Call neurosurgery","","Neurosurgery suspects vasospasm."), C("go","Rush to CT","ct",""), C("assess","Reassess","Assess","Plan: nimodipine, stop the nicardipine, start norepinephrine. New goal SBP 160 or higher.")], dropDrip:"nicard", addDrip:"norepiSpasm", ct:"CT angiogram: narrowed brain arteries (vasospasm). Back to the ICU."},
   cabgBleed:{t:"Chest tube output 300 mL!", d:"Bright red, warm. Two hours after heart surgery.", r:2.2, v:{hr:118,sbp:92,dbp:52},
@@ -1357,7 +1357,7 @@ const PUSH = {t:"Ready to push!", d:"Fully dilated and feeling lots of pressure.
   C("hands","Coach pushing","Push","Pushing with each contraction. Baby's head is crowning."),
   C("md","OB delivers the baby","","Baby born, crying right away!",{born:1}),
   C("baby","Dry, stimulate, skin-to-skin","Newborn","Baby dried and on mom's chest. Apgars 8 and 9."),
-  C("meds","Oxytocin after the placenta","Pitocin","Oxytocin 30 units/500 mL running to keep the uterus firm."),
+  C("meds","Oxytocin after the placenta","Oxytocin","Oxytocin 30 units/500 mL running to keep the uterus firm."),
   C("hands","Fundal check","Fundus","Fundus firm, midline at the belly button. Bleeding light.")]};
 const pphDef = () => ({allHands:1, t:"Bleeding after delivery!", d:"Delivered 20 minutes ago. Blood pooling under her.", r:2.2, crit:1, v:{hr:124,sbp:94,dbp:54},
   dispo:"admit", dispoTxt:"Bleeding controlled. Off to postpartum with close checks.", s:[
@@ -1397,14 +1397,14 @@ const LD = {
     C("vitals","Recheck vitals","",""),
     C("labs","CBC & blood cultures","Cultures","WBC 19 (high). Cultures sent."),
     C("meds","IV antibiotics","Amp + gent","Ampicillin and gentamicin IV for intraamniotic infection."),
-    C("meds","Fever medicine","Tylenol","Acetaminophen 1 g by mouth. Baby's heart rate coming down."),
+    C("meds","Fever medicine","Acetaminophen","Acetaminophen 1 g by mouth. Baby's heart rate coming down."),
     C("esc","Tell the OB & pediatrics","","Peds will check the baby at birth.")]}, more:[PUSH]},
   precip:{age:33, sex:"woman", pmh:["Third baby"], dx:"Fast labor, third baby", fetal:1, def:{t:"Baby's coming now!", d:"Third baby. \"I need to push!\" The head is crowning.", r:1.8,
     dispo:"admit", dispoTxt:"Fastest delivery of the night. Mom and baby to postpartum.", s:[
     C("esc","Call the OB stat","","OB running down the hall."),
     C("hands","Support the head, no pulling","Deliver","Gentle pressure so the head doesn't pop out too fast. Baby born!",{born:1}),
     C("baby","Dry, stimulate, skin-to-skin","Newborn","Crying and pink on mom's chest. Apgars 9 and 9."),
-    C("meds","Oxytocin after the placenta","Pitocin","Oxytocin running."),
+    C("meds","Oxytocin after the placenta","Oxytocin","Oxytocin running."),
     C("hands","Fundal check","Fundus","Firm and midline. Bleeding light.")]}},
   preE:{age:35, sex:"woman", pmh:["Asthma","First baby"], dx:"Severe preeclampsia at 36 weeks", fetal:1, def:{t:"BP 168/112!", d:"36 weeks. Headache and seeing spots.", r:1.6, crit:1, v:{sbp:168,dbp:112},
     dispo:"admit", dispoTxt:"Induced and delivered. To postpartum on magnesium for 24 hours.", s:[
@@ -1491,7 +1491,7 @@ const PP = {
     C("assess","Teach feeding cues","Teach","Feed 8 to 12 times a day. Wet diapers should match the baby's age in days, up to 6.")]},
   rhogam:{t:"Rh-negative mom", d:"Baby's blood type came back Rh positive.", dx:"Vaginal delivery, postpartum day 1", pmh:"Rh negative", r:0.8, s:[
     C("labs","Check the blood bank results","Fetal screen","Mom Rh negative, baby Rh positive. Fetal bleed screen negative."),
-    C("meds","RhoGAM within 72 hours","RhoGAM","Rh immune globulin 300 mcg IM. Protects her next pregnancy.")]},
+    C("meds","Rh immune globulin within 72 hours","Rh immune globulin","Rh immune globulin 300 mcg IM. Protects her next pregnancy.")]},
   newbornMeds:{t:"Newborn meds due", d:"Baby is 1 hour old.", dx:"Vaginal delivery, postpartum day 0", r:0.8, s:[
     C("baby","Vitamin K shot","Vit K","Vitamin K IM in the thigh to prevent bleeding."),
     C("baby","Eye ointment","Eyes","Erythromycin eye ointment."),
@@ -1544,7 +1544,7 @@ const PPU = {
   endo:{t:"Fever 38.7 °C!", d:"Day 2 after C-section. Uterus tender, bad-smelling bleeding.", surg:true, v:{t:38.7,hr:114}, r:1.6, s:[
     C("labs","Cultures & CBC","Cultures","WBC 18 (high)."),
     C("meds","IV antibiotics","Clinda + gent","Clindamycin and gentamicin IV."),
-    C("meds","Fever medicine","Tylenol","Acetaminophen 1 g.")]},
+    C("meds","Fever medicine","Acetaminophen","Acetaminophen 1 g.")]},
   pe:{t:"Sudden shortness of breath!", d:"Sharp chest pain when breathing in. HR 124.", v:{spo2:88,hr:124,rr:28}, r:2.2, s:[
     C("o2","Oxygen","NC 4 L","SpO₂ 94%."),
     C("assess","Check her legs","Assess","Left calf swollen and tender (abnormal)."),
@@ -1692,7 +1692,7 @@ const PK = {
   gastro:{t:"Vomiting & diarrhea", d:"Can't keep anything down since yesterday.", dx:"Gastroenteritis with dehydration", age:[1,6], v:{hr:148}, r:1.1, s:[
     C("assess","Dehydration check","Assess","Dry lips, no tears, sunken eyes. 1 wet diaper today (low)."),
     C("iv","Fluid bolus","Bolus","{20 mL/kg max 1000} normal saline bolus."),
-    C("meds","Anti-nausea medicine","Zofran","Ondansetron {0.15 mg/kg max 4} IV."),
+    C("meds","Anti-nausea medicine","Ondansetron","Ondansetron {0.15 mg/kg max 4} IV."),
     C("assess","Oral rehydration","Sips","Small sips every 5 minutes. Keeping it down!")]},
   febInfant:{t:"Fever in a newborn", d:"Only 2 weeks old. Temp 38.3 °C.", dx:"Fever in a newborn", age:[0.04,0.07], v:{t:38.3,hr:178}, r:1.3, s:[
     C("labs","Blood & urine cultures","Cultures","Blood and urine cultures sent."),
@@ -1717,7 +1717,7 @@ const PK = {
     C("meds","Antibiotic","Ceftriaxone","Ceftriaxone {50 mg/kg max 2000} IV.")]}
 };
 const PKF = {
-  fever:{t:"Fever 39.1 °C", d:"Flushed and cranky.", r:0.9, s:[C("meds","Fever medicine","Tylenol","Acetaminophen {15 mg/kg max 1000} by mouth.")]},
+  fever:{t:"Fever 39.1 °C", d:"Flushed and cranky.", r:0.9, s:[C("meds","Fever medicine","Acetaminophen","Acetaminophen {15 mg/kg max 1000} by mouth.")]},
   scared:{t:"Scared of the IV", d:"Crying and hiding under the blanket.", r:0.8, s:[
     C("assess","Child life & numbing cream","Child life",["Child life brought bubbles and an iPad. Numbing cream on.","Child life read a favorite book together. Numbing cream on.","Child life did medical play with a doll's IV first. Numbing cream on.","Child life brought a Buzzy vibrating ice pack and a sticker chart."]),
     C("iv","Place the IV","IV","IV in on the first try. Brave sticker earned.")]},
@@ -1726,7 +1726,7 @@ const PKF = {
     C("iv","New IV","New IV","New IV in the other hand.")]},
   flacc:{t:"Crying, legs pulled up", d:"Can't say how much it hurts.", r:1.0, s:[
     C("assess","FLACC pain score","FLACC","Face, legs, activity, cry, consolability: 7/10."),
-    C("meds","Pain medicine","Tylenol","Acetaminophen {15 mg/kg max 1000}.")]},
+    C("meds","Pain medicine","Acetaminophen","Acetaminophen {15 mg/kg max 1000}.")]},
   family:{t:"Mom has questions", d:"Worried and hasn't slept.", r:0.7, s:[
     C("assess","Update the family","Update","Plan explained in plain words. Mom's going to grab a coffee.")]},
   vitals:{t:"Vitals due", d:"Every 4 hours.", r:0.6, s:[C("vitals","Check vitals","","")]}
@@ -1751,7 +1751,7 @@ const PKU = {
   anaph:{t:"Hives & lip swelling!", d:"Right after a snack from a visitor.", v:{spo2:91,hr:156,sbp:84,dbp:46}, r:2.6, s:[
     C("meds","IM epinephrine now","Epi","Epinephrine {0.01 mg/kg max 0.5} IM in the thigh."),
     C("o2","Oxygen","NRB","Oxygen on. Lips less swollen."),
-    C("meds","Antihistamine","Benadryl","Diphenhydramine {1 mg/kg max 50} IV."),
+    C("meds","Antihistamine","Diphenhydramine","Diphenhydramine {1 mg/kg max 50} IV."),
     C("assess","Find the cause","Ask","Peanut butter crackers. New peanut allergy added to the chart.")]},
   apnea:{t:"Stopped breathing!", d:"No breaths for 20 seconds, turning dusky.", v:{spo2:80,hr:96}, r:2.6, only:p=>p.age<1, s:[
     C("assess","Stimulate","Stimulate","Rubbed the back and feet. Breathing again."),
@@ -1770,7 +1770,7 @@ Object.assign(PK, {
     C("wound","Warm compress","Warm","Warm compress for 15 minutes. A little relief already.")]},
   concussion:{t:"Head bump, keeps throwing up", d:"Fell off the monkey bars.", dx:"Concussion, overnight observation", age:[5,12], r:1.0, s:[
     C("assess","Neuro check","Neuro","Knows name, place and the day. Pupils equal. Headache 5/10."),
-    C("meds","Anti-nausea medicine","Zofran","Ondansetron {0.15 mg/kg max 4} IV."),
+    C("meds","Anti-nausea medicine","Ondansetron","Ondansetron {0.15 mg/kg max 4} IV."),
     C("assess","Quiet, dim room, screens off","Rest","Lights down, no tablet for now. Napping, waking to voice.")]},
   cf:{t:"Cystic fibrosis flare", d:"More coughing and mucus, losing weight.", dx:"Cystic fibrosis exacerbation", age:[8,16], pmh:"Cystic fibrosis", v:{spo2:92,rr:28}, r:1.1, s:[
     C("o2","Airway clearance vest","Vest","30 minutes of vest therapy. Coughed up a lot of thick mucus."),
@@ -1782,7 +1782,7 @@ Object.assign(PK, {
     C("assess","Neutropenic precautions","Precautions","Private room, hand hygiene, no fresh flowers. Mask for visitors who are sick.")]},
   febSz:{t:"Seizure with a fever", d:"Shook for 2 minutes at home. Sleepy now.", dx:"Febrile seizure", age:[1,4], v:{t:39.0}, r:0.9, s:[
     C("assess","Post-seizure neuro check","Neuro","Waking up, crying for mom, moving everything. Back to normal."),
-    C("meds","Fever medicine","Tylenol","Acetaminophen {15 mg/kg max 1000} by mouth."),
+    C("meds","Fever medicine","Acetaminophen","Acetaminophen {15 mg/kg max 1000} by mouth."),
     C("assess","Teach the family","Teach","These usually stop on their own and don't cause brain damage. What to do next time.")]},
   migraine:{t:"Migraine", d:"Teen with a pounding headache for 2 days.", dx:"Migraine", age:[13,16], r:0.9, s:[
     C("assess","Dark, quiet room","Room","Lights off, blinds down, ice pack."),
@@ -1797,12 +1797,12 @@ Object.assign(PK, {
 const anaphSteps = trigger => [
   C("meds","IM epinephrine now","Epi","Epinephrine {0.01 mg/kg max 0.5} IM in the thigh."),
   C("o2","Oxygen","NRB","Oxygen on. Lips less swollen."),
-  C("meds","Antihistamine","Benadryl","Diphenhydramine {1 mg/kg max 50} IV."),
+  C("meds","Antihistamine","Diphenhydramine","Diphenhydramine {1 mg/kg max 50} IV."),
   C("assess","Find the cause","Ask", trigger)];
 Object.assign(PKU, {
   anaphAbx:{t:"Hives & wheezing during the antibiotic!", d:"Ten minutes into a new IV antibiotic.", v:{spo2:90,hr:158,sbp:84,dbp:46}, r:2.6, s:[
     C("iv","Stop the infusion","Stop","Antibiotic stopped, line flushed with saline."),
-    ...anaphSteps(["New allergy: ceftriaxone. Red allergy band on and the pharmacy updated.","New allergy: amoxicillin. Allergy band on, the chart updated.","New allergy: vancomycin reaction. Pharmacy will give it slower with Benadryl first."])]},
+    ...anaphSteps(["New allergy: ceftriaxone. Red allergy band on and the pharmacy updated.","New allergy: amoxicillin. Allergy band on, the chart updated.","New allergy: vancomycin reaction. Pharmacy will give it slower with Diphenhydramine first."])]},
   anaphFood:{t:"Hives & lip swelling!", d:"Right after a snack from a visitor.", v:{spo2:91,hr:156,sbp:84,dbp:46}, r:2.6, s:anaphSteps([
     "Tree nuts in a cookie from the bake sale. Allergy added to the chart.",
     "Shrimp fried rice from a relative's takeout. Shellfish allergy added.",
@@ -1825,8 +1825,8 @@ const PS = {
     C("assess","Walk & incentive spirometer","Walk","Walked to the playroom!")]},
   tonsil:{t:"Tonsillectomy, post-op", d:"Throat really sore. Doesn't want to drink.", dx:"Tonsillectomy, post-op day 0", age:[4,8], surg:true, r:1.0, s:[
     C("assess","Pain & swallowing","Assess","Throat pain 7/10. Swallowing small sips."),
-    C("meds","Pain medicine","Tylenol","Acetaminophen {15 mg/kg max 1000} by mouth."),
-    C("assess","Cold fluids & popsicles","Popsicle","Two popsicles down. Staying hydrated.")]},
+    C("meds","Pain medicine","Acetaminophen","Acetaminophen {15 mg/kg max 1000} by mouth."),
+    C("assess","Cold fluids & popsicles","Ice pop","Two popsicles down. Staying hydrated.")]},
   pyloric:{t:"Pyloric stenosis", d:"Projectile vomiting after every feed. Surgery tomorrow.", dx:"Pyloric stenosis, before surgery", age:[0.06,0.12], v:{hr:168}, r:1.1, s:[
     C("labs","Electrolytes","BMP","Chloride 88 (low), potassium 3.2 (low), bicarb 32 (high)."),
     C("iv","IV fluids with dextrose & potassium","Fluids","Fluids running to fix the electrolytes before surgery."),
@@ -1851,7 +1851,7 @@ const PS = {
 };
 const PSF = {
   pain:{t:"Pain 8/10", d:"Points to the crying face.", r:1.0, s:[C("assess","FACES pain score","FACES","Face 8 of 10."), C("meds","Pain medicine","Morphine","Morphine {0.05 mg/kg max 2} IV.")]},
-  nausea:{t:"Nausea", d:"Threw up after anesthesia.", r:0.9, s:[C("meds","Anti-nausea medicine","Zofran","Ondansetron {0.15 mg/kg max 4} IV.")]},
+  nausea:{t:"Nausea", d:"Threw up after anesthesia.", r:0.9, s:[C("meds","Anti-nausea medicine","Ondansetron","Ondansetron {0.15 mg/kg max 4} IV.")]},
   is:{t:"Won't use the spirometer", d:"Says it's boring.", r:0.7, s:[C("assess","Make it a game","Game","Pinwheels and blowing bubbles count too! 10 big breaths.")]},
   pca:{t:"Grandpa pressing the PCA", d:"Trying to help.", r:0.9, s:[C("assess","Teach the family","Teach","Only the patient presses the button. Grandpa understands now.")]},
   lostiv:{t:"Lost IV", d:"Pulled it out during a nap.", r:1.0, s:[C("assess","Child life first","Child life",["Distraction with a light-up wand.","Child life played I Spy.","Comfort hold on grandma's lap with a cartoon on.","Child life used a pinwheel for belly breathing."]), C("iv","New IV","IV","IV in.")]},
@@ -1871,7 +1871,7 @@ const PSU = {
   oversed:{t:"Too sleepy!", d:"Hard to wake. RR 10, SpO₂ 88%.", v:{rr:10,spo2:88}, r:2.4, s:[
     C("assess","Sternal rub & stop the PCA","Assess","Barely rousable (abnormal). PCA paused."),
     C("o2","Oxygen","O₂","Oxygen on."),
-    C("meds","Naloxone","Narcan","Naloxone {0.01 mg/kg max 0.4} IV. Awake and breathing.")]},
+    C("meds","Naloxone","Naloxone","Naloxone {0.01 mg/kg max 0.4} IV. Awake and breathing.")]},
   abscess:{t:"Fever 39.4 °C!", d:"Day 3 after surgery, belly more tender.", surg:true, v:{t:39.4,hr:142}, r:1.8, s:[
     C("labs","Cultures & CBC","Cultures","WBC 21 (high)."),
     C("md","Ultrasound","","Abscess. Radiology will drain it."),
@@ -1908,7 +1908,7 @@ const MS = {
   etoh:{t:"Alcohol withdrawal", d:"Shaky, sweaty and anxious. Last drink 2 days ago.", dx:"Alcohol withdrawal", pmh:"Alcohol use disorder", v:{hr:112,sbp:156,dbp:94}, r:1.2, s:[
     C("assess","CIWA score","CIWA","CIWA 14: tremor, sweating, anxious (abnormal)."),
     C("meds","Thiamine before any sugar","Thiamine","Thiamine 100 mg IV."),
-    C("meds","Lorazepam per CIWA","Ativan","Lorazepam 1 mg IV. CIWA down to 6.")]},
+    C("meds","Lorazepam per CIWA","Lorazepam","Lorazepam 1 mg IV. CIWA down to 6.")]},
   cdiff:{t:"Diarrhea, 6 times today", d:"On antibiotics for a week. Cramping.", dx:"C. diff colitis", r:1.0, s:[
     C("hands","Contact precautions","Precautions","Gown and gloves, sign on the door. Wash with soap and water. Sanitizer doesn't kill C. diff."),
     C("labs","Stool test","C. diff","C. diff positive (abnormal)."),
@@ -1966,12 +1966,12 @@ const MSU = {
     C("labs","Neuro checks & CT head","CT","CT head: no bleed. Neuro checks every hour, bed alarm on.")]},
   wdSeizure:{t:"Seizure!", d:"Shaking all over.", v:{hr:138,spo2:88}, r:2.4, only:p=>/Alcohol/.test(p.pmh.join()), s:[
     C("assess","Safety: side, pad rails, time it","Safety","On her side, rails padded, timer started."),
-    C("meds","Lorazepam IV","Ativan","Lorazepam 2 mg IV. Seizure stopped."),
+    C("meds","Lorazepam IV","Lorazepam","Lorazepam 2 mg IV. Seizure stopped."),
     C("o2","Oxygen","NC","Oxygen on, SpO₂ back to 95%.")]},
   oversed:{t:"Too sleepy!", d:"Hard to wake after pain medicine. RR 8.", v:{rr:8,spo2:86}, r:2.4, s:[
     C("assess","Sternal rub","Assess","Barely rousable, pinpoint pupils (abnormal)."),
     C("o2","Oxygen & stay with her","O₂","Oxygen on."),
-    C("meds","Naloxone","Narcan","Naloxone 0.4 mg IV. Awake and breathing 16 a minute.")]},
+    C("meds","Naloxone","Naloxone","Naloxone 0.4 mg IV. Awake and breathing 16 a minute.")]},
   pulling:{t:"Pulling at the IV!", d:"Agitated and confused.", r:1.6, s:[
     C("assess","Calm & reorient","Calm","Soft voice, told her where she is."),
     C("hands","Safety: bed low, bed alarm, sitter","Safety","Bed low, alarm on, sitter at the bedside. No restraints needed.")]}
@@ -2054,7 +2054,7 @@ Object.assign(EV, {
     C("esc","Call cardiac surgery","","Surgeon updated. Output slowing.")]},
   feverP:{t:"New fever!", d:"Temp 38.9 °C.", r:1.2, v:{t:38.9,hr:160}, s:[
     C("labs","Blood cultures","Cultures","Cultures from the line and a peripheral stick."),
-    C("meds","Acetaminophen","Tylenol","Acetaminophen 15 mg/kg.")]}
+    C("meds","Acetaminophen","Acetaminophen","Acetaminophen 15 mg/kg.")]}
 });
 const picuLevel = (k, o) => Object.assign(icuLevel(k, o), {n:505+k, tag:"C"+k, unit:"PICU", picu:true});
 const PICU_LEVELS = [
@@ -3933,7 +3933,7 @@ const ABBR = {MAP:"mean arterial pressure", SBP:"systolic blood pressure", DBP:"
   "A-fib":"atrial fibrillation", GERD:"acid reflux", DTRs:"deep tendon reflexes", LUD:"left uterine displacement", TOLAC:"trial of labor after cesarean", VBAC:"vaginal birth after cesarean",
   FHR:"fetal heart rate", TNK:"tenecteplase, a clot-buster", tPA:"alteplase, a clot-buster", PO:"by mouth", LR:"lactated Ringer's", NS:"normal saline", KCl:"potassium chloride",
   D50:"50% dextrose", D10:"10% dextrose", PPV:"positive pressure ventilation", ETT:"breathing tube", OR:"operating room", SCI:"spinal cord injury", NC:"nasal cannula", BiPAP:"bilevel positive airway pressure",
-  PCA:"patient-controlled analgesia", "T&S":"type and screen", DuoNeb:"albuterol-ipratropium nebulizer", TTE:"echocardiogram", RN:"registered nurse", CNA:"nursing assistant", PT:"physical therapy", OT:"occupational therapy"};
+  PCA:"patient-controlled analgesia", "T&S":"type and screen", TTE:"echocardiogram", RN:"registered nurse", CNA:"nursing assistant", PT:"physical therapy", OT:"occupational therapy"};
 const ABBR_RE = new RegExp("(^|[^A-Za-z0-9])(" + Object.keys(ABBR).sort((a,b)=>b.length-a.length).map(k=>k.replace(/[.*+?^${}()|[\]\\&]/g, m=>"\\"+m)).join("|") + ")(?![A-Za-z0-9])", "g");
 function spellOut(root){
   const seen = new Set(), w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
