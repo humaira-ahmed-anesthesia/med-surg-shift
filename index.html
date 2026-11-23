@@ -965,7 +965,7 @@ const ER = {
     C("labs","12-lead EKG","EKG","Atrial fibrillation, rate 172 (high)."),
     C("iv","IV","IV","20-gauge IV placed. Pads on the chest."),
     C("meds","Sedation","Etomidate","Etomidate IV. Sleepy within a minute."),
-    C("shock","Synchronized cardioversion","Sync 200 J","Sync on. Everyone clear! Shocked at 200 joules. Normal rhythm, rate 84. BP 112/70.",{rh:"Sinus rhythm · 84"}),
+    C("shock","Synchronized cardioversion","Sync","Sync on. Everyone clear! Shocked. Normal rhythm, rate 84. BP 112/70.",{rh:"Sinus rhythm · 84"}),
     C("assess","Wake-up check","Assess","Awake, talking, color back.")]}}
 };
 /* CT results for cases that come back from CT */
@@ -2246,7 +2246,7 @@ Object.assign(EV, {
   cardiovert:{t:"Time to cardiovert!", d:"Still in A-fib. The team is ready.", r:1.6, v:{sbp:92,dbp:54}, allHands:1, converts:true, s:[
     C("assess","Consent & time-out","Time-out","Consent signed. Pads on. Time-out done."),
     C("md","MD sedates (propofol)","","Asleep and breathing without help."),
-    C("shock","Synchronized shock, 120 J (sync on!)","Sync","Sync button on, everyone clear… shock! Normal sinus rhythm, HR 82."),
+    C("shock","Synchronized shock (sync on!)","Sync","Sync button on, everyone clear… shock! Normal sinus rhythm, HR 82."),
     C("vitals","Recheck vitals","","")]},
   transferOut:{t:"Ready for step-down", d:"In normal rhythm for 4 hours. Stable.", r:0.6, transferOut:true, s:[
     C("meds","Start anticoagulation","Apixaban","Apixaban started to prevent a stroke."),
