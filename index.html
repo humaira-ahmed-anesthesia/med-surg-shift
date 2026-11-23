@@ -1143,10 +1143,10 @@ const ICU_LEVELS = [
   icuLevel(10, {name:"Burn ICU 2", blurb:"A house fire: carbon monoxide, cyanide and chest burns. She fights all night.", drips:["lr","insulin"],
     pt:icuPt("Ms. Park", 63, "woman", 66, "House fire: burns and smoke inhalation", ["Asthma"], ["vent","burns","cvc","art","foley","ng"]),
     cares:[["pulses",15,6],["dressing",45,22],["glucose",15,11]], events:[[22,"co"],[70,"chestEschar"],[115,"cold"],[168,"lateArrest"]], stars:[4300,5800]}),
-  icuLevel(11, {name:"Cardiac ICU 3", blurb:"A big heart attack and a heart too weak to pump. A tiny Impella pump is doing the work.", drips:["norepi"],
+  icuLevel(11, {noRRgate:true, name:"Cardiac ICU 3", blurb:"A big heart attack and a heart too weak to pump. A tiny Impella pump is doing the work.", drips:["norepi"],
     pt:icuPt("Mr. Abara", 58, "man", 90, "Cardiogenic shock after a large heart attack", ["Coronary artery disease","Smoker"], ["impella","vent","cvc","art","foley"]),
     cares:[["impella",15,6],["legPulse",30,14],["io",15,10]], events:[[24,"suction"],[66,"mapDrop"],[105,"hemolysis"],[148,"coldLeg"]], stars:[4400,5900]}),
-  icuLevel(12, {name:"ECMO", blurb:"Flu wrecked her lungs. ECMO breathes for her while they heal. Watch the circuit like a hawk.", drips:["norepi"],
+  icuLevel(12, {noRRgate:true, name:"ECMO", blurb:"Flu wrecked her lungs. ECMO breathes for her while they heal. Watch the circuit like a hawk.", drips:["norepi"],
     pt:icuPt("Ms. Delgado", 34, "woman", 68, "Severe ARDS from the flu, on ECMO", ["Asthma"], ["ecmo","vent","cvc","art","foley"]),
     cares:[["ecmo",15,6],["ptt",45,20],["oral",30,14]], events:[[26,"chatter"],[68,"oxyClot"],[110,"cannulaBleed"],[150,"mapDrop"]], stars:[4500,6000]})
 ];
@@ -2028,11 +2028,11 @@ const UNIT_ORDER = ["Med-Surg","ER","ICU","Rapid Response","Labor & Delivery","P
 const starsFor = l => (saved[l.n] || {}).stars || 0;
 function prevInUnit(l){ const u = LEVELS.filter(x=>x.unit===l.unit); const i = u.indexOf(l); return i > 0 ? u[i-1] : null; }
 function isUnlocked(l){
-  if(l.unit==="Rapid Response") return LEVELS.filter(x=>x.unit==="ER" || x.unit==="ICU").every(x=>starsFor(x) >= 1);
+  if(l.unit==="Rapid Response") return LEVELS.filter(x=>(x.unit==="ER" || x.unit==="ICU") && !x.noRRgate).every(x=>starsFor(x) >= 1);
   const pv = prevInUnit(l); return !pv || starsFor(pv) >= 1;
 }
 function lockReason(l){
-  if(l.unit==="Rapid Response"){ const left = LEVELS.filter(x=>(x.unit==="ER" || x.unit==="ICU") && starsFor(x) < 1).length; return `Earn a star on every ER and ICU level first (${left} to go).`; }
+  if(l.unit==="Rapid Response"){ const left = LEVELS.filter(x=>(x.unit==="ER" || x.unit==="ICU") && !x.noRRgate && starsFor(x) < 1).length; return `Earn a star on every ER and ICU level first (${left} to go).`; }
   const pv = prevInUnit(l); return pv ? `Earn a star on “${pv.name}” first.` : "";
 }
 /* ---------- Float shift: a random unit with a random mix of its patients ---------- */
