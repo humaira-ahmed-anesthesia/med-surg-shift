@@ -303,6 +303,9 @@ button.chip.now:active{transform:scale(.96)}
 .drips{display:flex;flex-direction:column;gap:4px}
 .drip{display:grid;grid-template-columns:1fr auto 40px 40px;align-items:center;gap:6px;background:var(--surface);border-radius:12px;padding:5px 6px;box-shadow:0 2px 0 var(--line)}
 .drip .dn{text-align:left;min-width:0;line-height:1.15}
+.drip{position:relative}
+.drip .dpz{position:absolute;right:8px;bottom:-13px;z-index:2;padding:5px 11px;border-radius:999px;font-weight:800;font-size:12.5px;background:#ffd84d;color:#3a2d00;box-shadow:0 0 0 3px rgba(255,216,77,.45),0 2px 0 rgba(0,0,0,.12);animation:pulseZ 1.1s ease-in-out infinite}
+@keyframes pulseZ{50%{box-shadow:0 0 0 7px rgba(255,216,77,.2),0 2px 0 rgba(0,0,0,.12)}}
 .drip .dn b{display:block;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .drip .dn small{display:block;font-size:11px;font-weight:800;color:var(--accent)}
 .drip .dv{text-align:center;line-height:1.05;min-width:76px}
@@ -992,6 +995,8 @@ const DRIPS = {
   norepi:  {name:"Norepinephrine", unit:"mcg/min", min:0, max:30, step:2, start:6, v:"MAP", lo:65, hi:90, atLeast:1, base:54, gain:1.6, noise:1.4, bp:"map", why:"Squeezes blood vessels to raise blood pressure. Titrate to MAP 65 or higher."},
   norepiSCI:{name:"Norepinephrine", unit:"mcg/min", min:0, max:30, step:2, start:8, v:"MAP", lo:85, hi:100, atLeast:1, base:64, gain:1.6, noise:1.4, bp:"map", why:"After a spinal cord injury, MAP goal is 85 or higher."},
   norepiSpasm:{name:"Norepinephrine", unit:"mcg/min", min:0, max:30, step:2, start:8, v:"SBP", lo:160, hi:200, atLeast:1, base:132, gain:2.4, noise:2.2, bp:"sbp", why:"Vasospasm: SBP goal 160 or higher."},
+  esmolol:{name:"Esmolol", unit:"mcg/kg/min", min:0, max:300, step:25, start:50, v:"HR", lo:50, hi:60, base:106, gain:-0.24, noise:1.4, hrLink:true, why:"Heart rate comes down first. Goal HR 50–60."},
+  nicardAD:{name:"Nicardipine", unit:"mg/hr", min:0, max:15, step:2.5, start:2.5, v:"SBP", lo:100, hi:120, atMost:1, base:168, gain:-4.4, noise:2.2, bp:"sbp", why:"Added once the heart rate is at goal. Goal SBP 120 or lower."},
   norepiVasc:{name:"Norepinephrine", unit:"mcg/min", min:0, max:30, step:2, start:8, v:"MAP", lo:80, hi:100, atLeast:1, base:60, gain:1.6, noise:1.4, bp:"map", why:"After aortic surgery: MAP goal 80 or higher."},
   vaso:    {name:"Vasopressin", unit:"units/min", fixed:true, start:0.03, step:0.01, note:"fixed dose", why:"Added when norepinephrine is above 10. Fixed dose, not titrated."},
   epiAdd:  {name:"Epinephrine", unit:"mcg/min", fixed:true, start:2, step:1, note:"third pressor", why:"Added when norepinephrine and vasopressin aren't enough."},
@@ -1004,6 +1009,9 @@ const DRIPS = {
   amio:    {name:"Amiodarone", unit:"mg/min", fixed:true, start:1, why:"Keeps the heart out of A-fib. Protocol: 150 mg over 10 minutes, then 1 mg/min for 6 hours, then 0.5 mg/min for 18 hours. Not titrated to a number: change the rate on schedule."},
   lr:      {name:"Lactated Ringer's", unit:"mL/hr", min:100, max:1200, step:50, start:400, v:"Urine output", vu:" mL/hr", lo:35, hi:70, base:-25, gain:0.13, noise:2.2, why:"Burn resuscitation. Adjust the rate hourly to keep urine output 0.5–1 mL/kg/hr (about 35–70). Too much fluid causes swelling (fluid creep)."}
 };
+/* sedation pause: done with the buttons on the drip itself */
+const SAT_PAUSE = () => C("iv","Pause the sedation drip","Pause", p=>{ const d = sedDrip(); if(!d) return "Sedation off."; G.icu.satWas = d.rate; d.rate = 0; buildDrips(); return `${d.def.name} paused (was ${G.icu.satWas} ${d.def.unit}).`; }, {dripBtn:"pause"});
+const SAT_RESTART = () => C("iv","Restart at half the rate","Restart", p=>{ const d = sedDrip(); if(!d) return "Sedation back on."; const half = Math.max(d.def.step, Math.round((G.icu.satWas||d.def.start)/2/d.def.step)*d.def.step); d.rate = clamp(half, d.def.min, d.def.max); buildDrips(); return `${d.def.name} restarted at ${d.rate} ${d.def.unit}, half the old rate. Titrate to the goal.`; }, {dripBtn:"restart"});
 /* hourly (or every-2/3-hour) cares */
 const CARE = {
   neuro:   {t:"Hourly neuro check", d:"Pupils, level of consciousness, strength.", r:0.6, s:[C("assess","Pupils & GCS","Neuro","Pupils 3 mm and brisk. GCS 10, unchanged.")]},
@@ -1024,6 +1032,8 @@ const CARE = {
   impella: {t:"Impella check", d:"Position, purge and flow on the console.", r:0.6, s:[C("device","Check the console","Impella",["Flow 3.4 L/min, purge pressure normal, position OK.","P-level 6, flow steady. No alarms.","Position confirmed on the console. Purge running."])]},
   legPulse:{t:"Leg check below the sheath", d:"The pump catheter sits in the leg artery.", r:0.5, s:[C("assess","Doppler pulse, color & warmth","Doppler","Foot warm and pink, pedal pulse heard by Doppler. Groin dressing dry.")]},
   ldrain:  {t:"Spinal drain check", d:"Level, pressure and how much drained.", r:0.6, s:[C("device","Level & check the drain","Drain",["Spinal fluid pressure 8. Clear, 10 mL this hour.","Pressure 9, clear fluid. Drain leveled.","Pressure 7. 8 mL this hour, clear."])]},
+  pulses4: {t:"Pulse check, all four limbs", d:"A dissection can cut off blood to an arm or leg.", r:0.5, s:[C("assess","Pulses in arms & legs","Pulses",["Strong pulses in all four limbs, feet warm.","All pulses present, hands and feet warm."])]},
+  painAD:  {t:"Pain check", d:"Pain pushes the heart rate and BP up.", r:0.5, s:[C("assess","Pain score","Pain",["Back pain 3/10.","Pain 4/10. Repositioned with pillows."])]},
   legs:    {t:"Leg strength check", d:"Hourly after aortic surgery.", r:0.6, s:[C("assess","Strength & feeling in both legs","Legs","Lifts both legs off the bed. Feeling normal.")]},
   iabp:    {t:"Balloon pump check", d:"Timing, augmentation and the gas line.", r:0.6, s:[C("device","Check timing on the console","IABP",["1:1, inflating right at the dicrotic notch. Augmented pressure 112.","Timing good, helium line dry, no alarms.","Triggering off the EKG every beat. Augmentation above the patient's own pressure."])]},
   leftArm: {t:"Left arm & leg pulse check", d:"A weak left arm pulse means the balloon slid up.", r:0.5, s:[C("assess","Left radial & pedal pulses","Pulses","Left radial pulse strong, foot warm with a Doppler pulse. Leg kept straight.")]},
@@ -1032,10 +1042,11 @@ const CARE = {
   meds4:   {t:"Scheduled meds", d:"Due now.", r:0.5, s:[C("meds","Give scheduled meds","Meds",["Antibiotic IV piggyback hung.","Pantoprazole 40 mg IV given.","Heparin 5,000 units under the skin.","Electrolyte replacement running.","Scheduled IV antibiotic hung, second one at 2 p.m.","Stool softener and vitamins per tube."])]},
   labs4:   {t:"Lab draw", d:"Draw from the art line.", r:0.5, s:[C("labs","Draw labs","Labs",["BMP, CBC and magnesium sent.","Lactate 1.9, coming down.","Coags and a type and screen sent.","Potassium 4.1, magnesium 2.0.","Morning labs sent. Hemoglobin stable."])]},
   abg:     {t:"Blood gas", d:"On the ventilator: check the gas.", r:0.5, s:[C("labs","Draw an ABG","ABG",["pH 7.38, PaCO₂ 42, PaO₂ 88.","pH 7.33, PaCO₂ 48. RT bumped the rate.","pH 7.41, PaO₂ 102. RT weaned the oxygen."])]},
-  sat:     {t:"Daily sedation pause", d:"Wake-up check on the vent.", r:0.6, s:[
-    C("iv","Pause sedation","Pause", p=>{ const d = sedDrip(); if(!d) return "Sedation off."; G.icu.satWas = d.rate; d.rate = 0; buildDrips(); return `${d.def.name} paused (was ${G.icu.satWas} ${d.def.unit}).`; }),
-    C("assess","Wake-up check","Assess","Opens eyes, squeezes hands, wiggles toes."),
-    C("iv","Restart at half the rate","Restart", p=>{ const d = sedDrip(); if(!d) return "Sedation back on."; const half = Math.max(d.def.step, Math.round((G.icu.satWas||d.def.start)/2/d.def.step)*d.def.step); d.rate = clamp(half, d.def.min, d.def.max); buildDrips(); return `${d.def.name} restarted at ${d.rate} ${d.def.unit}, half the old rate. Titrate to the goal.`; })]},
+  sat:     {t:"Daily sedation pause", d:"Wake-up check on the vent.", r:0.6, s:[SAT_PAUSE(), C("assess","Wake-up check","Assess","Opens eyes, squeezes hands, wiggles toes. Calm."), SAT_RESTART()]},
+  satWild: {t:"Daily sedation pause", d:"Wake-up check on the vent.", r:0.8, s:[SAT_PAUSE(),
+    C("assess","Wake-up check","Assess","Eyes open, then thrashing and reaching for the tube! RASS +3 (abnormal)."),
+    C("esc","Call the intensivist","","Give fentanyl and midazolam, then restart the sedation."),
+    C("meds","Fentanyl & midazolam","Fent + Versed","Fentanyl 50 mcg and midazolam 2 mg IV. Settling down."), SAT_RESTART()]},
   feeds:   {t:"Tube feeds", d:"Continuous feeds through the feeding tube.", r:0.5, s:[C("device","Feeding tube & feeds","Feeds",["New bag of tube feeds hung, running at 50 mL/hr.","Tube flushed with 30 mL of water. Feeds running at goal.","Placement checked, head of bed 30°. Feeds running."])]},
   bath:    {t:"Bath & linen change", d:"Chlorhexidine bath.", r:0.5, s:[C("wound","Bath & fresh sheets","Bath","Chlorhexidine bath, fresh sheets, lines re-secured.")]},
   skin:    {t:"Skin check", d:"Heels, sacrum, under every device.", r:0.5, s:[C("wound","Check the skin","Skin",["Skin intact. Heels floated.","Small red spot under the tube holder. Padded and moved.","Sacrum pink, blanches. New foam dressing."])]},
@@ -1146,6 +1157,14 @@ const EV = {
     s:[C("assess","Leg strength","Legs","Left leg 2/5 (abnormal), was 5/5."), C("device","Open the spinal drain","Drain","Drained 15 mL. Spinal fluid pressure 7."), C("esc","Call vascular surgery","","Surgeon wants the MAP higher. Turn up the norepinephrine."), C("assess","Recheck the legs","Legs","Left leg back to 4/5.")]},
   drainBlood:{t:"Blood in the spinal drain!", d:"The spinal fluid turned pink.", r:1.8, ct:"CT head: no bleeding. Back to the ICU. Drain stays clamped for now.",
     s:[C("device","Clamp the drain","Clamp","Drain clamped."), C("esc","Call vascular surgery","","Head CT ordered."), C("go","Rush to CT","ct",""), C("assess","Neuro check","Assess","Awake, moving everything.")]},
+  addNicard:{t:"SBP still 158!", d:"The heart rate is down, but the blood pressure isn't.", r:1.4, v:{sbp:158,dbp:84}, addDrip:"nicardAD",
+    s:[C("assess","Check the heart rate first","Assess","HR at goal on esmolol. SBP 158 (high)."), C("esc","Call the intensivist","","Add nicardipine. Goal SBP 120 or lower."), C("iv","Start nicardipine","Nicardipine","Nicardipine at 2.5 mg/hr. Titrate to SBP 120 or lower.")]},
+  tearPain:{t:"Tearing back pain!", d:"Pain 9/10. Heart rate climbing.", r:2.0, hit:{d:"esmolol", by:18}, ct:"CT angiogram: the tear hasn't grown. Back to the ICU.",
+    s:[C("assess","Assess","Assess","Pain 9/10 between the shoulder blades (abnormal). Pulses unchanged."), C("meds","Pain medicine","Fentanyl","Fentanyl 50 mcg IV."), C("go","Rush to CT","ct",""), C("assess","Titrate","Assess","Bring the heart rate back down with the esmolol.")]},
+  esBrady:{t:"Heart rate 44!", d:"Dizzy. BP 92/50.", r:1.8, hit:{d:"esmolol", by:-14}, v:{sbp:92,dbp:50},
+    s:[C("assess","Assess & titrate","Assess","Awake but dizzy. HR 44 (low). Turn the esmolol down to get back to 50–60.")]},
+  coldLegAD:{t:"Right leg cold!", d:"Pale foot, weak pulse.", r:2.2,
+    s:[C("assess","Doppler pulses","Doppler","Right pedal pulse faint by Doppler (abnormal)."), C("esc","Call vascular surgery","","The tear is blocking blood to the leg. Going for a stent."), C("go","Rush to surgery","or",""), C("assess","Back from the OR","Assess","Stent placed. Right foot warm and pink, strong pulse.")]},
   mapLowV:{t:"MAP 70!", d:"Below goal after the turn.", r:1.6, hit:{d:"norepiVasc", by:-10},
     s:[C("device","Check the art line","Check","Leveled and reading true. Cuff matches."), C("iv","Volume","Albumin","5% albumin 250 mL."), C("assess","Titrate & reassess","Reassess","Turn up the norepinephrine to get MAP back to 80 or higher.")]},
   iabpTiming:{t:"Balloon pump alarming!", d:"New A-fib. The pump keeps missing beats.", r:1.8, v:{hr:132},
@@ -1305,7 +1324,10 @@ const ICU_LEVELS = [
     cares:[["iabp",15,6],["leftArm",30,14],["io",15,10]], events:[[24,"iabpTiming"],[64,"weakArm"],[104,"mapDrop"],[146,"balloonLeak"]], stars:[4300,5800]}),
   icuLevel(14, {noRRgate:true, name:"Vascular ICU", blurb:"A big aortic repair with a spinal drain. Keep the MAP up and watch those legs.", drips:["norepiVasc"],
     pt:icuPt("Mr. Lindqvist", 70, "man", 82, "Thoracoabdominal aortic aneurysm repair, today", ["Hypertension","Smoker","COPD"], ["ldrain","art","cvc","foley"]),
-    cares:[["ldrain",15,6],["legs",15,10]], events:[[24,"legWeak"],[64,"mapLowV"],[104,"drainBlood"],[146,"fever"]], stars:[4300,5800]})
+    cares:[["ldrain",15,6],["legs",15,10]], events:[[24,"legWeak"],[64,"mapLowV"],[104,"drainBlood"],[146,"fever"]], stars:[4300,5800]}),
+  icuLevel(15, {noRRgate:true, name:"Vascular ICU 2", blurb:"A tear in the aorta. Heart rate down first, then the blood pressure. Two drips, one goal each.", drips:["esmolol"],
+    pt:icuPt("Mrs. Castellanos", 61, "woman", 70, "Type B aortic dissection", ["Hypertension","Smoker"], ["art","cvc","foley"]),
+    cares:[["pulses4",30,8],["painAD",30,20]], events:[[22,"addNicard"],[62,"tearPain"],[104,"esBrady"],[146,"coldLegAD"]], stars:[4300,5800]})
 ];
 const ICU_COACH = [
   {txt:"Welcome to the ICU: <b>one patient, a lot going on</b>. The drip panel keeps her <b>MAP 65–80</b>. When a number drifts, the <b>+</b> or <b>−</b> you need glows. Tap <b>+</b> until MAP turns green.", target:"#drips .dp", done:()=>G.icu.drips[0] && dripOK(G.icu.drips[0])},
@@ -2571,7 +2593,7 @@ function newGame(){
 /* judged on the number the nurse sees: a MAP that reads 65 is at goal */
 const shownVal = d => d.def.dec ? +d.val.toFixed(d.def.dec) : Math.round(d.val);
 const sgn = (v, def) => def.int ? (v>0 ? "+"+v : v<0 ? "−"+Math.abs(v) : "0") : v;
-const goalTxt = def => (def.atLeast ? `≥ ${def.lo}` : def.int ? `${sgn(def.lo,def)} to ${sgn(def.hi,def)}` : `${def.lo}–${def.hi}`) + (def.vu||"");
+const goalTxt = def => (def.atLeast ? `≥ ${def.lo}` : def.atMost ? `≤ ${def.hi}` : def.int ? `${sgn(def.lo,def)} to ${sgn(def.hi,def)}` : `${def.lo}–${def.hi}`) + (def.vu||"");
 function dripOK(d){ if(d.def.fixed) return true; const v = shownVal(d); return v >= d.def.lo && v <= d.def.hi; }
 function fmtVal(d){ const v = d.val; return d.def.dec ? v.toFixed(d.def.dec) : d.def.int ? ((Math.round(v)>0?"+":"") + Math.round(v)) : String(Math.round(v)); }
 function fmtRate(d){ const dp = (String(d.def.step).split(".")[1] || "").length; return d.rate.toFixed(dp) + " " + d.def.unit; }
@@ -2648,7 +2670,7 @@ function icuTick(dt){
   I.sched.forEach(sc=>{
     if(G.t < sc.next) return;
     sc.next = sc.every ? sc.next + sc.every : Infinity;
-    const def = CARE[sc.k];
+    const def = sc.k==="sat" && Math.random() < 0.5 ? CARE.satWild : CARE[sc.k];
     if(live && !dying && !p.queue.some(q=>q.def===def) && !(p.active && p.active.def===def)){ p.queue.push(inst(def, p)); if(p.state==="resting") p.timer = 0; }
   });
   const ne = !LV.tutorial && I.drips.find(d=>/^norepi/.test(d.key));
@@ -2683,6 +2705,7 @@ function buildDrips(){
       <div class="dv"><small>Protocol</small><b class="val"></b><small class="gl"></small></div></div>` : `<div class="drip" data-i="${i}">
       <button class="dn" data-why="${i}"><b>${esc(d.def.name)}</b><small class="dr"></small></button>
       <div class="dv"><small>${esc(d.def.v)}</small><b class="val"></b><small class="gl">goal ${goalTxt(d.def)}</small></div>
+      ${/propofol|dexmed/.test(d.key) ? `<button class="dpz" data-z="${i}" hidden></button>` : ""}
       <button class="dm" data-d="${i}" data-s="-1" aria-label="Turn ${esc(d.def.name)} down">−</button>
       <button class="dp" data-d="${i}" data-s="1" aria-label="Turn ${esc(d.def.name)} up">+</button></div>`).join("");
 }
@@ -2696,6 +2719,7 @@ document.getElementById("drips").addEventListener("click", e=>{
   const b = e.target.closest("button"); if(!b) return;
   if(b.dataset.why !== undefined){ const w = curDrips()[+b.dataset.why]; if(w) toast(w.def.why); return; }
   if(!playing()) return;
+  if(b.dataset.z !== undefined){ const p = cur(), st = p && p.state==="needs" ? curStep(p) : null; if(st && st.dripBtn){ sfx.tap(); advance(p, "you"); } return; }
   const d = curDrips()[+b.dataset.d]; if(!d) return;
   const before = d.rate;
   d.rate = clamp(+(d.rate + (+b.dataset.s) * d.def.step).toFixed(2), d.def.min, d.def.max);
@@ -2714,6 +2738,10 @@ function updateDrips(){
       else row.querySelector(".gl").textContent = d.def.note || "";
       return;
     }
+    const zb = row.querySelector(".dpz");
+    if(zb){ const pp = cur(), zs = pp && pp.state==="needs" ? curStep(pp) : null, want = zs && zs.dripBtn;
+      zb.hidden = !want; if(want){ const ic = want==="pause" ? '<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><rect x="1.5" y="1" width="3" height="10" rx="1" fill="currentColor"/><rect x="7.5" y="1" width="3" height="10" rx="1" fill="currentColor"/></svg>' : '<svg viewBox="0 0 12 12" width="11" height="11" aria-hidden="true"><path d="M2.5 1.2v9.6L10.5 6z" fill="currentColor"/></svg>';
+        if(zb.dataset.w !== want){ zb.dataset.w = want; zb.innerHTML = ic + (want==="pause" ? " Pause" : " Restart ½"); } zb.setAttribute("aria-label", want==="pause" ? "Pause the sedation drip" : "Restart the sedation drip at half the rate"); } }
     if(d.chk){ // glucose: only what the last fingerstick said
       const v = d.chk.v, def = d.def;
       row.querySelector(".val").textContent = v;
@@ -2726,7 +2754,7 @@ function updateDrips(){
     row.querySelector(".val").textContent = fmtVal(d);
     const def = d.def, span = def.hi - def.lo, eq = def.base + def.gain*d.rate + d.dist;
     const sv = shownVal(d);
-    const low = sv < def.lo || (d.val < def.lo + span*0.2 && eq < d.val - 0.5);
+    const low = sv < def.lo || (!def.atMost && d.val < def.lo + span*0.2 && eq < d.val - 0.5);
     const high = sv > def.hi || (!def.atLeast && d.val > def.hi - span*0.2 && eq > d.val);
     const up = def.gain > 0 ? low : high, down = def.gain > 0 ? high : low;
     row.classList.toggle("wantUp", up); row.classList.toggle("wantDn", down);
@@ -3263,6 +3291,7 @@ function tapTool(key, btn){
   }
   if(cprBlocks(curStep(p))) return;
   if(want === "md"){ toast("The MD is on it. Watch the feed."); return; }
+  if(curStep(p).dripBtn){ const d = sedDrip(); toast(`Use the ${curStep(p).dripBtn==="pause" ? "Pause" : "Restart"} button on the ${d ? d.def.name.toLowerCase() : "sedation"} drip.`); return; }
   if(want === "go"){ sfx.wrong(); toast(`Tap “${DEST[curStep(p).b].btn}” in the order card.`); return; }
   if(want === "esc"){ sfx.wrong(); toast("Time to call for help. Tap Rapid response or Call charge."); return; }
   if(want === "vitals"){ sfx.wrong(); toast("Check vitals first. Tap the Vitals button on the monitor."); return; }
@@ -3516,7 +3545,7 @@ function renderAll(){
     if(b.dataset.alt){ b.ic.innerHTML = ICON[k]; b.style.setProperty("--tint", TOOLS[k].tint); b.style.setProperty("--tc", TOOLS[k].c); delete b.dataset.alt; } });
   toolBtns.assess.classList.toggle("due", (p.state==="needs"||p.state==="resting") && !p.assessed);
   const st = curStep(p);
-  if(st && toolBtns[btnFor(st.k)]){
+  if(st && !st.dripBtn && toolBtns[btnFor(st.k)]){
     const b = toolBtns[btnFor(st.k)];
     b.classList.add("next"); b.lb.textContent = st.b; b.setAttribute("aria-label", `${TOOLS[st.k].name}: ${st.l}`);
     if(st.k==="blood"){ b.ic.innerHTML = ICON.blood; b.style.setProperty("--tint", TOOLS.blood.tint); b.style.setProperty("--tc", TOOLS.blood.c); b.dataset.alt = "1"; }
