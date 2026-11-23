@@ -993,6 +993,8 @@ const DRIPS = {
   norepiSCI:{name:"Norepinephrine", unit:"mcg/min", min:0, max:30, step:2, start:8, v:"MAP", lo:85, hi:100, atLeast:1, base:64, gain:1.6, noise:1.4, bp:"map", why:"After a spinal cord injury, MAP goal is 85 or higher."},
   norepiSpasm:{name:"Norepinephrine", unit:"mcg/min", min:0, max:30, step:2, start:8, v:"SBP", lo:160, hi:200, atLeast:1, base:132, gain:2.4, noise:2.2, bp:"sbp", why:"Vasospasm: SBP goal 160 or higher."},
   norepiVasc:{name:"Norepinephrine", unit:"mcg/min", min:0, max:30, step:2, start:8, v:"MAP", lo:80, hi:100, atLeast:1, base:60, gain:1.6, noise:1.4, bp:"map", why:"After aortic surgery: MAP goal 80 or higher."},
+  vaso:    {name:"Vasopressin", unit:"units/min", fixed:true, start:0.03, step:0.01, note:"fixed dose", why:"Added when norepinephrine is above 10. Fixed dose, not titrated."},
+  epiAdd:  {name:"Epinephrine", unit:"mcg/min", fixed:true, start:2, step:1, note:"third pressor", why:"Added when norepinephrine and vasopressin aren't enough."},
   insulin: {name:"Insulin drip", unit:"units/hr", min:0, max:20, step:1, start:2, v:"Glucose", lo:140, hi:180, base:250, gain:-9, noise:3.5, why:"Critically ill patients run high sugars. Keep glucose 140–180 without dropping too low."},
   propofol:{name:"Propofol", unit:"mcg/kg/min", min:0, max:60, step:5, start:10, v:"RASS", lo:-2, hi:0, base:2.6, gain:-0.12, noise:0.12, int:true, why:"Sedation for the ventilator. RASS −2 to 0 means calm but rousable. Too deep and they can't be assessed."},
   nicard:  {name:"Nicardipine", unit:"mg/hr", min:0, max:15, step:2.5, start:2.5, v:"SBP", lo:130, hi:150, base:186, gain:-4.2, noise:2.2, bp:"sbp", why:"Lowers blood pressure after a bleed in the brain so it doesn't keep bleeding. Goal SBP 130–150."},
@@ -1030,7 +1032,11 @@ const CARE = {
   meds4:   {t:"Scheduled meds", d:"Due now.", r:0.5, s:[C("meds","Give scheduled meds","Meds",["Antibiotic IV piggyback hung.","Pantoprazole 40 mg IV given.","Heparin 5,000 units under the skin.","Electrolyte replacement running.","Scheduled IV antibiotic hung, second one at 2 p.m.","Stool softener and vitamins per tube."])]},
   labs4:   {t:"Lab draw", d:"Draw from the art line.", r:0.5, s:[C("labs","Draw labs","Labs",["BMP, CBC and magnesium sent.","Lactate 1.9, coming down.","Coags and a type and screen sent.","Potassium 4.1, magnesium 2.0.","Morning labs sent. Hemoglobin stable."])]},
   abg:     {t:"Blood gas", d:"On the ventilator: check the gas.", r:0.5, s:[C("labs","Draw an ABG","ABG",["pH 7.38, PaCO₂ 42, PaO₂ 88.","pH 7.33, PaCO₂ 48. RT bumped the rate.","pH 7.41, PaO₂ 102. RT weaned the oxygen."])]},
-  sat:     {t:"Daily sedation pause", d:"Wake-up check on the vent.", r:0.6, s:[C("iv","Pause sedation","Pause","Sedation off."), C("assess","Wake-up check","Assess","Opens eyes, squeezes hands, wiggles toes."), C("iv","Restart at half the rate","Restart","Sedation back on at half the old rate.")]},
+  sat:     {t:"Daily sedation pause", d:"Wake-up check on the vent.", r:0.6, s:[
+    C("iv","Pause sedation","Pause", p=>{ const d = sedDrip(); if(!d) return "Sedation off."; G.icu.satWas = d.rate; d.rate = 0; buildDrips(); return `${d.def.name} paused (was ${G.icu.satWas} ${d.def.unit}).`; }),
+    C("assess","Wake-up check","Assess","Opens eyes, squeezes hands, wiggles toes."),
+    C("iv","Restart at half the rate","Restart", p=>{ const d = sedDrip(); if(!d) return "Sedation back on."; const half = Math.max(d.def.step, Math.round((G.icu.satWas||d.def.start)/2/d.def.step)*d.def.step); d.rate = clamp(half, d.def.min, d.def.max); buildDrips(); return `${d.def.name} restarted at ${d.rate} ${d.def.unit}, half the old rate. Titrate to the goal.`; })]},
+  feeds:   {t:"Tube feeds", d:"Continuous feeds through the feeding tube.", r:0.5, s:[C("device","Feeding tube & feeds","Feeds",["New bag of tube feeds hung, running at 50 mL/hr.","Tube flushed with 30 mL of water. Feeds running at goal.","Placement checked, head of bed 30°. Feeds running."])]},
   bath:    {t:"Bath & linen change", d:"Chlorhexidine bath.", r:0.5, s:[C("wound","Bath & fresh sheets","Bath","Chlorhexidine bath, fresh sheets, lines re-secured.")]},
   skin:    {t:"Skin check", d:"Heels, sacrum, under every device.", r:0.5, s:[C("wound","Check the skin","Skin",["Skin intact. Heels floated.","Small red spot under the tube holder. Padded and moved.","Sacrum pink, blanches. New foam dressing."])]},
   artZ:    {t:"Level & zero the art line", d:"Every 4 hours and after moving the patient.", r:0.5, s:[C("device","Level to the heart & zero","Zero",["Art line leveled and zeroed. Waveform crisp.","Transducer back at heart level, zeroed. BP matches the cuff."])]},
@@ -1116,6 +1122,10 @@ const EV = {
        C("labs","Recheck in 15 minutes","FSBG", p=>{ setGlu(rand(150,170)|0); const v = fingerstick(); return `Glucose ${v}. Restart the insulin drip at a lower rate.`; })]},
   kidneysBack:{t:"Urine picking up!", d:"120 mL in the Foley this hour, on CRRT.", r:0.9, stopsCRRT:true,
     s:[C("device","Measure the output","Empty","120 mL/hr, two hours in a row."), C("labs","BMP","BMP","Creatinine down to 1.6, potassium 4.2. Kidneys recovering."), C("esc","Call nephrology","","Nephrology: stop the CRRT."), C("device","Stop CRRT & return the blood","Stop","Blood returned, CRRT off. Dialysis line capped.")]},
+  addVaso:{t:"Norepinephrine over 10!", d:"Needing more and more norepinephrine to hold the goal.", r:1.2, addDrip:"vaso", boost:14,
+    s:[C("assess","Assess & check the drip","Assess","Norepinephrine above 10 mcg/min for an hour. Cool hands."), C("esc","Call the intensivist","","Add vasopressin."), C("iv","Start vasopressin","Vasopressin","Vasopressin 0.03 units/min through the central line. Wean the norepinephrine as the MAP comes up.")]},
+  addEpi:{t:"Still over 10 on two pressors!", d:"Norepinephrine back above 10, even with vasopressin.", r:1.4, addDrip:"epiAdd", boost:12,
+    s:[C("assess","Assess","Assess","Mottled knees, MAP holding only on high norepinephrine."), C("esc","Call the intensivist","","Add epinephrine."), C("iv","Start epinephrine","Epi","Epinephrine 2 mcg/min through the central line. Wean the norepinephrine as the MAP comes up.")]},
   lowHgb:{t:"Hemoglobin 6.8!", d:"The lab just called.", r:1.2,
     s:[C("labs","Type & screen","T&S","Hemoglobin 6.8 (low). Type and screen sent."), C("blood","Transfuse","PRBCs","Two-nurse check done. 1 unit PRBCs running."), C("labs","Recheck after","CBC","Hemoglobin 7.9.")]},
   family:{t:"Family has questions", d:"The family just arrived and they're scared.", r:0.8,
@@ -1242,7 +1252,10 @@ const icuLevel = (k, o) => { const l = Object.assign({n:200+k, tag:"I"+k, unit:"
     if(dv.includes("cvc")) l.cares.push(["cvcF",90,47]);
     if(!l.callback){
       l.cares.push(["meds4",60,17], ["labs4",90,37], ["skin",90,52], ["bath",0,128]);
-      if(dv.includes("vent")){ l.cares.push(["abg",90,30]); if(!l.picu) l.cares.push(["sat",0,64]); }
+      if(dv.includes("vent")){ l.cares.push(["abg",90,30]); if(!l.picu && l.drips.some(k=>/propofol|dexmed/.test(k))) l.cares.push(["sat",0,64]); }
+      if(dv.includes("vent") && !dv.includes("ng")) dv.push("ng");
+      if(l.next && l.next.devs && l.next.devs.includes("vent") && !l.next.devs.includes("ng")) l.next.devs.push("ng");
+      if(dv.includes("ng") && !has("feeds")) l.cares.push(["feeds",60,26]);
     } }
   return l; };
 const ICU_LEVELS = [
@@ -2557,7 +2570,8 @@ function newGame(){
 /* ---------- ICU engine ---------- */
 /* judged on the number the nurse sees: a MAP that reads 65 is at goal */
 const shownVal = d => d.def.dec ? +d.val.toFixed(d.def.dec) : Math.round(d.val);
-const goalTxt = def => (def.atLeast ? `≥ ${def.lo}` : `${def.lo}–${def.hi}`) + (def.vu||"");
+const sgn = (v, def) => def.int ? (v>0 ? "+"+v : v<0 ? "−"+Math.abs(v) : "0") : v;
+const goalTxt = def => (def.atLeast ? `≥ ${def.lo}` : def.int ? `${sgn(def.lo,def)} to ${sgn(def.hi,def)}` : `${def.lo}–${def.hi}`) + (def.vu||"");
 function dripOK(d){ if(d.def.fixed) return true; const v = shownVal(d); return v >= d.def.lo && v <= d.def.hi; }
 function fmtVal(d){ const v = d.val; return d.def.dec ? v.toFixed(d.def.dec) : d.def.int ? ((Math.round(v)>0?"+":"") + Math.round(v)) : String(Math.round(v)); }
 function fmtRate(d){ const dp = (String(d.def.step).split(".")[1] || "").length; return d.rate.toFixed(dp) + " " + d.def.unit; }
@@ -2566,6 +2580,7 @@ function newDrip(key){ const def = DRIPS[key]; const d = {key, def, rate:def.sta
   return d; }
 const gluDrip = () => G.icu && G.icu.drips.find(d=>d.def.v==="Glucose");
 function fingerstick(){ const d = gluDrip(); if(!d) return null; d.chk = {v:Math.round(d.val), at:clockStr()}; dirty = true; return d.chk.v; }
+const sedDrip = () => G.icu && G.icu.drips.find(d=>/propofol|dexmed/.test(d.key));
 function setGlu(v){ const d = gluDrip(); if(!d) return; d.dist += v - (d.def.base + d.def.gain*d.rate + d.dist); d.val = v; }
 const gluFlag = (v, d) => v < d.def.lo ? " (low)" : v > d.def.hi ? " (high)" : "";
 function icuSetup(){
@@ -2636,6 +2651,13 @@ function icuTick(dt){
     const def = CARE[sc.k];
     if(live && !dying && !p.queue.some(q=>q.def===def) && !(p.active && p.active.def===def)){ p.queue.push(inst(def, p)); if(p.state==="resting") p.timer = 0; }
   });
+  const ne = !LV.tutorial && I.drips.find(d=>/^norepi/.test(d.key));
+  if(ne && live && !dying){
+    ne.hiT = ne.rate > 10 ? (ne.hiT||0) + dt : 0;
+    const hasV = I.drips.some(d=>d.key==="vaso"), hasE = I.drips.some(d=>d.key==="epiAdd");
+    const busy = (p.active && (p.active.def===EV.addVaso || p.active.def===EV.addEpi)) || p.queue.some(q=>q.def===EV.addVaso || q.def===EV.addEpi);
+    if(ne.hiT > 15 && !busy && !I.pendingEv){ if(!hasV) I.pendingEv = "addVaso"; else if(!hasE) I.pendingEv = "addEpi"; ne.hiT = 0; }
+  }
   if(I.pendingEv && icuEvent(EV[I.pendingEv])) I.pendingEv = null;
   I.events.forEach(e=>{ if(!e.done && G.t >= e.at && icuEvent(EV[e.k])) e.done = true; });
   I.rt += dt; if(I.rt > 1){ I.rt = 0; dirty = true; }
@@ -3053,7 +3075,8 @@ function cprBlocks(st){
   return false;
 }
 function complete(p, via){
-  if(p.active && (LV.mode==="icu" || LV.nicu) && helpCosts()){ G.helpTick = (G.helpTick||0) + 1; if(G.helpTick % 5 === 0) earnHelp(); }
+  if(p.active && (LV.mode==="icu" || LV.nicu) && helpCosts()){ G.helpTick = (G.helpTick||0) + 1; const tk = G.helpTick;
+    if(LV.nicu ? tk % 5 === 0 : (tk % 15 === 7 || tk % 15 === 0)) earnHelp(); /* ICU/PICU: 1 per 7.5 cares, NICU: 1 per 5 */ }
   if(p.active && LV.mode==="floor") retentionNext(p, p.active.def);
   if(LV.mode==="icu" && G.icu && p.active){
     if(p.active.def.fatal){ passAway(p, p.active.def.fatal); return; }
@@ -3072,6 +3095,7 @@ function complete(p, via){
     const dd = p.active.def;
     if(dd.stopsCRRT){ p.devices = (p.devices||[]).filter(k=>k!=="crrt"); G.icu.sched.forEach(sc=>{ if(sc.k==="crrt") sc.next = Infinity; if(sc.k==="foleyCRRT") sc.k = "foleyE"; });
       p.queue = p.queue.filter(q=>q.def!==CARE.crrt).map(q=>q.def===CARE.foleyCRRT ? inst(CARE.foleyE, p) : q); dirty = true; }
+    if(dd.boost){ const ne = G.icu.drips.find(x=>/^norepi/.test(x.key)); if(ne){ ne.dist += dd.boost; ne.hiT = 0; } }
     if(dd.setRate){ const sd = G.icu.drips.find(x=>x.key===dd.setRate.d); if(sd){ sd.rate = dd.setRate.rate; buildDrips(); } }
     if(dd.dropDrip && G.icu.drips.some(x=>x.key===dd.dropDrip)){ G.icu.drips = G.icu.drips.filter(x=>x.key!==dd.dropDrip); buildDrips(); }
     if(dd.addDrip && !G.icu.drips.some(x=>x.key===dd.addDrip)){
@@ -3281,7 +3305,7 @@ function callCharge(){
 const noTransfer = () => LV.mode==="icu" || LV.nicu; // already the highest level of care
 const helpCosts = () => !(LV.mode==="tutorial" || LV.tutorial);
 /* earning: floor & other units 1 per 4 patients, ER twice as fast (1 per 2),
-   ICU & NICU 1 per 5 cares/alarms done (about 10 a shift), Rapid Response 1 per call finished */
+   ICU 1 per 7.5 cares/alarms, NICU 1 per 5, Rapid Response 1 per call finished */
 function earnHelp(){ G.rr++; setTimeout(()=>toast((LV.mode==="er" || LV.mode==="icu" || LV.nicu) ? "You earned another call for help!" : "You earned a rapid response!", "good"), 1300); dirty = true; }
 function callRR(){
   const p = cur();
