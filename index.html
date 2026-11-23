@@ -960,6 +960,8 @@ const CARE = {
   vit:     {t:"Hourly vitals", d:"Recheck a full set every hour.", r:0.5, s:[C("vitals","Recheck vitals","")]},
   impella: {t:"Impella check", d:"Position, purge and flow on the console.", r:0.6, s:[C("device","Check the console","Impella",["Flow 3.4 L/min, purge pressure normal, position OK.","P-level 6, flow steady. No alarms.","Position confirmed on the console. Purge running."])]},
   legPulse:{t:"Leg check below the sheath", d:"The pump catheter sits in the leg artery.", r:0.5, s:[C("assess","Doppler pulse, color & warmth","Doppler","Foot warm and pink, pedal pulse heard by Doppler. Groin dressing dry.")]},
+  iabp:    {t:"Balloon pump check", d:"Timing, augmentation and the gas line.", r:0.6, s:[C("device","Check timing on the console","IABP",["1:1, inflating right at the dicrotic notch. Augmented pressure 112.","Timing good, helium line dry, no alarms.","Triggering off the EKG every beat. Augmentation above the patient's own pressure."])]},
+  leftArm: {t:"Left arm & leg pulse check", d:"A weak left arm pulse means the balloon slid up.", r:0.5, s:[C("assess","Left radial & pedal pulses","Pulses","Left radial pulse strong, foot warm with a Doppler pulse. Leg kept straight.")]},
   ecmo:    {t:"ECMO circuit check", d:"Flow, sweep gas, oxygenator and tube sites.", r:0.6, s:[C("device","Check the circuit","ECMO",["Flow 4.5 L/min. No clots in the oxygenator. Tube sites dry.","Circuit quiet, tubing secured. Sweep gas on.","Oxygenator clear, blood after it bright red."])]},
   ptt:     {t:"Heparin level check", d:"Every 6 hours on ECMO: too little clots the circuit, too much bleeds.", r:0.5, s:[C("labs","Draw anti-Xa","Anti-Xa","Anti-Xa 0.35, in range. Heparin unchanged.")]},
   sodium:  {t:"Sodium check", d:"Every 4 hours on 3% saline.", r:0.5, s:[C("labs","Draw a sodium","Na","Sodium drawn and charted.")]}
@@ -1018,6 +1020,12 @@ const EV = {
     s:[C("labs","Hemolysis labs","LDH","LDH and plasma free hemoglobin high (high). The pump is breaking red cells."), C("esc","Call cardiology","","Cardiology lowered the pump speed and will check the position.")]},
   coldLeg:{t:"Cold foot!", d:"The leg with the pump catheter is pale and cool.", r:2.0,
     s:[C("assess","Doppler the foot","Doppler","No pedal pulse by Doppler (abnormal). Foot cold."), C("esc","Call vascular surgery","","Vascular surgery placed a small tube to bring blood down to the leg. Foot pinking up.")]},
+  iabpTiming:{t:"Balloon pump alarming!", d:"New A-fib. The pump keeps missing beats.", r:1.8, v:{hr:132},
+    s:[C("device","Look at the console","Console","Trigger lost: irregular rhythm (abnormal). Augmentation dropping."), C("device","Switch the trigger","Trigger","Trigger switched to the arterial pressure waveform. Pumping every beat again."), C("labs","12-lead EKG","EKG","Atrial fibrillation, rate 132 (high). Team is starting amiodarone.")]},
+  weakArm:{t:"Left arm pulse is weak!", d:"The left hand is cooler than the right.", r:1.8,
+    s:[C("assess","Compare both arms","Assess","Left radial pulse faint (abnormal), right strong. The balloon may have slid up."), C("labs","Chest X-ray","X-ray","Balloon tip too high, near the left arm artery (abnormal)."), C("esc","Call cardiology","","Cardiology pulled the balloon back 2 cm. Left pulse strong again.")]},
+  balloonLeak:{t:"Blood in the gas line!", d:"Rusty flecks in the clear helium tubing.", r:2.4, v:{sbp:82,dbp:48,hr:120},
+    s:[C("device","Stop the pump & clamp","Stop","Pump off, gas line clamped. Balloon leak (abnormal)."), C("esc","Call cardiology stat","","Cardiology coming. It can't sit still for long or it may clot."), MD("Balloon removed","Balloon pulled and pressure held on the groin for 30 minutes. Norepinephrine turned up while a new plan is made.")]},
   chatter:{t:"ECMO tubing chattering!", d:"The lines are shaking and flow keeps dropping.", r:2.0, v:{spo2:86,hr:124},
     s:[C("device","Check the circuit","Check","Flow dropping from 4.5 to 3 L/min. Tubing chattering."), C("iv","Volume","Albumin","5% albumin 250 mL. Chatter settles, flow back to 4.4.")]},
   oxyClot:{t:"Clots in the oxygenator!", d:"Dark spots building up, and blood after it isn't as red.", r:1.8, v:{spo2:87},
@@ -1077,6 +1085,7 @@ const DEV = {
   swan:{n:"Pulmonary artery catheter", w:"Measures how well the heart is pumping (cardiac index).", k:"Cardiac index under 2.2 means the heart is struggling."},
   burns:{n:"Burn dressings", w:"Silver dressings cover the burns to fight infection.", k:"Premedicate before changes. Keep the room warm. Check pulses in burned limbs."},
   impella:{n:"Impella heart pump", w:"A tiny pump on a catheter, threaded up the leg artery into the heart. It pulls blood out of the tired left ventricle and pushes it into the aorta.", k:"Position on the console, purge pressure, suction alarms (often low volume), pulses in the leg below the sheath, and red or brown urine (the pump can break red cells)."},
+  iabp:{n:"Intra-aortic balloon pump", w:"A long balloon in the aorta, threaded up from the leg. It inflates when the heart relaxes (more blood to the heart muscle) and deflates right before it squeezes (less work for the heart).", k:"Timing on the console, the left arm pulse (weak means the balloon slid up), urine output (drops if it slid down), leg pulses, and blood in the gas tubing (balloon leak). Leg straight, head of bed 30° or lower."},
   ecmo:{n:"ECMO (heart-lung machine)", w:"Blood leaves through a big tube, gets oxygen in the oxygenator, and goes back in. It does the lungs' job while they heal.", k:"Circuit flow, clots in the oxygenator, bleeding at the tube sites (on a heparin drip), and pulses in the legs. Chattering tubing usually means low volume."},
   ng:{n:"Feeding tube", w:"Early tube feeds help burns and critically ill patients heal.", k:"Check placement and keep the head of bed up."}
 };
@@ -1098,9 +1107,10 @@ const DEVART = {
   ng:'<path d="M10 4c6 0 11 4 11 10l3 4-3 1v3c0 3-2 4-5 4h-2v4" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4" stroke-linejoin="round"/><path d="M22 18c3 0 5 2 5 5v6" stroke="#f0b44c" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="16" cy="12" r="1.2" fill="#24484a"/>'
 };
 DEVART.impella = '<path d="M14 11c-3-5-11-3-9 3 1 4 6 7 9 10 3-3 8-6 9-10 2-6-6-8-9-3z" fill="#f08f8f" stroke="#c44b4b" stroke-width="1.3"/><path d="M30 30c-5 0-9-2-11-7l-3-6" stroke="#8a96a0" stroke-width="1.8" fill="none" stroke-linecap="round"/><rect x="13.4" y="12" width="3.6" height="8" rx="1.6" transform="rotate(-25 15.2 16)" fill="#e9eef2" stroke="#4a78a8" stroke-width="1.2"/><path d="M13.4 12.2c-1.4-2 .4-4.4 2.2-3.4 1.4.8.4 2.6-.8 2.1" stroke="#8a96a0" stroke-width="1.3" fill="none" stroke-linecap="round"/>';
+DEVART.iabp = '<path d="M11 30V13c0-6 4-9 8-9s7 3 7 8v3" stroke="#e7a3a3" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M11 30V13c0-6 4-9 8-9s7 3 7 8v3" stroke="#c44b4b" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-dasharray="0"/><rect x="8.6" y="11" width="4.8" height="14" rx="2.4" fill="#e9eef2" stroke="#4a78a8" stroke-width="1.3"/><path d="M11 25v6" stroke="#8a96a0" stroke-width="1.6" stroke-linecap="round"/><path d="M17 26l3-3 2 2 3-5" stroke="#4a78a8" stroke-width="1.3" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';
 DEVART.ecmo = '<rect x="3" y="10" width="17" height="19" rx="3" fill="#e4eef2" stroke="#4a78a8" stroke-width="1.5"/><rect x="6" y="12.5" width="11" height="4" rx="1" fill="#24484a"/><path d="M7.5 14.5h2l1-1.4 1 2.8 1-1.4h3" stroke="#7fe0c4" stroke-width="1" fill="none"/><circle cx="11.5" cy="22.5" r="4.3" fill="#fff" stroke="#4a78a8" stroke-width="1.4"/><circle cx="11.5" cy="22.5" r="1.4" fill="#4a78a8"/><path d="M20 15c5 0 9-3 8-7s-7-5-10-2" stroke="#d24a3c" stroke-width="2.3" fill="none" stroke-linecap="round"/><path d="M20 24c5 0 8 2 8 6" stroke="#7a2a2a" stroke-width="2.3" fill="none" stroke-linecap="round"/>';
 /* the one device to show beside the face: the biggest, most "this is why they're in the ICU" one */
-const DEV_RANK = ["ecmo","impella","crrt","evd","burns","traction","collar","vent","ctubes","ct","swan"];
+const DEV_RANK = ["ecmo","impella","iabp","crrt","evd","burns","traction","collar","vent","ctubes","ct","swan"];
 const mainDev = p => p && p.state!=="empty" && p.devices ? DEV_RANK.find(k=>p.devices.includes(k)) : null;
 const devSVG = (k, size) => `<svg viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true">${DEVART[k]||""}</svg>`;
 const icuPt = (name, age, sex, kg, dx, pmh, devs) => ({name, age, sex, kg, dx, pmh, devs});
@@ -1148,7 +1158,10 @@ const ICU_LEVELS = [
     cares:[["impella",15,6],["legPulse",30,14],["io",15,10]], events:[[24,"suction"],[66,"mapDrop"],[105,"hemolysis"],[148,"coldLeg"]], stars:[4400,5900]}),
   icuLevel(12, {noRRgate:true, name:"ECMO", blurb:"Flu wrecked her lungs. ECMO breathes for her while they heal. Watch the circuit like a hawk.", drips:["norepi"],
     pt:icuPt("Ms. Delgado", 34, "woman", 68, "Severe ARDS from the flu, on ECMO", ["Asthma"], ["ecmo","vent","cvc","art","foley"]),
-    cares:[["ecmo",15,6],["ptt",45,20],["oral",30,14]], events:[[26,"chatter"],[68,"oxyClot"],[110,"cannulaBleed"],[150,"mapDrop"]], stars:[4500,6000]})
+    cares:[["ecmo",15,6],["ptt",45,20],["oral",30,14]], events:[[26,"chatter"],[68,"oxyClot"],[110,"cannulaBleed"],[150,"mapDrop"]], stars:[4500,6000]}),
+  icuLevel(13, {noRRgate:true, name:"Cardiac ICU 4", blurb:"A heart attack and a pump that needs a boost. The balloon pump inflates and deflates with every beat.", drips:["norepi"],
+    pt:icuPt("Mrs. Whitfield", 69, "woman", 74, "Heart attack with low blood pressure, waiting for bypass surgery", ["Coronary artery disease","Type 2 diabetes"], ["iabp","cvc","art","foley"]),
+    cares:[["iabp",15,6],["leftArm",30,14],["io",15,10]], events:[[24,"iabpTiming"],[64,"weakArm"],[104,"mapDrop"],[146,"balloonLeak"]], stars:[4300,5800]})
 ];
 const ICU_COACH = [
   {txt:"Welcome to the ICU: <b>one patient, a lot going on</b>. The drip panel keeps her <b>MAP 65–80</b>. When a number drifts, the <b>+</b> or <b>−</b> you need glows. Tap <b>+</b> until MAP turns green.", target:"#drips .dp", done:()=>G.icu.drips[0] && dripOK(G.icu.drips[0])},
