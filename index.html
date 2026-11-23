@@ -3124,8 +3124,8 @@ function cprBlocks(st){
   return false;
 }
 function complete(p, via){
-  if(p.active && (LV.mode==="icu" || LV.nicu) && helpCosts()){ const per = LV.nicu ? 5 : 7.5, was = G.helpTick||0; G.helpTick = was + (p.active.def.parts ? p.active.def.parts.length : 1);
-    if(Math.floor(G.helpTick/per) > Math.floor(was/per)) earnHelp(); /* ICU/PICU: 1 per 7.5 cares, NICU: 1 per 5 */ }
+  if(p.active && (LV.mode==="icu" || LV.nicu) && helpCosts()){ const per = LV.nicu ? 5 : 12, was = G.helpTick||0; G.helpTick = was + (p.active.def.parts ? p.active.def.parts.length : 1);
+    if(Math.floor(G.helpTick/per) > Math.floor(was/per)) earnHelp(); /* ICU/PICU: 1 per 12 cares (about 5-7 a shift), NICU: 1 per 5 */ }
   if(p.active && LV.mode==="floor") retentionNext(p, p.active.def);
   if(LV.mode==="icu" && G.icu && p.active){
     if(p.active.def.fatal){ passAway(p, p.active.def.fatal); return; }
@@ -3360,7 +3360,7 @@ function callCharge(){
 const noTransfer = () => LV.mode==="icu" || LV.nicu; // already the highest level of care
 const helpCosts = () => !(LV.mode==="tutorial" || LV.tutorial);
 /* earning: floor & other units 1 per 4 patients, ER twice as fast (1 per 2),
-   ICU 1 per 7.5 cares/alarms, NICU 1 per 5, Rapid Response 1 per call finished */
+   ICU 1 per 12 cares/alarms, NICU 1 per 5, Rapid Response 1 per call finished */
 function earnHelp(){ G.freeCharge = (G.freeCharge||0) + 1; setTimeout(()=>toast("You earned a free charge nurse call!", "good"), 1300); dirty = true; }
 function callRR(){
   const p = cur();
