@@ -1266,6 +1266,7 @@ const devSVG = (k, size) => `<svg viewBox="0 0 32 32" width="${size}" height="${
 const icuPt = (name, age, sex, kg, dx, pmh, devs) => ({name, age, sex, kg, dx, pmh, devs});
 const icuLevel = (k, o) => { const l = Object.assign({n:200+k, tag:"I"+k, unit:"ICU", mode:"icu", tools:["assess","labs","meds","iv","wound","o2","device","shock"], ev:[999,999], drain:1}, o);
   if(!l.tutorial){ l.cares = l.cares.filter(c=>c[0]!=="turn"); l.cares = [["vit",15,3], ["turn",30,9], ...l.cares];
+    l.alignCares = true;
     const dv = (l.pt && l.pt.devs) || [], has = k => l.cares.some(c=>c[0]===k);
     if(dv.includes("vent") && !l.drips.some(k=>/propofol|dexmed/.test(k)) && !l.callback) l.drips = [...l.drips, l.picu ? "dexmed" : "propofol"];
     if(dv.includes("foley") && !has("io")) l.cares.push([dv.includes("crrt") ? "foleyCRRT" : "foleyE",15,11]);
@@ -2503,8 +2504,17 @@ const sfx = {
 let G, LV, dirty = true;
 function inst(def, p){
   const pcn = p.allergy.startsWith("Penicillin");
-  return {def, urgent:/!$/.test(def.t), step:0,
-          steps: def.s.map(st => (st.alt && pcn) ? {...st, b:st.alt.b, fx:st.alt.fx} : st)};
+  let steps = def.s.map(st => (st.alt && pcn) ? {...st, b:st.alt.b, fx:st.alt.fx} : st);
+  if(G && G.running && LV && helpCosts()){
+    if(LV.mode==="icu" && G.icu){ // at most 4 calls to the intensivist a shift; after that they're already rounding
+      steps = steps.map(st => { if(st.k!=="esc") return st; if(G.icu.escLeft > 0){ G.icu.escLeft--; return st; }
+        const fx = Array.isArray(st.fx) ? pick(st.fx) : (st.fx || "The team is on it.");
+        return {...st, k:"md", l:"Intensivist on rounds", fx:"Intensivist already rounding: " + fx}; });
+    }
+    const need = steps.filter(st=>st.k==="esc").length;
+    if(need){ G.rr += need; dirty = true; } // the level gives you the calls this patient will need
+  }
+  return {def, urgent:/!$/.test(def.t), step:0, steps};
 }
 function admit(i, initial, o){
   o = o || {};
@@ -2562,7 +2572,7 @@ function admit(i, initial, o){
   return p;
 }
 function newGame(){
-  G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:2, chargeCd:0, doomSeen:0, cpr:0, ff:0, badShocks:0, callIdx:0, callsDone:0, coach:0, coachAck:-1,
+  G = {running:false, paused:false, over:false, t:0, score:0, current:0, rr:1, freeCharge:0, chargeCd:0, doomSeen:0, cpr:0, ff:0, badShocks:0, callIdx:0, callsDone:0, coach:0, coachAck:-1,
        discharged:0, transfers:0, expired:0, escalated:0, rushed:0, helps:0, rrUsed:0, slows:1, slowLeft:0, saves:0, nextEvent:rand(LV.ev[0]+4,LV.ev[1]), beds:[], all:[], feed:[], namePool:shuffle((LV.names || NAMES).slice())};
   buildTray(LV.tools || ORDER);
   ROOMS = LV.mode==="er" ? Array.from({length:LV.beds}, (_,i)=>i+1) : LV.mode==="icu" ? [7] : LV.pp ? [512,514,516] : LV.peds ? [612,614,616] : LV.nicu ? [1,2] : [412,414,416];
@@ -2610,8 +2620,9 @@ const uoNow = () => { const d = G.icu && G.icu.drips.find(x=>x.def.v==="Urine ou
 function setGlu(v){ const d = gluDrip(); if(!d) return; d.dist += v - (d.def.base + d.def.gain*d.rate + d.dist); d.val = v; }
 const gluFlag = (v, d) => v < d.def.lo ? " (low)" : v > d.def.hi ? " (high)" : "";
 function icuSetup(){
-  G.icu = {drips:LV.drips.map(newDrip), sched:LV.cares.map(([k,every,first])=>({k, every, next:first})),
-    events:LV.events.map(([at,k])=>({at, k, done:false})).concat(icuExtras()), inRange:0, total:0, caresDone:0, eventsDone:0, passed:0, acc:0, rt:0, usedNext:false};
+  const slot = f => LV.alignCares ? 4 + 15*Math.max(0, Math.round((f-4)/15)) : f; // everything due on the same beat
+  G.icu = {drips:LV.drips.map(newDrip), sched:LV.cares.map(([k,every,first])=>({k, every, next:slot(first)})),
+    events:LV.events.map(([at,k])=>({at, k, done:false})).concat(icuExtras()), escLeft:4, inRange:0, total:0, caresDone:0, eventsDone:0, passed:0, acc:0, rt:0, usedNext:false};
 }
 /* a few random things that go wrong on top of the scripted emergencies */
 function icuExtras(){
@@ -2671,12 +2682,18 @@ function icuTick(dt){
     if(d.def.hrLink) p.base.hr = Math.round(d.val);
     if(d.def.bp==="sbp"){ p.base.sbp = Math.round(d.val); p.base.dbp = Math.round(d.val*0.55); }
   });
+  const due = [], has = def => p.queue.some(q=>q.def===def || (q.def.parts && q.def.parts.includes(def))) || (p.active && (p.active.def===def || (p.active.def.parts && p.active.def.parts.includes(def))));
   I.sched.forEach(sc=>{
     if(G.t < sc.next) return;
     sc.next = sc.every ? sc.next + sc.every : Infinity;
     const def = sc.k==="sat" && Math.random() < 0.5 ? CARE.satWild : CARE[sc.k];
-    if(live && !dying && !p.queue.some(q=>q.def===def) && !(p.active && p.active.def===def)){ (def===CARE.glucose || def===CARE.glucoseP || (def===CARE.foleyE && I.drips.some(x=>x.def.v==="Urine output")) ? p.queue.unshift(inst(def, p)) : p.queue.push(inst(def, p))); if(p.state==="resting") p.timer = 0; }
+    if(live && !dying && !has(def)) due.push(def);
   });
+  if(due.length){
+    const first = due.some(def=>def===CARE.glucose || def===CARE.glucoseP || (def===CARE.foleyE && I.drips.some(x=>x.def.v==="Urine output")));
+    const def = due.length===1 ? due[0] : {t:`Cares due at ${clockStr()}`, d:due.map(x=>x.t).join(" · "), r:Math.max(...due.map(x=>x.r||0.5)), parts:due, s:due.flatMap(x=>x.s)};
+    first ? p.queue.unshift(inst(def, p)) : p.queue.push(inst(def, p)); if(p.state==="resting") p.timer = 0;
+  }
   const ne = !LV.tutorial && I.drips.find(d=>/^norepi/.test(d.key));
   if(ne && live && !dying){
     ne.hiT = ne.rate > 10 ? (ne.hiT||0) + dt : 0;
@@ -3107,8 +3124,8 @@ function cprBlocks(st){
   return false;
 }
 function complete(p, via){
-  if(p.active && (LV.mode==="icu" || LV.nicu) && helpCosts()){ G.helpTick = (G.helpTick||0) + 1; const tk = G.helpTick;
-    if(LV.nicu ? tk % 5 === 0 : (tk % 15 === 7 || tk % 15 === 0)) earnHelp(); /* ICU/PICU: 1 per 7.5 cares, NICU: 1 per 5 */ }
+  if(p.active && (LV.mode==="icu" || LV.nicu) && helpCosts()){ const per = LV.nicu ? 5 : 7.5, was = G.helpTick||0; G.helpTick = was + (p.active.def.parts ? p.active.def.parts.length : 1);
+    if(Math.floor(G.helpTick/per) > Math.floor(was/per)) earnHelp(); /* ICU/PICU: 1 per 7.5 cares, NICU: 1 per 5 */ }
   if(p.active && LV.mode==="floor") retentionNext(p, p.active.def);
   if(LV.mode==="icu" && G.icu && p.active){
     if(p.active.def.fatal){ passAway(p, p.active.def.fatal); return; }
@@ -3135,11 +3152,12 @@ function complete(p, via){
       if(dd.addDrip==="amio") G.icu.sched.push({k:"amioDown", every:0, next:G.t + 90});
     }
     if(dd===CARE.amioDown){ const a = G.icu.drips.find(x=>x.key==="amio"); if(a) a.rate = 0.5; }
-    if(Object.values(CARE).includes(p.active.def)) G.icu.caresDone++;
+    if(p.active.def.parts) G.icu.caresDone += p.active.def.parts.length;
+    else if(Object.values(CARE).includes(p.active.def)) G.icu.caresDone++;
     else if(Object.values(EV).includes(p.active.def)) G.icu.eventsDone++;
   }
   p.health = Math.min(100, p.health + 25);
-  const pts = via==="rr" ? 40 : (via==="charge" || via==="team") ? 60 : 100 + Math.round(p.health/4);
+  const pts = ((p.active && p.active.def.parts) ? p.active.def.parts.length : 1) * (via==="rr" ? 40 : (via==="charge" || via==="team") ? 60 : 100 + Math.round(p.health/4));
   p.teamAuto = false; p.autoT = undefined;
   G.score += pts;
   if(p === cur()) floatText("+"+pts);
@@ -3327,21 +3345,23 @@ function callCharge(){
   const st = curStep(p);
   if(st.k==="md"){ toast("The MD is on it. Watch the feed."); return; }
   if(cprBlocks(st)) return;
-  G.score = Math.max(0, G.score - 20); G.helps++; G.chargeCd = 10;
+  const free = (G.freeCharge||0) > 0;
+  if(free) G.freeCharge--; else G.score = Math.max(0, G.score - 20);
+  G.helps++; G.chargeCd = 10;
   if(st.k === "go"){ rushTo(p); return; }
   if(st.k === "esc"){
     if(p.active.step === p.active.steps.length-1 && !noTransfer()){ escalate(p, "charge"); return; }
-    floatText("−20", true); advance(p, "charge", (st.fx || "Charge nurse called for help.")); return;
+    floatText(free ? "Free" : "−20", !free); advance(p, "charge", (st.fx || "Charge nurse called for help.")); return;
   }
-  floatText("−20", true);
+  floatText(free ? "Free" : "−20", !free);
   advance(p, "charge");
 }
-/* every call for help spends one you've earned (orientations, ICU and Rapid Response mode stay free) */
+/* every call for help spends one; calls a patient needs are given when that patient's recipe starts. Orientations stay free. */
 const noTransfer = () => LV.mode==="icu" || LV.nicu; // already the highest level of care
 const helpCosts = () => !(LV.mode==="tutorial" || LV.tutorial);
 /* earning: floor & other units 1 per 4 patients, ER twice as fast (1 per 2),
    ICU 1 per 7.5 cares/alarms, NICU 1 per 5, Rapid Response 1 per call finished */
-function earnHelp(){ G.rr++; setTimeout(()=>toast((LV.mode==="er" || LV.mode==="icu" || LV.nicu) ? "You earned another call for help!" : "You earned a rapid response!", "good"), 1300); dirty = true; }
+function earnHelp(){ G.freeCharge = (G.freeCharge||0) + 1; setTimeout(()=>toast("You earned a free charge nurse call!", "good"), 1300); dirty = true; }
 function callRR(){
   const p = cur();
   if(!playing() || p.state!=="needs") return;
@@ -3615,7 +3635,8 @@ function updateLive(){
   const ch = $("#charge");
   ch.disabled = !(G.chargeCd<=0 && p.state==="needs");
   ch.classList.toggle("ready", escNow && G.chargeCd<=0);
-  $("#chargeSub").textContent = G.chargeCd>0 ? `Dana is busy · ${Math.ceil(G.chargeCd)}s` : escNow ? "Calls for help · −20 pts" : goNow ? "Helps you transport · −20 pts" : "Helps one step · −20 pts";
+  const cost = (G.freeCharge||0) > 0 ? `free ×${G.freeCharge}` : "−20 pts";
+  $("#chargeSub").textContent = G.chargeCd>0 ? `Dana is busy · ${Math.ceil(G.chargeCd)}s` : escNow ? `Calls for help · ${cost}` : goNow ? `Helps you transport · ${cost}` : `Helps one step · ${cost}`;
   const rrtMode = LV.mode==="rrt";
   const outRed = !goNow && G.rr<=0 && p.state==="needs" && ((escNow && helpCosts()) || (!rrtMode && !escNow && p.health<30));
   const rr = $("#rr"), ready = escNow || outRed || (!rrtMode && !goNow && G.rr>0 && p.state==="needs" && p.health<30);
@@ -3627,7 +3648,7 @@ function updateLive(){
   sl.disabled = false; sl.classList.toggle("on", on);
   $("#slowCount").textContent = on ? Math.ceil(G.slowLeft)+"s" : "×"+G.slows;
   $("#app").classList.toggle("slowmo", on);
-  $("#rrSub").textContent = outRed ? "Out · watch an ad for 1 more" : erMode ? (escNow ? (helpCosts() ? "Uses 1 · brings the team" : "Free during orientation") : G.rr<=0 ? "Earn more by discharging" : ready ? "The whole team takes over" : "Unlocks in the red") : rrtMode ? (escNow ? "Uses 1 · calls the team" : "For codes, stroke alerts, MTP") : escNow ? (helpCosts() ? "Uses 1 · calls the team" : "Free during orientation") : G.rr<=0 ? "Earn more by discharging" : ready ? "Tap to send the team" : "Unlocks in the red";
+  $("#rrSub").textContent = outRed ? "Out · watch an ad for 1 more" : erMode ? (escNow ? (helpCosts() ? "Uses 1 · brings the team" : "Free during orientation") : G.rr<=0 ? "Saved for patients who need it" : ready ? "The whole team takes over" : "Unlocks in the red") : rrtMode ? (escNow ? "Uses 1 · calls the team" : "For codes, stroke alerts, MTP") : escNow ? (helpCosts() ? "Uses 1 · calls the team" : "Free during orientation") : G.rr<=0 ? "Saved for patients who need it" : ready ? "Tap to send the team" : "Unlocks in the red";
 }
 
 let toastT = 0;
@@ -3825,8 +3846,8 @@ function showStart(){
       <li><span class="n">2</span><span><b>Assess</b> every patient once a shift. An orange ring means they haven&rsquo;t been assessed yet. Some problems start with an assessment too.</span></li>
       <li><span class="n">3</span><span>The <b>monitor</b> refreshes vitals on its own. Red numbers mean trouble. Tap <b>Vitals</b> to check now.</span></li>
       <li><span class="n">4</span><span>Tap a patient on the right to go to their room. Tap the <b>H&amp;P</b> folder to read their history. The game pauses while it&rsquo;s open.</span></li>
-      <li><span class="n">5</span><span>Earn <b>slow moments</b> by sending patients home or getting them where they need to go. Tap the snail to slow time for 15 seconds.</span></li>
-      <li><span class="n">6</span><span>When it's beyond you, call <b>rapid response</b> or <b>charge</b>. Some patients need the ICU, OR, CT or cath lab.</span></li>
+      <li><span class="n">5</span><span>Earn <b>slow moments</b> and <b>free charge nurse calls</b> by sending patients home or getting them where they need to go. Tap the snail to slow time for 15 seconds.</span></li>
+      <li><span class="n">6</span><span>When a patient needs the team, you're given a <b>rapid response</b> (or call for help) for them. If someone drops into the red and you're out, you can watch an ad for one more. Some patients need the ICU, OR, CT or cath lab.</span></li>
       <li><span class="n">7</span><span>In a <b>code</b>, the monitor shows the rhythm. Start CPR, and during each 2-minute cycle you can give meds, breaths and access. Tap the yellow <b>⏩ Fast-forward</b> to skip ahead to the rhythm check. Never shock asystole or PEA. On the Rapid Response level, <b>Call for more help</b> brings the code team, stroke team or blood bank.</span></li>
     </ul>
     </details>
