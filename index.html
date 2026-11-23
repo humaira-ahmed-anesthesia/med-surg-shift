@@ -445,6 +445,10 @@ button.chip.now:active{transform:scale(.96)}
 .who{align-items:center;gap:7px}
 .whoav{width:30px;height:30px;flex:none;border-radius:50%;background:#fff;overflow:hidden;box-shadow:0 0 0 2px var(--line)}
 .whoav svg{width:100%;height:100%}
+.devb{flex:none;display:grid;place-items:center;background:#fff;border-radius:50%;box-shadow:0 0 0 1.5px var(--line),0 1px 2px rgba(0,0,0,.12);line-height:0;position:relative;z-index:1}
+.devb[hidden]{display:none}
+.who .devb{width:27px;height:27px;margin:0 2px 0 -13px;align-self:flex-end;cursor:pointer}
+.pt-card .devb{width:19px;height:19px;margin:0 0 0 -11px;align-self:flex-end}
 .who .nm{font-size:16px}
 .who .chartbtn{padding:3px 8px 3px 6px;font-size:11.5px}
 .bar{height:12px}
@@ -505,7 +509,7 @@ button.chip.now:active{transform:scale(.96)}
   <main class="stage">
     <section class="room" aria-live="polite">
       <div>
-        <div class="who"><span class="whoav" id="ptAv"></span><span class="nmwrap"><span class="nm" id="ptName">Patient</span><small class="meta" id="ptMeta"></small></span><span class="devs" id="ptDevs"></span>
+        <div class="who"><span class="whoav" id="ptAv"></span><span class="devb" id="ptDevB"></span><span class="nmwrap"><span class="nm" id="ptName">Patient</span><small class="meta" id="ptMeta"></small></span><span class="devs" id="ptDevs"></span>
           <button class="chartbtn" id="chartBtn" aria-label="Open H&amp;P (pauses the game)"><svg viewBox="0 0 24 24"><path d="M3 6.5a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="#f3d58e" stroke="#c99a3a" stroke-width="1.6" stroke-linejoin="round"/><rect x="6.5" y="9.5" width="11" height="8" rx="1" fill="#fff" stroke="#c99a3a" stroke-width="1.2"/><path d="M8.5 12h7M8.5 14.5h4.5" stroke="#9aa6ad" stroke-width="1.3" stroke-linecap="round"/></svg>H&amp;P</button></div>
         <div class="hp"><div class="bar" id="ptBar"><i></i></div><span id="ptPct">70%</span></div>
         <div class="vitals" id="vitals" aria-label="Vital signs monitor">
@@ -954,6 +958,10 @@ const CARE = {
   motor:   {t:"Motor & sensation check", d:"Spinal cord injury: level of function.", r:0.6, s:[C("assess","Strength & sensation","Assess","Can shrug shoulders. No movement below the chest, unchanged.")]},
   amioDown:{t:"Amiodarone: 6 hours are up", d:"Protocol step-down to 0.5 mg/min for the next 18 hours.", r:0.6, s:[C("iv","Turn amio to 0.5 mg/min","0.5 mg/min","Amiodarone drip now 0.5 mg/min for 18 hours. Still in a regular rhythm.")]},
   vit:     {t:"Hourly vitals", d:"Recheck a full set every hour.", r:0.5, s:[C("vitals","Recheck vitals","")]},
+  impella: {t:"Impella check", d:"Position, purge and flow on the console.", r:0.6, s:[C("device","Check the console","Impella",["Flow 3.4 L/min, purge pressure normal, position OK.","P-level 6, flow steady. No alarms.","Position confirmed on the console. Purge running."])]},
+  legPulse:{t:"Leg check below the sheath", d:"The pump catheter sits in the leg artery.", r:0.5, s:[C("assess","Doppler pulse, color & warmth","Doppler","Foot warm and pink, pedal pulse heard by Doppler. Groin dressing dry.")]},
+  ecmo:    {t:"ECMO circuit check", d:"Flow, sweep gas, oxygenator and tube sites.", r:0.6, s:[C("device","Check the circuit","ECMO",["Flow 4.5 L/min. No clots in the oxygenator. Tube sites dry.","Circuit quiet, tubing secured. Sweep gas on.","Oxygenator clear, blood after it bright red."])]},
+  ptt:     {t:"Heparin level check", d:"Every 6 hours on ECMO: too little clots the circuit, too much bleeds.", r:0.5, s:[C("labs","Draw anti-Xa","Anti-Xa","Anti-Xa 0.35, in range. Heparin unchanged.")]},
   sodium:  {t:"Sodium check", d:"Every 4 hours on 3% saline.", r:0.5, s:[C("labs","Draw a sodium","Na","Sodium drawn and charted.")]}
 };
 /* alarms & events: hit = push a drip's number up or down; fatal = the patient dies when this recipe ends */
@@ -1004,6 +1012,18 @@ const EV = {
     s:[C("shock","Shock now","Shock","Shocked at 150 J within a minute. Back to a rhythm with a pulse!"), C("esc","Call CT surgery","","Cardiac surgery at the bedside, labs and an echo ordered.")]},
   tamponade:{t:"Tamponade!", d:"Chest tubes suddenly stopped draining. BP dropping, CVP rising.", r:2.6, v:{hr:132,sbp:78,dbp:52},
     s:[C("assess","Assess","Assess","Muffled heart sounds, neck veins full. Chest tubes clotted off (abnormal)."), C("esc","Call CT surgery stat","","Cardiac surgery coming to open the chest at the bedside."), MD("Surgeon opens the chest","Clot cleared from around the heart. BP back up.")]},
+  suction:{t:"Impella suction alarm!", d:"Flow keeps dropping. The pump is sucking against an empty ventricle.", r:2.0, v:{hr:118,sbp:84,dbp:56},
+    s:[C("device","Look at the console","Console","Suction alarm, flow down to 1.8 L/min."), C("iv","Fluid bolus","Bolus","250 mL lactated Ringer's. Flow coming back up."), C("esc","Call cardiology","","Cardiology on the way with the echo machine."), MD("Echo & reposition","The pump had slipped too deep. Cardiology pulled it back 1 cm under echo. Flow 3.3 L/min.")]},
+  hemolysis:{t:"Urine turned dark red!", d:"Cola-colored urine in the Foley bag.", r:1.4,
+    s:[C("labs","Hemolysis labs","LDH","LDH and plasma free hemoglobin high (high). The pump is breaking red cells."), C("esc","Call cardiology","","Cardiology lowered the pump speed and will check the position.")]},
+  coldLeg:{t:"Cold foot!", d:"The leg with the pump catheter is pale and cool.", r:2.0,
+    s:[C("assess","Doppler the foot","Doppler","No pedal pulse by Doppler (abnormal). Foot cold."), C("esc","Call vascular surgery","","Vascular surgery placed a small tube to bring blood down to the leg. Foot pinking up.")]},
+  chatter:{t:"ECMO tubing chattering!", d:"The lines are shaking and flow keeps dropping.", r:2.0, v:{spo2:86,hr:124},
+    s:[C("device","Check the circuit","Check","Flow dropping from 4.5 to 3 L/min. Tubing chattering."), C("iv","Volume","Albumin","5% albumin 250 mL. Chatter settles, flow back to 4.4.")]},
+  oxyClot:{t:"Clots in the oxygenator!", d:"Dark spots building up, and blood after it isn't as red.", r:1.8, v:{spo2:87},
+    s:[C("device","Check pressures across it","Check","Pressure drop across the oxygenator rising (high)."), C("labs","Blood gas after the oxygenator","Gas","Post-oxygenator PaO₂ 180 (low)."), C("esc","Call the perfusionist","","Perfusionist on the way."), MD("Oxygenator change","Team clamped, swapped the oxygenator in 90 seconds. SpO₂ back to 94%.")]},
+  cannulaBleed:{t:"Bleeding at the ECMO tube!", d:"Blood soaking the dressing at the neck tube.", r:2.0, v:{hr:126,sbp:94,dbp:56},
+    s:[C("wound","Hold pressure","Pressure","Firm pressure, new dressing. Slowing down."), C("labs","CBC & coags","CBC","Hemoglobin 6.9 (low), anti-Xa 0.7 (high)."), C("blood","Hang blood","PRBCs","Two-nurse check done. PRBCs running."), C("esc","Call the ECMO team","","Heparin paused for an hour. Surgeon added a stitch.")]},
   ciDrop:{t:"Cardiac index falling!", d:"The heart is tiring. Cool legs.", r:1.6, hit:{d:"epi", by:-0.5},
     s:[C("assess","Assess & titrate","Assess","Cool, mottled knees. Turn up the epinephrine.")]},
   afib:{t:"New A-fib!", d:"Irregular, rate 140. Common after heart surgery.", r:1.6, v:{hr:140},
@@ -1056,6 +1076,8 @@ const DEV = {
   ctubes:{n:"Mediastinal chest tubes", w:"Drain blood from around the heart after surgery.", k:"Output over 200 mL/hr: call the surgeon. Sudden stop plus low BP can mean tamponade."},
   swan:{n:"Pulmonary artery catheter", w:"Measures how well the heart is pumping (cardiac index).", k:"Cardiac index under 2.2 means the heart is struggling."},
   burns:{n:"Burn dressings", w:"Silver dressings cover the burns to fight infection.", k:"Premedicate before changes. Keep the room warm. Check pulses in burned limbs."},
+  impella:{n:"Impella heart pump", w:"A tiny pump on a catheter, threaded up the leg artery into the heart. It pulls blood out of the tired left ventricle and pushes it into the aorta.", k:"Position on the console, purge pressure, suction alarms (often low volume), pulses in the leg below the sheath, and red or brown urine (the pump can break red cells)."},
+  ecmo:{n:"ECMO (heart-lung machine)", w:"Blood leaves through a big tube, gets oxygen in the oxygenator, and goes back in. It does the lungs' job while they heal.", k:"Circuit flow, clots in the oxygenator, bleeding at the tube sites (on a heparin drip), and pulses in the legs. Chattering tubing usually means low volume."},
   ng:{n:"Feeding tube", w:"Early tube feeds help burns and critically ill patients heal.", k:"Check placement and keep the head of bed up."}
 };
 const DEVART = {
@@ -1075,6 +1097,11 @@ const DEVART = {
   burns:'<path d="M3 13h19c3 0 6 2 6 4s-3 4-6 4H3z" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4"/><path d="M6 13v8M10 13v8M14 13v8M18 13v8" stroke="#b8c2c8" stroke-width="3.2"/><path d="M5 13h16v8H5z" fill="#d7dde1" opacity=".55"/><path d="M8 15l2 2M13 16l2 2" stroke="#fff" stroke-width="0.9"/>',
   ng:'<path d="M10 4c6 0 11 4 11 10l3 4-3 1v3c0 3-2 4-5 4h-2v4" fill="#f6d2b8" stroke="#c48a6a" stroke-width="1.4" stroke-linejoin="round"/><path d="M22 18c3 0 5 2 5 5v6" stroke="#f0b44c" stroke-width="1.8" fill="none" stroke-linecap="round"/><circle cx="16" cy="12" r="1.2" fill="#24484a"/>'
 };
+DEVART.impella = '<path d="M14 11c-3-5-11-3-9 3 1 4 6 7 9 10 3-3 8-6 9-10 2-6-6-8-9-3z" fill="#f08f8f" stroke="#c44b4b" stroke-width="1.3"/><path d="M30 30c-5 0-9-2-11-7l-3-6" stroke="#8a96a0" stroke-width="1.8" fill="none" stroke-linecap="round"/><rect x="13.4" y="12" width="3.6" height="8" rx="1.6" transform="rotate(-25 15.2 16)" fill="#e9eef2" stroke="#4a78a8" stroke-width="1.2"/><path d="M13.4 12.2c-1.4-2 .4-4.4 2.2-3.4 1.4.8.4 2.6-.8 2.1" stroke="#8a96a0" stroke-width="1.3" fill="none" stroke-linecap="round"/>';
+DEVART.ecmo = '<rect x="3" y="10" width="17" height="19" rx="3" fill="#e4eef2" stroke="#4a78a8" stroke-width="1.5"/><rect x="6" y="12.5" width="11" height="4" rx="1" fill="#24484a"/><path d="M7.5 14.5h2l1-1.4 1 2.8 1-1.4h3" stroke="#7fe0c4" stroke-width="1" fill="none"/><circle cx="11.5" cy="22.5" r="4.3" fill="#fff" stroke="#4a78a8" stroke-width="1.4"/><circle cx="11.5" cy="22.5" r="1.4" fill="#4a78a8"/><path d="M20 15c5 0 9-3 8-7s-7-5-10-2" stroke="#d24a3c" stroke-width="2.3" fill="none" stroke-linecap="round"/><path d="M20 24c5 0 8 2 8 6" stroke="#7a2a2a" stroke-width="2.3" fill="none" stroke-linecap="round"/>';
+/* the one device to show beside the face: the biggest, most "this is why they're in the ICU" one */
+const DEV_RANK = ["ecmo","impella","crrt","evd","burns","traction","collar","vent","ctubes","ct","swan"];
+const mainDev = p => p && p.state!=="empty" && p.devices ? DEV_RANK.find(k=>p.devices.includes(k)) : null;
 const devSVG = (k, size) => `<svg viewBox="0 0 32 32" width="${size}" height="${size}" aria-hidden="true">${DEVART[k]||""}</svg>`;
 const icuPt = (name, age, sex, kg, dx, pmh, devs) => ({name, age, sex, kg, dx, pmh, devs});
 const icuLevel = (k, o) => { const l = Object.assign({n:200+k, tag:"I"+k, unit:"ICU", mode:"icu", tools:["assess","labs","meds","iv","wound","o2","device","shock"], ev:[999,999], drain:1}, o);
@@ -1115,7 +1142,13 @@ const ICU_LEVELS = [
     cares:[["pulses",15,6],["dressing",45,20],["turn",30,32]], events:[[20,"airway"],[70,"eschar"],[115,"cold"],[155,"fever"]], stars:[3400,4700]}),
   icuLevel(10, {name:"Burn ICU 2", blurb:"A house fire: carbon monoxide, cyanide and chest burns. She fights all night.", drips:["lr","insulin"],
     pt:icuPt("Ms. Park", 63, "woman", 66, "House fire: burns and smoke inhalation", ["Asthma"], ["vent","burns","cvc","art","foley","ng"]),
-    cares:[["pulses",15,6],["dressing",45,22],["glucose",15,11]], events:[[22,"co"],[70,"chestEschar"],[115,"cold"],[168,"lateArrest"]], stars:[4300,5800]})
+    cares:[["pulses",15,6],["dressing",45,22],["glucose",15,11]], events:[[22,"co"],[70,"chestEschar"],[115,"cold"],[168,"lateArrest"]], stars:[4300,5800]}),
+  icuLevel(11, {name:"Cardiac ICU 3", blurb:"A big heart attack and a heart too weak to pump. A tiny Impella pump is doing the work.", drips:["norepi"],
+    pt:icuPt("Mr. Abara", 58, "man", 90, "Cardiogenic shock after a large heart attack", ["Coronary artery disease","Smoker"], ["impella","vent","cvc","art","foley"]),
+    cares:[["impella",15,6],["legPulse",30,14],["io",15,10]], events:[[24,"suction"],[66,"mapDrop"],[105,"hemolysis"],[148,"coldLeg"]], stars:[4400,5900]}),
+  icuLevel(12, {name:"ECMO", blurb:"Flu wrecked her lungs. ECMO breathes for her while they heal. Watch the circuit like a hawk.", drips:["norepi"],
+    pt:icuPt("Ms. Delgado", 34, "woman", 68, "Severe ARDS from the flu, on ECMO", ["Asthma"], ["ecmo","vent","cvc","art","foley"]),
+    cares:[["ecmo",15,6],["ptt",45,20],["oral",30,14]], events:[[26,"chatter"],[68,"oxyClot"],[110,"cannulaBleed"],[150,"mapDrop"]], stars:[4500,6000]})
 ];
 const ICU_COACH = [
   {txt:"Welcome to the ICU: <b>one patient, a lot going on</b>. The drip panel keeps her <b>MAP 65–80</b>. When a number drifts, the <b>+</b> or <b>−</b> you need glows. Tap <b>+</b> until MAP turns green.", target:"#drips .dp", done:()=>G.icu.drips[0] && dripOK(G.icu.drips[0])},
@@ -2439,6 +2472,7 @@ function buildDrips(){
       <button class="dm" data-d="${i}" data-s="-1" aria-label="Turn ${esc(d.def.name)} down">−</button>
       <button class="dp" data-d="${i}" data-s="1" aria-label="Turn ${esc(d.def.name)} up">+</button></div>`).join("");
 }
+document.getElementById("ptDevB").addEventListener("click", e=>{ const k = e.currentTarget.dataset.dev; if(k && DEV[k]) toast(`${DEV[k].n}: ${DEV[k].w}`); });
 document.getElementById("ptDevs").addEventListener("click", e=>{
   const b = e.target.closest("[data-dev]"); if(!b) return;
   const d = DEV[b.dataset.dev]; toast(`${d.n}: ${d.w}`);
@@ -3138,10 +3172,10 @@ function buildCards(){
   ROOMS.forEach((r,i)=>{
     const c = document.createElement("button");
     c.className = "pt-card"; c.id = "bed-"+i;
-    c.innerHTML = `<span class="need"></span><span class="row"><span class="av"></span><span class="rn">${roomLabel(i)}<b></b></span></span><span class="bar"><i></i></span><span class="state"></span>`;
+    c.innerHTML = `<span class="need"></span><span class="row"><span class="av"></span><span class="devb"></span><span class="rn">${roomLabel(i)}<b></b></span></span><span class="bar"><i></i></span><span class="state"></span>`;
     c.addEventListener("click", ()=>{ if(G.current!==i){ if(blockedByCover(i)) return; G.current = i; dirty = true; clearResults(); sfx.tap(); } });
     listEl.appendChild(c);
-    cards.push({el:c, av:c.querySelector(".av"), nm:c.querySelector(".rn b"), bar:c.querySelector(".bar"), fill:c.querySelector(".bar i"), need:c.querySelector(".need"), st:c.querySelector(".state"), key:""});
+    cards.push({el:c, av:c.querySelector(".av"), db:c.querySelector(".devb"), nm:c.querySelector(".rn b"), bar:c.querySelector(".bar"), fill:c.querySelector(".bar i"), need:c.querySelector(".need"), st:c.querySelector(".state"), key:""});
   });
 }
 $("#charge").addEventListener("click", callCharge);
@@ -3168,6 +3202,8 @@ function renderAll(){
   $("#chartBtn").hidden = p.state==="empty";
   const devKey = p.state!=="empty" && p.devices ? p.devices.join() : "";
   const dv = $("#ptDevs");
+  const md = mainDev(p), db = $("#ptDevB");
+  if(db.dataset.k !== (md||"")){ db.dataset.k = md||""; db.innerHTML = md ? devSVG(md, 23) : ""; db.hidden = !md; if(md){ db.dataset.dev = md; db.setAttribute("aria-label", DEV[md].n); } }
   if(dv.dataset.k !== devKey){ dv.dataset.k = devKey; dv.innerHTML = devKey ? p.devices.map(k=>`<button class="dev" data-dev="${k}" aria-label="${esc(DEV[k].n)}">${devSVG(k,22)}</button>`).join("") : ""; }
   const o = $("#order");
   o.className = "order";
@@ -3272,7 +3308,7 @@ function updateLive(){
     c.bar.className = "bar " + tier(bh);
     c.el.classList.toggle("alarm", b.state==="needs" && (b.flash>0 || bh<30));
     const k = b.name+"|"+b.state+"|"+moodOf(b);
-    if(k!==c.key){ c.key = k; c.av.innerHTML = miniSVG(b); }
+    if(k!==c.key){ c.key = k; c.av.innerHTML = miniSVG(b); const md = mainDev(b); c.db.innerHTML = md ? devSVG(md, 16) : ""; c.db.hidden = !md; if(md) c.db.title = DEV[md].n; }
   });
   $("#clock").textContent = clockStr();
   $("#score").textContent = G.score;
