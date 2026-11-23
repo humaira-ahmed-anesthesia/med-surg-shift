@@ -904,7 +904,55 @@ const ER = {
   stemi: {age:61, sex:"man", pmh:["High cholesterol","Type 2 diabetes"], dx:"STEMI", def:{t:"Chest pain", d:"Crushing chest pressure while shoveling snow. Sweaty.", r:2.0, v:{hr:104,sbp:150,dbp:92}, crit:1,
     s:[C("labs","EKG within 10 minutes","EKG","ST elevation in leads II, III and aVF (abnormal). STEMI!"), VIT(), C("meds","Chewable aspirin","Aspirin","Aspirin 324 mg chewed."), C("esc","Call a STEMI alert","","STEMI alert called. Cath lab team activated."), C("iv","IV","IV","IV placed, labs drawn."), C("go","Rush to cath lab","cath","")]}},
   stroke: {age:74, sex:"woman", pmh:["Atrial fibrillation","Hypertension"], dx:"Stroke", def:Object.assign({}, RRT_STROKE, {t:"Face drooping!", d:"Her husband noticed her face droop and words slur at dinner. Normal 30 minutes ago.", crit:1})},
-  vt: {age:59, sex:"man", pmh:["Coronary artery disease"], dx:"Cardiac arrest", def:Object.assign({}, VT_ARREST, {d:"Collapsed in the waiting room. No pulse."})}
+  vt: {age:59, sex:"man", pmh:["Coronary artery disease"], dx:"Cardiac arrest", def:Object.assign({}, VT_ARREST, {d:"Collapsed in the waiting room. No pulse."})},
+  /* once-a-shift codes: EMS rolls in doing CPR */
+  codeVF: {age:57, sex:"man", pmh:["Hypertension","High cholesterol"], dx:"Cardiac arrest (ventricular fibrillation)", def:{allHands:1, code:true, crit:1, t:"Code blue!", d:"EMS rolling in doing CPR. Collapsed shoveling snow.", rh:"Unknown: pads not on yet", r:2.4, s:[
+    C("cpr","Take over compressions","CPR","You take over compressions from EMS: hard and fast.",{cpr:1}),
+    C("o2","Bag-mask breaths","BVM","Bag-mask breaths, 30 compressions to 2.",{during:1}),
+    C("vitals","Pads on, rhythm check","","Ventricular fibrillation (abnormal). Shockable!",{rh:"V-fib"}),
+    C("shock","Shock","200 J","Everyone clear! Shocked at 200 joules. Straight back on the chest."),
+    C("cpr","Resume CPR","CPR","CPR resumed for 2 minutes.",{cpr:1}),
+    C("iv","IV access","IV","18-gauge IV placed during compressions.",{during:1}),
+    C("vitals","Rhythm check","","Still V-fib (abnormal). Shockable."),
+    C("shock","Shock again","200 J","Second shock at 200 joules. Back on the chest."),
+    C("cpr","Resume CPR","CPR","CPR resumed.",{cpr:1}),
+    C("meds","Epinephrine 1 mg","Epi","Epinephrine 1 mg IV push.",{during:1}),
+    C("vitals","Rhythm check","","Still V-fib (abnormal)."),
+    C("shock","Shock again","200 J","Third shock at 200 joules."),
+    C("cpr","Resume CPR","CPR","CPR resumed.",{cpr:1}),
+    C("meds","Amiodarone 300 mg","Amio","Amiodarone 300 mg IV push.",{during:1}),
+    C("vitals","Rhythm & pulse check","","Organized rhythm with a pulse. ROSC! BP 98/60.",{rh:"Sinus tach · ROSC"}),
+    C("labs","12-lead EKG","EKG","ST elevation in the front of the heart (abnormal). STEMI."),
+    C("go","Rush to cath lab","cath","")]}},
+  codePEA: {age:74, sex:"woman", pmh:["Atrial fibrillation (on a blood thinner)"], dx:"Cardiac arrest (PEA) from blood loss", def:{allHands:1, code:true, crit:1, t:"Code blue!", d:"EMS rolling in doing CPR. Vomited blood at home, then passed out.", rh:"Unknown: pads not on yet", r:2.4, s:[
+    C("cpr","Take over compressions","CPR","You take over compressions from EMS.",{cpr:1}),
+    C("o2","Bag-mask breaths","BVM","Bag-mask breaths, 30 compressions to 2.",{during:1}),
+    C("vitals","Pads on, rhythm check","","Organized rhythm on the monitor, but no pulse. PEA (abnormal). Not shockable.",{rh:"PEA"}),
+    C("cpr","Resume CPR","CPR","CPR continues. No shock for PEA.",{cpr:1}),
+    C("iv","Two big IVs","IV","Two large IVs placed during compressions.",{during:1}),
+    C("meds","Epinephrine 1 mg","Epi","Epinephrine 1 mg IV push.",{during:1}),
+    C("labs","Look for the cause","H's & T's","Hemoglobin 4.8 (critically low). She's lost a lot of blood.",{during:1}),
+    C("blood","Blood, fast","O-neg","O-negative blood squeezed in on the rapid infuser.",{during:1}),
+    C("vitals","Rhythm & pulse check","","Pulse is back! ROSC. BP 84/50.",{rh:"Sinus tach · ROSC"}),
+    C("go","Take to the ICU","icu","")]}},
+  codeAsys: {age:66, sex:"man", pmh:["Kidney failure (on dialysis)"], dx:"Cardiac arrest (asystole)", def:{allHands:1, code:true, crit:1, t:"Code blue!", d:"EMS rolling in doing CPR. Skipped dialysis this week.", rh:"Unknown: pads not on yet", r:2.4, s:[
+    C("cpr","Take over compressions","CPR","You take over compressions from EMS.",{cpr:1}),
+    C("o2","Bag-mask breaths","BVM","Bag-mask breaths, 30 compressions to 2.",{during:1}),
+    C("vitals","Pads on, rhythm check","","Flat line. Leads checked: asystole (abnormal). Not shockable.",{rh:"Asystole"}),
+    C("cpr","Resume CPR","CPR","CPR continues. No shock for asystole.",{cpr:1}),
+    C("iv","IO access","IO","No veins, so an IO line went into the shin.",{during:1}),
+    C("meds","Epinephrine 1 mg","Epi","Epinephrine 1 mg IO push.",{during:1}),
+    C("labs","Look for the cause","H's & T's","Potassium 7.8 (critically high) from missed dialysis.",{during:1}),
+    C("meds","Calcium & bicarb","CaCl","Calcium chloride 1 g and sodium bicarbonate IO push.",{during:1}),
+    C("vitals","Rhythm & pulse check","","Wide rhythm, then a pulse! ROSC. BP 90/54.",{rh:"Sinus · ROSC"}),
+    C("go","Take to the ICU","icu","")]}},
+  afibShock: {once:1, age:68, sex:"woman", pmh:["Hypertension"], dx:"A-fib with a fast rate and low blood pressure", def:{allHands:1, crit:1, t:"Heart racing, BP low!", d:"Dizzy and gray. Heart rate 172, BP 76/44.", r:2.0, v:{hr:172,sbp:76,dbp:44}, rh:"A-fib · rate 172", dispo:"admit", dispoTxt:"Back in a normal rhythm. Admitted to the cardiac floor.", s:[
+    C("assess","Assess","Assess","Pale, sweaty, confused. Irregular racing pulse."),
+    C("labs","12-lead EKG","EKG","Atrial fibrillation, rate 172 (high)."),
+    C("iv","IV","IV","20-gauge IV placed. Pads on the chest."),
+    C("meds","Sedation","Etomidate","Etomidate IV. Sleepy within a minute."),
+    C("shock","Synchronized cardioversion","Sync 200 J","Sync on. Everyone clear! Shocked at 200 joules. Normal rhythm, rate 84. BP 112/70.",{rh:"Sinus rhythm · 84"}),
+    C("assess","Wake-up check","Assess","Awake, talking, color back.")]}}
 };
 /* CT results for cases that come back from CT */
 Object.values(ER).forEach(c => { if(c.def.ct) c.ct = c.def.ct; });
@@ -917,12 +965,12 @@ const ER_LEVELS = [
   erLevel(2, 3, 1.0, ["uti","lac","ankle","asthmaKid","stone","appy","std","kidPoison","gall","chestLow","migraine"], [2900,4250], "Belly pain season", "Is it a kidney stone, the gallbladder or the appendix? Plus your first call to poison control."),
   erLevel(3, 4, 1.05, ["appy","gall","stone","chf","hipFx","urosepsis","std","lac","kidPoison","migraine","asthmaKid"], [3200,4700], "Four beds now", "Swollen legs, a fall at home and a grandma who's just not herself."),
   erLevel(4, 4, 1.1, ["asthmaSevere","chf","urosepsis","woundInf","giBleed","hipFx","seizure","anaph","appy","ankle","backPain","kidVomit"], [3500,5150], "Things get bloody", "Vomiting blood, a seizure in the waiting room and a throat closing up."),
-  erLevel(5, 4, 1.15, ["ectopic","delivery","giBleed","woundInf","seizure","anaph","chestLow","stemi","stone","std","wristKid"], [3800,5600], "Baby on board", "A baby arrives in the ER, and an ectopic pregnancy that can't wait."),
-  erLevel(6, 5, 1.2, ["overdose","kidPoison","dka","sepsis","copdTube","chf","migraine","lac","ankle","uti","gall"], [4100,6050], "Five beds, full board", "Overdoses, DKA and the MD's first intubation."),
-  erLevel(7, 5, 1.25, ["farmerArm","ectopic","stemi","stroke","giBleed","sepsis","chestLow","hipFx","asthmaKid","backPain","std"], [4400,6500], "Trauma on the farm", "A tourniquet, a stroke for TNK and a STEMI for the cath lab."),
-  erLevel(8, 5, 1.3, ["asthmaSevere","copdTube","anaph","overdose","delivery","dka","seizure","woundInf","appy","stone","lac","kidVomit"], [4700,6950], "Airway day", "When patients can't breathe, the whole team shows up."),
-  erLevel(9, 6, 1.35, ["vt","stemi","stroke","sepsis","farmerArm","ectopic","chf","urosepsis","wristKid","migraine","uti","gall"], [5000,7400], "Six beds", "A code in Bay 1 while the rest of the board keeps coming."),
-  erLevel(10, 6, 1.4, ["asthmaSevere","vt","copdTube","farmerArm","delivery","ectopic","overdose","dka","stroke","stemi","giBleed","sepsis","anaph","kidPoison","chestLow","ankle"], [5300,7850], "Full moon in the ER", "Everything at once. You've got this.")
+  erLevel(5, 4, 1.15, ["afibShock","ectopic","delivery","giBleed","woundInf","seizure","anaph","chestLow","stemi","stone","std","wristKid"], [3800,5600], "Baby on board", "A baby arrives in the ER, and an ectopic pregnancy that can't wait."),
+  erLevel(6, 5, 1.2, ["afibShock","overdose","kidPoison","dka","sepsis","copdTube","chf","migraine","lac","ankle","uti","gall"], [4100,6050], "Five beds, full board", "Overdoses, DKA and the MD's first intubation."),
+  erLevel(7, 5, 1.25, ["afibShock","farmerArm","ectopic","stemi","stroke","giBleed","sepsis","chestLow","hipFx","asthmaKid","backPain","std"], [4400,6500], "Trauma on the farm", "A tourniquet, a stroke for TNK and a STEMI for the cath lab."),
+  erLevel(8, 5, 1.3, ["afibShock","asthmaSevere","copdTube","anaph","overdose","delivery","dka","seizure","woundInf","appy","stone","lac","kidVomit"], [4700,6950], "Airway day", "When patients can't breathe, the whole team shows up."),
+  erLevel(9, 6, 1.35, ["afibShock","stemi","stroke","sepsis","farmerArm","ectopic","chf","urosepsis","wristKid","migraine","uti","gall"], [5000,7400], "Six beds", "A code in Bay 1 while the rest of the board keeps coming."),
+  erLevel(10, 6, 1.4, ["afibShock","asthmaSevere","copdTube","farmerArm","delivery","ectopic","overdose","dka","stroke","stemi","giBleed","sepsis","anaph","kidPoison","chestLow","ankle"], [5300,7850], "Full moon in the ER", "Everything at once. You've got this.")
 ];
 
 /* ---------- ICU ----------
@@ -1245,14 +1293,14 @@ const LD = {
     C("vitals","Recheck BP in 15 minutes","",""),
     C("labs","Preeclampsia labs","Labs","Platelets 98 (low), liver enzymes high (high), protein in the urine."),
     C("meds","Lower the BP within an hour","BP med","",{pick:OB_BP, q:"Which BP medicine?"}),
-    C("meds","Magnesium to prevent seizures","Mag 4 g","Magnesium 4 g IV over 20 minutes, then 2 g/hr."),
+    C("meds","Start magnesium","Mag 4 g","Magnesium 4 g IV over 20 minutes, then 2 g/hr."),
     C("hands","Reflexes & breathing","DTRs","Knee reflexes 2+, RR 16. Check every hour on magnesium.")]}},
   preE2:{age:38, sex:"woman", pmh:["Chronic hypertension","Second baby"], dx:"Severe preeclampsia at 35 weeks", fetal:1, def:{t:"BP 172/110!", d:"35 weeks. Pain under the right ribs.", r:1.6, crit:1, v:{sbp:172,dbp:110},
     dispo:"admit", dispoTxt:"Delivered. To postpartum on magnesium for 24 hours.", s:[
     C("vitals","Recheck BP in 15 minutes","",""),
     C("labs","Preeclampsia labs","Labs","Platelets 112 (low), liver enzymes high (high)."),
     C("meds","Lower the BP within an hour","BP med","",{pick:OB_BP, q:"Which BP medicine?"}),
-    C("meds","Magnesium to prevent seizures","Mag 4 g","Magnesium 4 g IV over 20 minutes, then 2 g/hr."),
+    C("meds","Start magnesium","Mag 4 g","Magnesium 4 g IV over 20 minutes, then 2 g/hr."),
     C("hands","Reflexes & breathing","DTRs","Knee reflexes 2+, RR 16.")]}},
   eclampsia:{age:19, sex:"woman", pmh:["First baby"], dx:"Eclampsia at 35 weeks", fetal:1, def:{allHands:1, t:"Seizure!", d:"Complained of a terrible headache, now shaking all over.", r:2.2, crit:1, v:{sbp:174,dbp:110,spo2:88,hr:124}, fhr:"brady",
     dispo:"admit", dispoTxt:"Stabilized, then delivered. Mom to postpartum on magnesium.", s:[
@@ -1268,7 +1316,7 @@ const LD = {
     C("iv","Stop the magnesium","Stop Mag","Magnesium infusion stopped."),
     C("meds","Calcium gluconate","Ca gluc","Calcium gluconate 1 g IV over 3 minutes."),
     C("o2","Oxygen","NRB","Oxygen on. RR 14, more awake."),
-    C("labs","Magnesium level","Mg","Magnesium 9.6 (high). Low urine output: her kidneys weren't clearing it.")]}},
+    C("labs","Magnesium level","Mg","Magnesium 9.6 (high). Urine output low.")]}},
   shoulder:{age:32, sex:"woman", pmh:["Gestational diabetes"], dx:"Shoulder dystocia", fetal:1, def:{allHands:1, t:"Shoulders stuck!", d:"The head delivered, then pulled back tight against her (turtle sign).", r:2.4, crit:1, fhr:"brady",
     dispo:"admit", dispoTxt:"Big healthy baby, moving both arms. Mom and baby to postpartum.", s:[
     C("esc","Call for help & call out the time","","Extra nurses, peds and anesthesia coming. Time called: 15 seconds."),
@@ -1338,7 +1386,7 @@ const PP = {
     C("meds","MMR before discharge","MMR","MMR vaccine given. No pregnancy for 1 month.")]},
   mag:{t:"On magnesium", d:"Delivered for preeclampsia. Magnesium for 24 hours.", dx:"Preeclampsia, postpartum day 0", pmh:"Preeclampsia this pregnancy", r:1.0, s:[
     C("hands","Reflexes & breathing","DTRs","Reflexes 2+, RR 16, lungs clear."),
-    C("labs","Strict ins & outs","I&O","Urine 60 mL/hr. Her kidneys are clearing the magnesium."),
+    C("labs","Strict ins & outs","I&O","Urine 60 mL/hr."),
     C("vitals","BP check","","")]}
 };
 const PPF = {
@@ -2382,7 +2430,10 @@ function newGame(){
   ROOMS = LV.mode==="er" ? Array.from({length:LV.beds}, (_,i)=>i+1) : LV.mode==="icu" ? [7] : LV.pp ? [512,514,516] : LV.peds ? [612,614,616] : LV.nicu ? [1,2] : [412,414,416];
   buildCards();
   $("#app").classList.toggle("er", LV.mode==="er");
-  if(LV.mode==="er"){ G.deck = []; G.lwbs = 0; G.admitted = 0; }
+  if(LV.mode==="er"){ G.deck = []; G.lwbs = 0; G.admitted = 0;
+    /* one code every real ER shift: shockable half the time */
+    const erShift = !LV.tutorial && !LV.ld && !LV.pp && !LV.peds && !LV.nicu && (LV.unit==="ER" || LV.floatUnit==="ER" || LV.overtime);
+    G.erCode = erShift ? {at:(LV.shift||SHIFT) * rand(0.22, 0.6), key: Math.random() < 0.5 ? "codeVF" : pick(["codePEA","codeAsys"]), done:false} : null; }
   $("#app").classList.toggle("solo", LV.mode==="rrt" || LV.mode==="icu");
   $("#app").classList.toggle("icu", LV.mode==="icu");
   if(LV.mode==="rrt"){ G.beds.push(admitCall(0)); }
@@ -2591,9 +2642,11 @@ function finishIcuTutorial(){
   $("#listBtn").addEventListener("click", showStart);
 }
 /* ER: pick the next case from this level's deck so nothing repeats until every case has been seen */
-function admitER(i){
+function admitER(i, key){
   if(!G.deck.length) G.deck = shuffle(LV.cases.slice());
-  const c = ER[G.deck.shift()];
+  if(!key){ G.erOnce = G.erOnce || {}; for(let n=0; n<LV.cases.length && G.deck.length && ER[G.deck[0]].once && G.erOnce[G.deck[0]]; n++){ G.deck.shift(); if(!G.deck.length) G.deck = shuffle(LV.cases.filter(k=>!(ER[k].once && G.erOnce[k]))); } }
+  const ck = key || G.deck.shift(); if(ER[ck].once) G.erOnce[ck] = true;
+  const c = ER[ck];
   const kid = c.age < 18;
   const name = kid ? pick(KID_NAMES[c.sex]) : LV.names ? pick(LV.names.filter(n => !G.beds.some(b => b && b.name===n))) : (()=>{ let n; for(let k=0;k<20;k++){ n = pick(NAMES); if(c.sex === sexOf(n)) break; } return n; })();
   const p = admit(i, true, {defs:[c.def, ...(c.more||[])], name, age:c.age, sex:c.sex, pmh:c.pmh, dx:c.dx});
@@ -2764,7 +2817,9 @@ function update(dt){
           if(otherCrit || (other && (ER[G.deck[0]].def.crit || ER[G.deck[0]].def.code))){ p.timer = 2; return; }
         }
         if(LV.mode==="er"){
-          G.beds[i] = admitER(i); const np = G.beds[i];
+          const codeNow = G.erCode && !G.erCode.done && G.t >= G.erCode.at && !G.cover;
+          if(codeNow) G.erCode.done = true;
+          G.beds[i] = admitER(i, codeNow ? G.erCode.key : null); const np = G.beds[i];
           sfx.ping(); toast(`New patient in ${roomLabel(i)}: ${np.active.def.t.replace("!","").toLowerCase()}`, np.active.def.crit ? "alarm" : "");
           if(np.active.def.crit) np.flash = 4;
           dirty = true; return;
@@ -3526,7 +3581,7 @@ function showStart(){
       <button class="special" id="otBtn"><b>⏱ Overtime</b><small>How long can you last?${(saved[950]||{}).best ? ` · best ${saved[950].best}` : ""}</small></button>
     </div>
     <details class="pins"><summary>${DAISY_SVG(20, true)} Poppy pins <span>${peonyCount()}</span></summary>
-      <p class="fine">Every ${POPPY_EVERY} exceptional shifts (3 stars, nobody lost) earns a Poppy nomination. ${(saved.exceptional||0) % POPPY_EVERY} of ${POPPY_EVERY} toward your next one.</p>
+      <p class="fine">Exceptional shifts (3 stars, nobody lost) can earn you a Poppy nomination.</p>
       <div class="pin-row">${peonyCount() ? Array.from({length:Math.min(peonyCount(), 24)}, ()=>DAISY_SVG(34, true)).join("") + (peonyCount() > 24 ? `<b>+${peonyCount()-24}</b>` : "") : `${DAISY_SVG(34, false)}<small>No pins yet</small>`}</div>
     </details>
     <h3 class="pick">Pick a shift</h3>
@@ -3708,7 +3763,7 @@ function endShift(reshow){
     <div class="stars">${starsRow(stars)}</div>
     ${pickup ? `<p class="promo">Thanks for picking up a shift! +${pickup} bonus points</p>` : ""}
     ${promoted ? `<p class="promo">Promoted to <b>${RANKS[rankOf(cr.after)].n}</b>!</p>` : ""}
-    ${exceptional && !daisy ? `<p class="promo">Exceptional shift! ${POPPY_EVERY - (saved.exceptional % POPPY_EVERY)} more until your next Poppy.</p>` : ""}
+    ${exceptional && !daisy ? `<p class="promo">Exceptional shift!</p>` : ""}
     ${daisy ? `<div class="daisy-card">${DAISY_SVG(54, true)}<div><b>You've been nominated for a Poppy!</b><small class="why">For ${esc(daisy.reason.charAt(0).toLowerCase() + daisy.reason.slice(1))}</small><p>“${esc(daisy.letter)}”</p><small>New Poppy pin! You have ${peonyCount()}.</small></div></div>` : ""}
     ${cr ? rankCard(cr.after, cr.after - cr.before) : ""}
     <div class="stats">${statsHtml || `
