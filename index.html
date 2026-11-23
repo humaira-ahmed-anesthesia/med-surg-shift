@@ -3828,14 +3828,14 @@ const STAR = on => `<svg viewBox="0 0 24 24"><path d="M12 2.8l2.7 5.6 6.1.8-4.5 
 /* career rank: every point from every shift counts (inspired by Benner's novice-to-expert model) */
 const RANKS = [
   {n:"New Grad", at:0, d:"Fresh out of school, badge still shiny."},
-  {n:"Novice Nurse", at:5000, d:"You know where the supply room is."},
-  {n:"Advanced Beginner", at:15000, d:"You spot patterns before the monitor does."},
-  {n:"Competent Nurse", at:35000, d:"Organized, steady, and the plan is yours."},
-  {n:"Proficient Nurse", at:65000, d:"You see the whole picture at a glance."},
-  {n:"Preceptor", at:110000, d:"New grads shadow you now."},
-  {n:"Charge Nurse", at:170000, d:"The whole unit runs through you."},
-  {n:"Expert Nurse", at:250000, d:"Intuition backed by thousands of shifts."},
-  {n:"Float Pool Legend", at:400000, d:"Any unit, any night. They ask for you by name."}];
+  {n:"Novice Nurse", at:15000, d:"You know where the supply room is."},
+  {n:"Advanced Beginner", at:45000, d:"You spot patterns before the monitor does."},
+  {n:"Competent Nurse", at:105000, d:"Organized, steady, and the plan is yours."},
+  {n:"Proficient Nurse", at:195000, d:"You see the whole picture at a glance."},
+  {n:"Preceptor", at:330000, d:"New grads shadow you now."},
+  {n:"Charge Nurse", at:510000, d:"The whole unit runs through you."},
+  {n:"Expert Nurse", at:750000, d:"Intuition backed by thousands of shifts."},
+  {n:"Float Pool Legend", at:1200000, d:"Any unit, any night. They ask for you by name."}];
 const careerPts = () => (saved.career || 0);
 function rankOf(pts){ let i = 0; RANKS.forEach((r,k)=>{ if(pts >= r.at) i = k; }); return i; }
 function addCareer(pts){ const before = careerPts(); saved.career = before + Math.max(0, Math.round(pts)); save(); return {before, after:saved.career}; }
