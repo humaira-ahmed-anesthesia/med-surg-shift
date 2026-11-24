@@ -1158,8 +1158,8 @@ const EV = {
     s:[C("device","Measure the output","Empty","120 mL/hr, two hours in a row."), C("labs","BMP","BMP","Creatinine down to 1.6, potassium 4.2. Kidneys recovering."), C("esc","Call nephrology","","Nephrology: stop the CRRT."), C("device","Stop CRRT & return the blood","Stop","Blood returned, CRRT off. Dialysis line capped.")]},
   addVaso:{t:"Norepinephrine over 10!", d:"Needing more and more norepinephrine to hold the goal.", r:1.2, addDrip:"vaso", boost:14,
     s:[C("assess","Assess & check the drip","Assess","Norepinephrine above 10 mcg/min for an hour. Cool hands."), C("esc","Call the intensivist","","Add vasopressin."), C("iv","Start vasopressin","Vasopressin","Vasopressin 0.03 units/min through the central line. Wean the norepinephrine as the MAP comes up.")]},
-  addEpi:{t:"Still over 10 on two pressors!", d:"Norepinephrine back above 10, even with vasopressin.", r:1.4, addDrip:"epiAdd", boost:12,
-    s:[C("assess","Assess","Assess","Mottled knees, MAP holding only on high norepinephrine."), C("esc","Call the intensivist","","Add epinephrine."), C("iv","Start epinephrine","Epi","Epinephrine 2 mcg/min through the central line. Wean the norepinephrine as the MAP comes up.")]},
+  addEpi:{t:"Norepinephrine maxed at 30!", d:"At the max dose with vasopressin running, and the MAP still needs more.", r:1.4, addDrip:"epiAdd", boost:12,
+    s:[C("assess","Assess","Assess","Mottled knees. Norepinephrine at 30 mcg/min plus vasopressin."), C("esc","Call the intensivist","","Add epinephrine."), C("iv","Start epinephrine","Epi","Epinephrine 2 mcg/min through the central line. Wean the norepinephrine as the MAP comes up.")]},
   paHigh:{t:"PA pressures climbing!", d:"The PA catheter numbers are off.", r:1.6, paHit:{pas:24, pad:13, pcwp:12, cvp:5, ci:-0.8, svo2:-15},
     s:[C("assess","Check the PA numbers","PA cath", p=>{ const v = paVals(); return `PA ${v.pas}/${v.pad} (high), wedge ${v.pcwp} (high), cardiac index ${v.ci} (low), SvO₂ ${v.svo2}% (low).`; }),
        C("esc","Call the intensivist","","Start milrinone, or turn it up if it's already running."),
@@ -2767,10 +2767,11 @@ function icuTick(dt){
   I.paT = (I.paT||0) + dt; if(I.paT > 1.5){ I.paT = 0; I.paN = {ci:(Math.random()-0.5)*0.2, p:(Math.random()-0.5)*3, s:(Math.random()-0.5)*3}; }
   const ne = !LV.tutorial && I.drips.find(d=>/^norepi/.test(d.key));
   if(ne && live && !dying){
-    ne.hiT = ne.rate > 10 ? (ne.hiT||0) + dt : 0;
     const hasV = I.drips.some(d=>d.key==="vaso"), hasE = I.drips.some(d=>d.key==="epiAdd");
+    // vasopressin once norepinephrine is above 10 for an hour; epinephrine only once it's maxed (30) on vasopressin for half an hour
+    ne.hiT = (hasV ? ne.rate >= ne.def.max : ne.rate > 10) ? (ne.hiT||0) + dt : 0;
     const busy = (p.active && (p.active.def===EV.addVaso || p.active.def===EV.addEpi)) || p.queue.some(q=>q.def===EV.addVaso || q.def===EV.addEpi);
-    if(ne.hiT > 15 && !busy && !I.pendingEv){ if(!hasV) I.pendingEv = "addVaso"; else if(!hasE) I.pendingEv = "addEpi"; ne.hiT = 0; }
+    if(ne.hiT > (hasV ? 7.5 : 15) && !busy && !I.pendingEv){ if(!hasV) I.pendingEv = "addVaso"; else if(!hasE) I.pendingEv = "addEpi"; ne.hiT = 0; }
   }
   if(I.pendingEv && icuEvent(EV[I.pendingEv])) I.pendingEv = null;
   I.events.forEach(e=>{ if(!e.done && G.t >= e.at && icuEvent(EV[e.k])) e.done = true; });
