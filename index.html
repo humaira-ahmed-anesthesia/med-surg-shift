@@ -425,6 +425,10 @@ button.chip.now:active{transform:scale(.96)}
 .spot-tip b{color:#ffe28a}
 .spot-tip.hasBtn{pointer-events:auto}
 .coach.solo{background:#e6f3ee;color:var(--ink)}
+.yumpop{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%);z-index:70;background:#fff8ec;border-radius:22px;padding:16px 26px 14px;text-align:center;box-shadow:0 0 0 3px #f3cf96,0 12px 30px rgba(0,0,0,.18);animation:yum 1.7s ease forwards;pointer-events:none}
+.yumpop b{display:block;font-family:var(--display);font-size:26px;color:#e8913c}
+.yumpop small{display:block;font-weight:800;color:var(--muted);font-size:12px}
+@keyframes yum{0%{opacity:0;transform:translate(-50%,-40%) scale(.7)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.05)}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(.95)}}
 .foodcard{display:flex;align-items:center;gap:10px;background:#fff4e2;border-radius:14px;padding:8px 10px;margin-bottom:8px;box-shadow:0 0 0 2px #f3cf96,0 2px 0 var(--line)}
 .foodcard span{flex:1;font-size:12.5px;line-height:1.3;font-weight:700;color:var(--ink)}
 .foodcard span b{display:block;font-size:14px}
@@ -921,7 +925,7 @@ const ER = {
   ectopic: {age:26, sex:"woman", pmh:["None"], dx:"Ruptured ectopic pregnancy", def:{t:"Abdominal pain", d:"Sudden sharp lower belly pain and nearly fainted. Period is late.", r:2.2, v:{hr:126,sbp:84,dbp:50}, crit:1,
     s:[VIT(), C("assess","Assess","Assess","Pale and sweaty. Very tender low on the right."), C("labs","Pregnancy test","hCG","Pregnancy test positive (abnormal). Blood hCG sent too."), MD("MD: bedside ultrasound","FAST: free fluid in the pelvis, no pregnancy in the uterus. Likely ruptured ectopic. OB-GYN called."), C("iv","Two large-bore IVs","2× 18g","Two 18-gauge IVs, fluids running."), C("labs","Type & cross","T&C","Type and crossmatch sent for 2 units."), C("blood","Hang blood","PRBCs","Two-nurse check done. PRBCs running."), C("meds","Keep her comfortable","Fentanyl","Fentanyl 50 mcg IV. Holding her hand until the OR is ready."), C("go","Rush to surgery","or","")]}},
   delivery: {age:31, sex:"woman", pmh:["Pregnant, 39 weeks"], dx:"Precipitous delivery", def:{t:"Baby's coming!", d:"Arrived in a wheelchair. Contractions a minute apart and she has to push.", r:1.8, crit:1,
-    s:[C("assess","Check for crowning","Assess","The baby's head is crowning! No time to go upstairs."), C("esc","Call for help","","OB and the NICU team are on the way. Delivery kit open."), MD("MD delivers the baby","Baby girl born at the bedside, crying loudly!"), C("assess","Dry & warm the baby","Warm","Baby dried, skin to skin with mom, hat on."), C("meds","Oxytocin for mom","Oxytocin","Oxytocin started to help the uterus clamp down and limit bleeding."), C("go","Take to Labor & Delivery","ld","")]}},
+    s:[C("assess","Check for crowning","Assess","The baby's head is crowning! No time to go upstairs."), C("esc","Call for help","","OB and the NICU team are on the way. Delivery kit open."), MD("MD delivers the baby","Baby girl born at the bedside, crying loudly!"), C("assess","Dry & warm the baby","Warm","Baby dried, skin to skin with mom, hat on."), C("meds","Oxytocin for mom","Oxytocin","Oxytocin started after the placenta."), C("go","Take to Labor & Delivery","ld","")]}},
   overdose: {age:35, sex:"man", pmh:["Depression"], dx:"Overdose", def:{t:"Found unresponsive", d:"Roommate found him next to empty pill bottles.", r:2.2, v:{rr:6,spo2:84,hr:58}, crit:1, dispo:"admit", dispoTxt:"Admitted to the ICU for the antidote, with a mental health team visit.",
     s:[VIT(), C("assess","Assess","Assess","Barely breathing. Pinpoint pupils."), C("o2","Bag-mask breaths","BVM","Bag-mask breaths. SpO₂ climbing."), C("meds","Naloxone","Naloxone","Naloxone 0.4 mg IV. Breathing 14 a minute, waking up."), C("labs","Tox labs","Tox","Acetaminophen level high (high). Treatable if started now."), C("go","Call poison control","poison",""), C("meds","Start the antidote","NAC","N-acetylcysteine IV started.")]}},
   dka: {age:16, sex:"man", pmh:["Type 1 diabetes"], dx:"Diabetic ketoacidosis", def:{t:"Vomiting, breathing fast", d:"Ran out of insulin 2 days ago. Thirsty and exhausted.", r:1.8, v:{hr:124,rr:30,sbp:100,dbp:60}, crit:1,
@@ -1422,7 +1426,7 @@ const LD = {
     C("vitals","Recheck BP","","")]}, more:[PUSH]},
   tachy:{age:27, sex:"woman", pmh:["Gestational diabetes"], dx:"Induction of labor at 39 weeks", fetal:1, def:{t:"Contractions too close!", d:"On oxytocin: 7 contractions in 10 minutes, with late decelerations.", r:1.6, fhr:"late",
     dispo:"admit", dispoTxt:"Delivered without a C-section. To postpartum.", s:[
-    C("iv","Stop the oxytocin","Stop Pit","Oxytocin turned off."),
+    C("iv","Stop the oxytocin","Stop","Oxytocin turned off."),
     C("hands","Reposition onto her side","Left side","Turned to her left side."),
     C("iv","Fluid bolus","Bolus","500 mL lactated Ringer's bolus."),
     C("esc","Call the OB","","OB at the bedside reviewing the strip."),
@@ -1477,7 +1481,8 @@ const LD = {
     C("hands","Suprapubic pressure (never fundal)","Suprapubic","Pressure just above the pubic bone, pushing the shoulder down and sideways."),
     C("md","OB delivers the back arm","","Back arm delivered. Baby out at 1 minute 40 seconds!",{born:1}),
     C("baby","Floppy baby: warm, dry, stimulate","Stimulate","Dried and rubbed. Still not breathing well."),
-    C("o2","Bag-mask breaths for the baby","PPV","Breaths for 30 seconds. Heart rate over 100, and a big cry!")]}},
+    C("o2","Bag-mask breaths for the baby","PPV","Breaths for 30 seconds. Heart rate over 100, and a big cry!"),
+    C("meds","Oxytocin for mom","Oxytocin","Oxytocin started after the placenta.")]}},
   cordProlapse:{age:30, sex:"woman", pmh:["Second baby"], dx:"Umbilical cord prolapse", fetal:1, def:{allHands:1, t:"Cord prolapse!", d:"Water just broke. You feel the cord in the vagina. FHR 70.", r:2.6, crit:1, fhr:"brady", s:[
     C("hands","Lift the baby's head off the cord","Lift","Gloved hand pushing the head up off the cord. You don't let go."),
     C("esc","Call for a stat C-section","","OR team, OB and anesthesia activated."),
@@ -1491,7 +1496,7 @@ const LD = {
     C("go","Rush to the OR","csec","")]}},
   vbac:{age:33, sex:"woman", pmh:["C-section 2 years ago"], dx:"Labor after a prior C-section (TOLAC)", fetal:1, def:{allHands:1, t:"Sudden tearing pain!", d:"Trying for a VBAC. Contractions suddenly stopped and the baby's head moved back up.", r:2.6, crit:1, v:{hr:128,sbp:88,dbp:50}, fhr:"brady", s:[
     C("assess","Assess","Assess","Severe pain, FHR 70 (low). Signs of uterine rupture."),
-    C("iv","Stop the oxytocin, open the fluids","Stop Pit","Oxytocin off, fluids wide open."),
+    C("iv","Stop the oxytocin, open the fluids","Stop","Oxytocin off, fluids wide open."),
     C("esc","Call for a stat C-section","","OR team activated."),
     C("go","Rush to the OR","csec","")]}},
   pphA:{age:34, sex:"woman", pmh:["Preeclampsia this pregnancy"], dx:"Postpartum hemorrhage", def:pphDef()},
@@ -3308,16 +3313,22 @@ function familyFood(){
   const pool = G.all.filter(p => p.name && (p.out==="home" || p.out==="admit" || LV.mode==="icu"));
   const famOf = n => { const w = n.replace(/^(Mrs?\.|Ms\.|Baby)\s+/, "").split(" "); return w.length > 1 || /^(Mrs?\.|Ms\.)/.test(n) ? `The ${w.at(-1)} family` : `${w[0]}'s family`; };
   const fam = pool.length ? famOf(pick(pool).name) : "A patient's family";
-  G.foodCard = {txt:`${fam} brought ${pick(FOODS)} for the unit!`, until:G.t + 30};
+  const food = pick(FOODS);
+  G.foodCard = {txt:`${fam} brought ${food} for the unit!`, food, until:G.t + 30};
   toast("Food in the break room!", "good");
   beep(784,0.12,"sine",0.04); beep(1047,0.16,"sine",0.04,0.12);
   dirty = true;
 }
 function grabFood(){
   if(!G.foodCard) return;
-  G.foodCard = null; G.slows++; G.score += 100;
-  toast("Delicious. +1 slow moment, +100 points.", "good"); sfx.done(); dirty = true;
+  const f = G.foodCard.food; G.foodCard = null; G.slows++; G.score += 300; floatText("+300");
+  const pop = document.createElement("div"); pop.className = "yumpop"; pop.innerHTML = `${foodArt(f, 120)}<b>Yum!</b><small>+1 slow moment · +300</small>`;
+  document.body.appendChild(pop); setTimeout(()=>pop.remove(), 1700);
+  sfx.done(); dirty = true;
 }
+const FOOD_ART = {donut:'<circle cx="32" cy="34" r="24" fill="#e2a160"/><path d="M10 31c2-14 13-21 22-21s21 7 23 21c-4 3-8-2-12 1s-6 6-11 4-8 2-12-1-6 0-10-4z" fill="#f4a3c4"/><rect x="18" y="18" width="5" height="2" rx="1" fill="#fff" transform="rotate(-30 20 19)"/><rect x="40" y="16" width="5" height="2" rx="1" fill="#7fd1e8" transform="rotate(25 42 17)"/><rect x="30" y="13" width="5" height="2" rx="1" fill="#ffe07a"/><rect x="46" y="27" width="5" height="2" rx="1" fill="#fff" transform="rotate(60 48 28)"/><circle cx="25" cy="32" r="2.2" fill="#3a2a20"/><circle cx="39" cy="32" r="2.2" fill="#3a2a20"/><path d="M28 37q4 4 8 0" stroke="#3a2a20" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="20" cy="37" r="3" fill="#f08a8a" opacity=".55"/><circle cx="44" cy="37" r="3" fill="#f08a8a" opacity=".55"/>',cookie:'<circle cx="32" cy="33" r="24" fill="#deac6e"/><circle cx="18" cy="22" r="3" fill="#6b4226"/><circle cx="45" cy="20" r="2.6" fill="#6b4226"/><circle cx="48" cy="40" r="3" fill="#6b4226"/><circle cx="17" cy="44" r="2.6" fill="#6b4226"/><circle cx="33" cy="49" r="2.4" fill="#6b4226"/><circle cx="25" cy="32" r="2.2" fill="#3a2a20"/><circle cx="39" cy="32" r="2.2" fill="#3a2a20"/><path d="M28 37q4 4 8 0" stroke="#3a2a20" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="20" cy="37" r="3" fill="#f08a8a" opacity=".55"/><circle cx="44" cy="37" r="3" fill="#f08a8a" opacity=".55"/>',pizza:'<path d="M8 14h48L32 58z" fill="#f7cf5c"/><path d="M8 14h48l-2 6H10z" fill="#d9954a"/><rect x="6" y="9" width="52" height="8" rx="4" fill="#d9954a"/><circle cx="20" cy="22" r="3.5" fill="#d9543f"/><circle cx="44" cy="23" r="3.5" fill="#d9543f"/><circle cx="32" cy="45" r="3" fill="#d9543f"/><circle cx="25" cy="30" r="2.2" fill="#3a2a20"/><circle cx="39" cy="30" r="2.2" fill="#3a2a20"/><path d="M28 35q4 4 8 0" stroke="#3a2a20" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="20" cy="35" r="3" fill="#f08a8a" opacity=".55"/><circle cx="44" cy="35" r="3" fill="#f08a8a" opacity=".55"/>',bun:'<path d="M8 44c0-18 11-30 24-30s24 12 24 30z" fill="#f2c08c"/><path d="M12 36c4-14 12-20 20-20s16 6 20 20" fill="none" stroke="#f6a5b9" stroke-width="7" stroke-linecap="round"/><path d="M22 20l4 12M32 17v14M42 20l-4 12" stroke="#f2c08c" stroke-width="2"/><rect x="8" y="43" width="48" height="8" rx="4" fill="#e3a868"/><circle cx="25" cy="39" r="2.2" fill="#3a2a20"/><circle cx="39" cy="39" r="2.2" fill="#3a2a20"/><path d="M28 44q4 4 8 0" stroke="#3a2a20" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="20" cy="44" r="3" fill="#f08a8a" opacity=".55"/><circle cx="44" cy="44" r="3" fill="#f08a8a" opacity=".55"/>',pastry:'<circle cx="58.7" cy="42.2" r="3.2" fill="#c98a3e"/><circle cx="56.7" cy="35.0" r="3.2" fill="#c98a3e"/><circle cx="52.7" cy="28.6" r="3.2" fill="#c98a3e"/><circle cx="47.1" cy="23.6" r="3.2" fill="#c98a3e"/><circle cx="40.3" cy="20.3" r="3.2" fill="#c98a3e"/><circle cx="32.9" cy="19.0" r="3.2" fill="#c98a3e"/><circle cx="25.5" cy="19.8" r="3.2" fill="#c98a3e"/><circle cx="18.5" cy="22.6" r="3.2" fill="#c98a3e"/><circle cx="12.6" cy="27.2" r="3.2" fill="#c98a3e"/><circle cx="8.2" cy="33.3" r="3.2" fill="#c98a3e"/><circle cx="5.6" cy="40.4" r="3.2" fill="#c98a3e"/><path d="M5 46a27 27 0 0 1 54 0z" fill="#e9b66b"/><path d="M10 46h44" stroke="#d9a050" stroke-width="2" stroke-linecap="round"/><circle cx="25" cy="34" r="2.2" fill="#3a2a20"/><circle cx="39" cy="34" r="2.2" fill="#3a2a20"/><path d="M28 39q4 4 8 0" stroke="#3a2a20" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="20" cy="39" r="3" fill="#f08a8a" opacity=".55"/><circle cx="44" cy="39" r="3" fill="#f08a8a" opacity=".55"/>',bowl:'<path d="M10 28c4-10 12-14 22-14s18 4 22 14z" fill="#f3d27a"/><circle cx="22" cy="22" r="2.2" fill="#e07a3a"/><circle cx="36" cy="19" r="2" fill="#7bbf6a"/><circle cx="44" cy="24" r="2.2" fill="#e07a3a"/><path d="M6 28h52c0 15-12 26-26 26S6 43 6 28z" fill="#7fb6d9"/><path d="M14 47c5 5 11 7 18 7s13-2 18-7" fill="none" stroke="#5f95b8" stroke-width="2"/><circle cx="25" cy="38" r="2.2" fill="#3a2a20"/><circle cx="39" cy="38" r="2.2" fill="#3a2a20"/><path d="M28 43q4 4 8 0" stroke="#3a2a20" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="20" cy="43" r="3" fill="#f08a8a" opacity=".55"/><circle cx="44" cy="43" r="3" fill="#f08a8a" opacity=".55"/>',pancake:'<ellipse cx="32" cy="46" rx="26" ry="8" fill="#d9a85c"/><ellipse cx="32" cy="38" rx="26" ry="8" fill="#f0c879"/><ellipse cx="32" cy="30" rx="26" ry="8" fill="#f6d68f"/><path d="M20 26l4 3M36 24l3 4M44 30l3-2" stroke="#6bb36a" stroke-width="2.4" stroke-linecap="round"/><circle cx="28" cy="32" r="1.8" fill="#e0573f"/><circle cx="25" cy="40" r="2.2" fill="#3a2a20"/><circle cx="39" cy="40" r="2.2" fill="#3a2a20"/><path d="M28 45q4 4 8 0" stroke="#3a2a20" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="20" cy="45" r="3" fill="#f08a8a" opacity=".55"/><circle cx="44" cy="45" r="3" fill="#f08a8a" opacity=".55"/>'};
+const foodArt = (food, size) => { const k = /donut/.test(food) ? "donut" : /cookie/.test(food) ? "cookie" : /pizza/.test(food) ? "pizza" : /pan dulce/.test(food) ? "bun" : /biryani|jollof/.test(food) ? "bowl" : /pancake/.test(food) ? "pancake" : "pastry";
+  return `<svg viewBox="0 0 64 64" width="${size}" height="${size}" aria-hidden="true">${FOOD_ART[k]}</svg>`; };
 const FOOD_SVG = '<svg viewBox="0 0 48 40" width="44" height="37" aria-hidden="true"><rect x="3" y="14" width="42" height="22" rx="4" fill="#f6e2c4" stroke="#c99b62" stroke-width="1.5"/><path d="M3 18h42" stroke="#c99b62" stroke-width="1.5"/><circle cx="13" cy="26" r="5.5" fill="#e9a35b"/><circle cx="13" cy="26" r="2" fill="#f6e2c4"/><circle cx="24" cy="26" r="5.5" fill="#d9799b"/><circle cx="24" cy="26" r="2" fill="#f6e2c4"/><circle cx="35" cy="26" r="5.5" fill="#8b5a3c"/><circle cx="35" cy="26" r="2" fill="#f6e2c4"/><path d="M12 9c0-3 3-3 3-6M22 9c0-3 3-3 3-6M32 9c0-3 3-3 3-6" stroke="#b9b2a8" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>';
 function earnSlow(){
   G.saves++;
@@ -3793,7 +3804,7 @@ function renderFeed(){
   if(top !== fe._top){ fe._top = top; fe.scrollTop = 0; }
   const cl = coachList(), c = cl && !G.over ? cl[G.coach] : null;
   const solo = cl && G.coachDone && !G.over ? `<div class="coach solo"><span class="cstep">Orientation · on your own</span>Keep caring for your patients until noon. <button class="soloBtn">Finish orientation now</button></div>` : "";
-  const food = G.foodCard && !G.over ? `<div class="foodcard">${FOOD_SVG}<span><b>Food in the break room!</b>${esc(G.foodCard.txt)}</span><button class="foodBtn">Grab a bite</button></div>` : "";
+  const food = G.foodCard && !G.over ? `<div class="foodcard">${foodArt(G.foodCard.food, 56)}<span><b>Food in the break room!</b>${esc(G.foodCard.txt)}</span><button class="foodBtn">Grab a bite</button></div>` : "";
   const html = food + solo + (c ? `<div class="coach"><span class="cstep">${cl && cl.blip ? "New device" : `Orientation · ${G.coach+1} of ${cl ? cl.length : 0}`}</span>${c.txt}${c.btn?`<br><button class="coachBtn">${c.btn}</button>`:""}</div>` : "") +
     (latest ? updB(latest) : "") +
     tasks.map(t=>{
