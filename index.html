@@ -3295,7 +3295,7 @@ function discharge(p){
   sfx.home();
   if(p === cur()) floatText("+150");
   if(p.dispoTxt){ logIt(p, p.dispoTxt); pushFeed(p, admitIt ? "md" : "assess", p.dispoTxt); }
-  toast(admitIt ? `${p.name} is being admitted upstairs.` : `${p.name} is going home!`, "good");
+  toast(admitIt ? (LV.ld ? (/ICU/.test(p.dispoTxt||"") ? `${p.name} is headed to the ICU.` : `${p.name} is moving to postpartum.`) : `${p.name} is being admitted upstairs.`) : `${p.name} is going home!`, "good");
   const erFast = LV.mode==="er" && (LV.unit==="ER" || LV.floatUnit==="ER" || LV.overtime);
   if(!LV.nicu && G.discharged % (erFast ? 2 : 4) === 0) earnHelp();
   else earnSlow();
@@ -3672,7 +3672,7 @@ function renderAll(){
     const nk = b.state==="needs" ? curStep(b).k : "";
     c.need.innerHTML = nk ? ICON[nk] : "";
     c.need.style.background = nk ? TOOLS[nk].tint : ""; c.need.style.color = nk ? TOOLS[nk].c : "";
-    c.st.textContent = b.state==="needs" ? b.active.def.t.replace("!","") : b.state==="resting" ? (b.queue.length?"Resting":"Discharge soon") : b.state==="leaving" ? (b.out==="home"?"Going home":b.out==="admit"?"Admitted":b.out==="lwbs"?"Left":b.out==="go"?DEST[b.dest].out:"To ICU") : (LV.mode==="er" ? "Open" : "New admit soon");
+    c.st.textContent = b.state==="needs" ? b.active.def.t.replace("!","") : b.state==="resting" ? (b.queue.length?"Resting":"Discharge soon") : b.state==="leaving" ? (b.out==="home"?"Going home":b.out==="admit"?(LV.ld?"To postpartum":"Admitted"):b.out==="lwbs"?"Left":b.out==="go"?DEST[b.dest].out:"To ICU") : (LV.mode==="er" ? "Open" : "New admit soon");
   });
   trayKeys.forEach(k=>{ const b = toolBtns[k]; b.classList.remove("next"); b.lb.textContent = TOOLS[k].name; b.setAttribute("aria-label", TOOLS[k].name);
     if(b.dataset.alt){ b.ic.innerHTML = ICON[k]; b.style.setProperty("--tint", TOOLS[k].tint); b.style.setProperty("--tc", TOOLS[k].c); delete b.dataset.alt; } });
@@ -4133,8 +4133,8 @@ function endShift(reshow){
       <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
       <div class="stat"><b>${G.seen}</b><span>Patients seen</span></div>
       <div class="stat"><b>${G.discharged - G.admitted}</b><span>Discharged home</span></div>
-      <div class="stat"><b>${G.admitted}</b><span>Admitted upstairs</span></div>
-      <div class="stat"><b>${G.rushed}</b><span>Rushed to OR, CT, cath lab, L&amp;D or ICU</span></div>
+      <div class="stat"><b>${G.admitted}</b><span>${LV.ld ? "Moved to postpartum" : "Admitted upstairs"}</span></div>
+      <div class="stat"><b>${G.rushed}</b><span>${LV.ld ? "Rushed to the OR or ICU" : "Rushed to OR, CT, cath lab, L&amp;D or ICU"}</span></div>
       <div class="stat"><b>${G.lwbs}</b><span>Left without being seen</span></div>
       <div class="stat"><b>${G.expired}</b><span>Patients expired</span></div>
       <div class="stat"><b>${heartRow(heartsNow())}</b><span>Hearts left</span></div>` : LV.mode==="rrt" ? `
