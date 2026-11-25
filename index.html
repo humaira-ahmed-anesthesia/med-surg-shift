@@ -2575,7 +2575,8 @@ function admit(i, initial, o){
   else{
     const first = pick(LV.first);
     const n = initial ? 1 : (Math.random()<0.55 ? 1 : 2);
-    defs = [first, ...shuffle(LV.follow.slice()).slice(0,n)];
+    const wellBaby = LV.nicu && /34 weeks|jaundice|diabetic/i.test(first.dx || "");
+    defs = [first, ...shuffle(LV.follow.filter(d => !LV.nicu || wellBaby || d.t!=="Car seat test")).slice(0,n)];
   }
   p.dx = o.dx || defs[0].dx; p.surg = !!(o.surg || defs[0].surg); p.hpi = defs[0].d; p.loc = o.loc || null;
   p.sex = o.sex || (kidSex ? (kidSex==="girl" ? "woman" : "man") : sexOf(p.name));
@@ -3096,7 +3097,9 @@ function update(dt){
           else if(i!==G.current) sfx.ping();
           takeVitals(p);
           dirty = true;
-        } else if(p.icu) p.timer = 0.5; else if(p.retNext) p.timer = 1; else discharge(p);
+        } else if(p.icu) p.timer = 0.5; else if(p.retNext) p.timer = 1;
+        else if(LV.nicu && nicuStays(p)){ p.queue.push(inst(pick(nicuFollow()), p)); p.timer = rand(8, 14); }
+        else discharge(p);
       }
     } else if(p.state === "leaving"){
       p.timer -= dt;
@@ -3150,6 +3153,7 @@ function update(dt){
   }
 }
 function alarmFor(p){
+  if(LV.nicu) p.sick = true;
   p.health = Math.max(12, p.health - (LV.mode==="icu" ? 10 : 25));
   p.flash = 4; sfx.alarm();
   toast(`${roomOf(p)}: ${p.name}, ${p.active.def.t.replace("!","").toLowerCase()}`, "alarm");
@@ -3217,6 +3221,7 @@ function cprBlocks(st){
   return false;
 }
 function complete(p, via){
+  if(LV.nicu && p.active) G.nicuDone = (G.nicuDone||0) + 1;
   if(p.active && (LV.mode==="icu" || LV.nicu) && helpCosts()){ const per = LV.nicu ? 5 : 12, was = G.helpTick||0; G.helpTick = was + (p.active.def.parts ? p.active.def.parts.length : 1);
     if(Math.floor(G.helpTick/per) > Math.floor(was/per)) earnHelp(); /* ICU/PICU: 1 per 12 cares (about 5-7 a shift), NICU: 1 per 5 */ }
   if(p.active && LV.mode==="floor") retentionNext(p, p.active.def);
@@ -3287,6 +3292,9 @@ function rushTo(p){
   toast(`${p.name} ${d.toast}`, "good");
   dirty = true;
 }
+/* NICU: only well babies who never had an emergency go home; everyone else stays in the pod all shift */
+const nicuStays = p => p.sick || !/34 weeks|jaundice|diabetic/i.test(p.dx || "");
+const nicuFollow = () => { const f = (LV.follow || []).filter(d=>d.t!=="Car seat test"); return f.length ? f : [NIF.cares]; };
 function discharge(p){
   G.score += 150; G.discharged++;
   const admitIt = LV.mode==="er" && p.dispo==="admit";
@@ -4095,7 +4103,7 @@ function endShift(reshow){
     const rrt = LV.mode==="rrt", erm = LV.mode==="er", icum = LV.mode==="icu";
     if(icum) G.inPct = G.icu.total ? Math.round(100 * G.icu.inRange / (G.icu.total)) : 0;
     G.seen = G.discharged + G.rushed;
-    const s1 = G.outOfHearts ? false : icum ? (G.expired===0 && G.icu.caresDone >= 3) : rrt ? G.callsDone >= LV.calls.length : erm ? G.seen >= 5 : G.discharged >= 3;
+    const s1 = G.outOfHearts ? false : icum ? (G.expired===0 && G.icu.caresDone >= 3) : rrt ? G.callsDone >= LV.calls.length : erm ? G.seen >= 5 : LV.nicu ? (G.expired===0 && (G.nicuDone||0) >= 6) : G.discharged >= 3;
     const s2 = s1 && G.score >= LV.stars[0];
     const s3 = s2 && G.score >= LV.stars[1] && G.transfers === 0 && G.expired===0 && (rrt ? G.badShocks===0 : icum ? G.inPct >= 70 : erm ? true : G.assessedN === G.dueN);
     const stars = s3 ? 3 : s2 ? 2 : s1 ? 1 : 0;
@@ -4155,10 +4163,12 @@ function endShift(reshow){
     ${cr ? rankCard(cr.after, cr.after - cr.before) : ""}
     <div class="stats">${statsHtml || `
       <div class="stat"><b>${G.score}</b><span>Points${isBest?" · new best":""}</span></div>
-      <div class="stat"><b>${G.discharged}</b><span>Sent home</span></div>
+      ${LV.nicu ? `<div class="stat"><b>${G.nicuDone||0}</b><span>Cares and emergencies handled</span></div>
+      <div class="stat"><b>${G.discharged}</b><span>Babies sent home</span></div>
+      <div class="stat"><b>${G.transfers}</b><span>Times the NICU team stepped in</span></div>` : `<div class="stat"><b>${G.discharged}</b><span>Sent home</span></div>
       <div class="stat"><b>${G.escalated}</b><span>Escalated to ICU in time</span></div>
       <div class="stat"><b>${G.rushed}</b><span>Rushed to OR, CT or cath lab</span></div>
-      <div class="stat"><b>${G.transfers}</b><span>Moved to ICU too late</span></div>
+      <div class="stat"><b>${G.transfers}</b><span>Moved to ICU too late</span></div>`}
       <div class="stat"><b>${G.helps}</b><span>Times you called charge</span></div>
       <div class="stat"><b>${G.assessedN}/${G.dueN}</b><span>Patients assessed</span></div>
       ${G.expired ? `<div class="stat"><b>${G.expired}</b><span>Patients expired</span></div>` : ""}`}
